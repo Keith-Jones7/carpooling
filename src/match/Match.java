@@ -1,28 +1,45 @@
 package match;
 
+import algo.BranchAndBound;
+import ilog.concert.IloException;
 import ilog.concert.IloIntExpr;
 import ilog.concert.IloIntVar;
 import ilog.concert.IloNumExpr;
 import ilog.cplex.IloCplex;
 import model.Driver;
+import model.Instance;
 import model.Passenger;
 import map.GISMap;
 
 import java.util.List;
 public class Match {
+    int nDrivers;
+    int nPassengers;
     public List<Driver> driverList;
     public List<Passenger> passengerList;
 
     double[][] valid_matrix;
     int[][] match_matrix;
-//    TestMap map = new TestMap();
+
+    public double[][] ppValidMatrix;                      // 顾客到顾客是否能拼车成功地计算, 0: 无法拼车成功 >0: 拼车成功后共同行驶时间
+    public double[][] ppTimeMatrix;                       //
+    public double[][] dpTimeMatrix;                        // 司机到顾客起点地时间
+
+    //    TestMap map = new TestMap();
     private static final map.GISMap map = new GISMap();
     public Match(List<Driver> drivers, List<Passenger> passengers) {
         driverList = drivers;
         passengerList = passengers;
+        this.nDrivers = driverList.size();
+        this.nPassengers = passengerList.size();
+        this.ppValidMatrix = new double[nPassengers][nPassengers];
+        this.ppTimeMatrix = new double[nPassengers][nPassengers];
+        this.dpTimeMatrix = new double[nDrivers][nPassengers];
         match_matrix = new int[drivers.size()][passengers.size()];
         valid_matrix = new double[drivers.size()][passengers.size()];
         calValid();
+        calPPValid();
+        calDPTime();
     }
 
     public void calValid() {
@@ -53,6 +70,33 @@ public class Match {
             }
             i++;
         }
+    }
+
+    void calPPValid() {
+        long s = System.currentTimeMillis();
+        for (int i = 0; i < nPassengers; i++) {
+            for (int j = 0; j < nPassengers; j++) {
+                Passenger passenger1 = passengerList.get(i);
+                Passenger passenger2 = passengerList.get(j);
+                ppTimeMatrix[i][j] = map.calTimeDistance(passenger1.cur_coor, passenger2.origin_coor);
+                if (map.inEllipsoid(passenger1, passenger2) || map.allInEllipsoid(passenger1, passenger2)) {
+                    ppValidMatrix[i][j] = map.calSimilarity(passenger1, passenger2);
+                }
+            }
+        }
+        System.out.println(System.currentTimeMillis() - s + "ppvalid") ;
+    }
+
+    void calDPTime() {
+        long s = System.currentTimeMillis();
+        for (int i = 0; i < nDrivers; i++) {
+            Driver driver = driverList.get(i);
+            for (int j = 0; j < nPassengers; j++) {
+                Passenger passenger = passengerList.get(j);
+                dpTimeMatrix[i][j] = map.calTimeDistance(driver.cur_coor, passenger.origin_coor); // Todo: ?
+            }
+        }
+        System.out.println(System.currentTimeMillis() - s + "DPtime");
     }
     public int match(long cur_time) throws Exception {
         IloCplex model = new IloCplex();
@@ -138,5 +182,12 @@ public class Match {
             }
         }
         return count;
+    }
+
+    public int matchBNP(long cur_time) throws IloException {
+        Instance inst = new Instance(driverList, passengerList, ppValidMatrix, dpTimeMatrix );
+        BranchAndBound bnp = new BranchAndBound(inst);
+        bnp.run();
+        return 0;
     }
 }
