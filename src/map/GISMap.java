@@ -30,6 +30,8 @@ public class GISMap implements TouringMap<Coordinates>, TravelCal<Passenger> {
                 ",\"lng\":" +
                 String.format("%.6f", o.lng) +
                 "}]}";
+        
+        
     }
     private static String sendHttpPost(String jsonBody) {
         try {
