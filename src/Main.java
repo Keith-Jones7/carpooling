@@ -53,8 +53,8 @@ public class Main {
         int time_intervals = 20;
         for (int i = 0; i < time_intervals; i++) {
             //    batch.cur_time = cur_time;
-            String file_name_driver = "D:\\Hubble_data\\Test_sample\\drs" + sample_index + "\\d\\driver_" + i + ".txt";
-            String file_name_passenger = "D:\\Hubble_data\\Test_sample\\drs" + sample_index + "\\p\\passenger_" + i + ".txt";
+            String file_name_driver = "src/sample/drs" + sample_index + "/d/driver_" + i + ".txt";
+            String file_name_passenger = "src/sample/drs" + sample_index + "/p/passenger_" + i + ".txt";
             long start_time = System.currentTimeMillis();
             //  batch.updateDrivers(file_name_driver);
             batch.updatePassenger(file_name_passenger);
