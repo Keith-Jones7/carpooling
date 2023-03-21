@@ -11,7 +11,9 @@ import java.net.URL;
 import java.util.HashMap;
 
 public class GISMap implements TouringMap<Coordinates>, TravelCal<Passenger> {
+    int a = 1;
     public GISMap() {
+        
         spatialMap = new HashMap<>();
         timeMap = new HashMap<>();
     }
