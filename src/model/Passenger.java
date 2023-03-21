@@ -1,5 +1,6 @@
 package model;
 
+import common.Param;
 import map.TestMap;
 
 //乘客
@@ -25,7 +26,7 @@ public class Passenger {
         this.dest_coor = dest;
         this.cur_coor = new Coordinates(origin.lng, origin.lat);
         this.submit_time = submit;
-        this.expected_arrive_time = (long) new TestMap().calTimeDistance(origin_coor, dest_coor) + 600;
+        this.expected_arrive_time = (long) new TestMap().calTimeDistance(origin_coor, dest_coor) + Param.MAX_DETOUR_TIME;
     }
     public void renew(long cur_time) {
         if (cur_driver != null) {

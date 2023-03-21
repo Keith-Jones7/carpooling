@@ -1,6 +1,7 @@
 package match;
 
 import algo.BranchAndBound;
+import common.Param;
 import ilog.concert.IloException;
 import ilog.concert.IloIntExpr;
 import ilog.concert.IloIntVar;
@@ -38,8 +39,6 @@ public class Match {
         match_matrix = new int[drivers.size()][passengers.size()];
         valid_matrix = new double[drivers.size()][passengers.size()];
         calValid();
-        calPPValid();
-        calDPTime();
     }
 
     public void calValid() {
@@ -50,7 +49,7 @@ public class Match {
                 long start_time = System.currentTimeMillis();
                 if (driver.queue.size() == 0) {
                     //System.out.println(map.calTimeDistance(driver.cur_coor, passenger.origin_coor));
-                    if (map.calTimeDistance(driver.cur_coor, passenger.origin_coor) < 300) {
+                    if (map.calTimeDistance(driver.cur_coor, passenger.origin_coor) < Param.MAX_ETA) {
                         valid_matrix[i][j] = 1;
                     }else {
                         valid_matrix[i][j] = 0;

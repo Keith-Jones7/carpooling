@@ -1,5 +1,6 @@
 package map;
 
+import common.Param;
 import model.Coordinates;
 import model.Passenger;
 
@@ -92,6 +93,9 @@ public class GISMap implements TouringMap<Coordinates>, TravelCal<Passenger> {
     
     @Override
     public boolean inEllipsoid(Passenger p1, Passenger p2) {
+        if (!Param.inEllipsoid(p1, p2)) {
+            return false;
+        }
         double o1_o2 = calTimeDistance(p1.cur_coor, p2.origin_coor);
         double o2_d1 = calTimeDistance(p2.origin_coor, p1.dest_coor);
         double d1_d2 = calTimeDistance(p1.dest_coor, p2.dest_coor);
@@ -101,6 +105,9 @@ public class GISMap implements TouringMap<Coordinates>, TravelCal<Passenger> {
 
     @Override
     public boolean allInEllipsoid(Passenger p1, Passenger p2) {
+        if (!Param.allInEllipsoid(p1, p2)) {
+            return false;
+        }
         double o1_o2 = calTimeDistance(p1.cur_coor, p2.origin_coor);
         double o2_d2 = calTimeDistance(p2.origin_coor, p2.dest_coor);
         double d2_d1 = calTimeDistance(p2.dest_coor, p1.dest_coor);

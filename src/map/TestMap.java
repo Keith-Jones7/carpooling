@@ -30,7 +30,6 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
      * @param o2 元素2
      * @return true: 重合, false: 不重合
      */
-
     @Override
     public boolean equals(Coordinates o1, Coordinates o2) {
         if (o1 == null || o2 == null) {
@@ -94,7 +93,6 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
         double o2_d2 = calTimeDistance(p2.origin_coor, p2.dest_coor);
         double d2_d1 = calTimeDistance(p2.dest_coor, p1.dest_coor);
         return o1_o2 + o2_d2 + d2_d1 + p1.past_time < p1.expected_arrive_time - p1.submit_time;
-
     }
 
     /**
