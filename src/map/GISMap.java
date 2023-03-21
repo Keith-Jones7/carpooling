@@ -21,6 +21,7 @@ public class GISMap implements TouringMap<Coordinates>, TravelCal<Passenger> {
     private final HashMap<Integer, Double> timeMap;
     
     private static String generateJson(Coordinates o, Coordinates d) {
+        String a = "";
         return "{\"cityCode\": \"320100\",\"dest\": {\"lat\":" +
                 String.format("%.6f", d.lat) +
                 ",\"lng\":" +
