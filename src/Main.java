@@ -7,7 +7,9 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception{
-        runSample2(2);
+        runSample2(4);
+        runDefault();
+//        runSample2(2);
     }
     public static void runDefault() throws Exception{
         Batch batch = new Batch();

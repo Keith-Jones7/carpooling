@@ -10,14 +10,16 @@ public class Instance {
     public List<Passenger> passengerList;
 
     public double[][] ppValidMatrix;
+    public double[][] ppTimeMatrix;
     public double[][] dpTimeMatrix;
 
-    public Instance(List<Driver> driverList, List<Passenger> passengerList, double[][] ppValidMatrix, double[][] dpTimeMatrix) {
+    public Instance(List<Driver> driverList, List<Passenger> passengerList, double[][] ppValidMatrix, double[][] ppTimeMatrix, double[][] dpTimeMatrix) {
         this.nDrivers = driverList.size();
         this.nPassengers = passengerList.size();
         this.driverList = driverList;
         this.passengerList = passengerList;
         this.ppValidMatrix = ppValidMatrix;
+        this.ppTimeMatrix = ppTimeMatrix;
         this.dpTimeMatrix = dpTimeMatrix;
         prepare();
     }
