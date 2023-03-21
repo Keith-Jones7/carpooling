@@ -12,7 +12,6 @@ import java.util.HashMap;
 
 public class GISMap implements TouringMap<Coordinates>, TravelCal<Passenger> {
     public GISMap() {
-        
         spatialMap = new HashMap<>();
         timeMap = new HashMap<>();
     }
