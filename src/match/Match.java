@@ -10,9 +10,7 @@ import ilog.concert.IloIntVar;
 import ilog.concert.IloNumExpr;
 import ilog.cplex.IloCplex;
 import map.TestMap;
-import model.Driver;
-import model.Instance;
-import model.Passenger;
+import model.*;
 import map.GISMap;
 
 import java.util.List;
