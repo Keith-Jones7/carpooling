@@ -7,7 +7,7 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception{
-        runSample(20, 4);
+        runSample(20, 3);
     }
     public static void runDefault(int batch_num, int driver_num, int passenger_num) throws Exception{
         Batch batch = new Batch();
