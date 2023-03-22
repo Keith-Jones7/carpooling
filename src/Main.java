@@ -32,6 +32,7 @@ public class Main {
     }
     public static void runSample(int batch_num, int sample_index) throws Exception{
         Batch batch = new Batch();
+        int passenger_sum = 0, match_sum = 0;
         for (int i = 0; i < batch_num; i++) {
             String file_name_driver = "src/sample/drs" + sample_index + "/d/drivers_t" + i + ".txt";
             String file_name_passenger = "src/sample/drs" + sample_index + "/p/passengers_t" + i + ".txt";
@@ -47,6 +48,8 @@ public class Main {
             batch.matching = new Match(batch.driverList, batch.passengerList);
             batch.cur_time += 30;
             int result = batch.matching.match(batch.cur_time);
+            passenger_sum += waiting_passenger_num;
+            match_sum += result * 2;
             long end_time = System.currentTimeMillis();
             System.out.printf("第%d个阶段，待匹配司机数为%d，待匹配乘客数为%d，匹配成功对数为%d，" +
                             "当前阶段剩余司机数为%d，剩余乘客数为%d，求解总消耗时长%d毫秒",
@@ -54,6 +57,8 @@ public class Main {
                     batch.driverList.size(), batch.passengerList.size(), end_time - start_time);
             System.out.println();
         }
-        System.out.println();
+        System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，匹配成功率为%.2f%%",
+                passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size(), 
+                batch.passengerList.size(), (double) match_sum / passenger_sum * 100);
     }
 }

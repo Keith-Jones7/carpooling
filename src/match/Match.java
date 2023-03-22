@@ -50,9 +50,10 @@ public class Match {
             for (Passenger passenger : passengerList) {
                 long start_time = System.currentTimeMillis();
                 if (driver.queue.size() == 0) {
+                    double eta = map.calTimeDistance(driver.cur_coor, passenger.origin_coor);
                     //System.out.println(map.calTimeDistance(driver.cur_coor, passenger.origin_coor));
-                    if (map.calTimeDistance(driver.cur_coor, passenger.origin_coor) < Param.MAX_ETA) {
-                        valid_matrix[i][j] = 1;
+                    if (eta <= Param.MAX_ETA) {
+                        valid_matrix[i][j] = 2 - (eta) / Param.MAX_ETA;
                     }else {
                         valid_matrix[i][j] = 0;
                     }
@@ -60,7 +61,7 @@ public class Match {
                     Passenger passenger1 = driver.queue.peek();
                     if (map.inEllipsoid(passenger1, passenger) ||
                             map.allInEllipsoid(passenger1, passenger)) {
-                        valid_matrix[i][j] += 1;
+                        valid_matrix[i][j] += 2;
                         valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
                     }else {
                         valid_matrix[i][j] = 0;
