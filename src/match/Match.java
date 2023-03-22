@@ -1,16 +1,12 @@
 package match;
 
+import java.lang.reflect.Array;
+import java.util.*;
 import algo.BranchAndBound;
 import common.Param;
-import ilog.concert.IloException;
-import ilog.concert.IloIntExpr;
-import ilog.concert.IloIntVar;
-import ilog.concert.IloNumExpr;
-import ilog.cplex.IloCplex;
-import model.Driver;
-import model.Instance;
-import model.Passenger;
-import map.GISMap;
+import ilog.concert.*;
+import model.*;
+import map.*;
 
 import java.util.List;
 public class Match {
@@ -26,8 +22,8 @@ public class Match {
     public double[][] ppTimeMatrix;                       //
     public double[][] dpTimeMatrix;                        // 司机到顾客起点地时间
 
-    //    TestMap map = new TestMap();
-    private static final map.GISMap map = new GISMap();
+        TestMap map = new TestMap();
+//    private static final map.GISMap map = new GISMap();
     public Match(List<Driver> drivers, List<Passenger> passengers) {
         driverList = drivers;
         passengerList = passengers;
@@ -39,6 +35,8 @@ public class Match {
         match_matrix = new int[drivers.size()][passengers.size()];
         valid_matrix = new double[drivers.size()][passengers.size()];
         calValid();
+        calPPValid();
+        calDPTime();
     }
 
     public void calValid() {
@@ -187,6 +185,29 @@ public class Match {
         Instance inst = new Instance(driverList, passengerList, ppValidMatrix, ppTimeMatrix, dpTimeMatrix );
         BranchAndBound bnp = new BranchAndBound(inst);
         bnp.run();
-        return 0;
+        Solution sol = bnp.bestSol;
+        // remove drivers and passengers
+        List<Driver> removeDrivers = new ArrayList<>();
+        List<Passenger> removePassengers = new ArrayList<>();
+        for (int i = 0; i < nDrivers; i++) {
+            for (Pattern pattern : sol.patterns) {
+                if (pattern.driverId == i) {
+                    removeDrivers.add(driverList.get(i));
+                }
+            }
+        }
+        for (int j = 0; j < nPassengers; j++) {
+            for (Pattern pattern : sol.patterns) {
+                if (pattern.passenger1Id == j) {
+                    removePassengers.add(passengerList.get(j));
+                }
+                if (pattern.passenger2Id == j) {
+                    removePassengers.add(passengerList.get(j));
+                }
+            }
+        }
+        driverList.removeAll(removeDrivers);
+        passengerList.removeAll(removePassengers);
+        return sol.patterns.size();
     }
 }

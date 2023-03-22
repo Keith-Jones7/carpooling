@@ -6,6 +6,7 @@ import ilog.cplex.IloCplex;
 import javafx.util.Pair;
 import model.Instance;
 import model.Pattern;
+import model.Solution;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -20,6 +21,7 @@ public class RestrictMasterProblem {
     IloObjective obj;
     IloRange[] ranges;
     ArrayList<IloNumVar> x;
+    ArrayList<IloConversion> x_conv;
     IloNumVar[] artificialVars;
     ArrayList<Pattern> pool;
 
@@ -45,6 +47,7 @@ public class RestrictMasterProblem {
     void formulate() throws IloException {
         cplex = new IloCplex();
         x = new ArrayList<>();
+        x_conv = new ArrayList<>();
         pool = new ArrayList<>();
         ranges = new IloRange[nPassengers + nDrivers];
         // objective
@@ -71,13 +74,13 @@ public class RestrictMasterProblem {
         artificialVars = new IloNumVar[nPassengers + nDrivers];
         // artificial var added in the constraints(1)
         for (int i = 0; i < nDrivers; i++) {
-            IloColumn col = cplex.column(obj, bigM);
+            IloColumn col = cplex.column(obj, -bigM);
             col = col.and(cplex.column(ranges[i], 1));
             artificialVars[i] = cplex.numVar(col, 0, IloInfinity, IloNumVarType.Float, "avOnDriver" + i);
         }
         // artificial var added in the constraints(2)
         for (int j = 0; j < nPassengers; j++) {
-            IloColumn col = cplex.column(obj, bigM);
+            IloColumn col = cplex.column(obj, -bigM);
             col = col.and(cplex.column(ranges[nDrivers + j], 1));
             artificialVars[nDrivers + j] = cplex.numVar(col, 0, IloInfinity, IloNumVarType.Float, "avOnPassenger" + j);
         }
@@ -98,8 +101,9 @@ public class RestrictMasterProblem {
     void addColumns(ArrayList<Pattern> patterns) throws IloException {
         for (Pattern pattern : patterns) {
             int size = pool.size();
+            pool.add(pattern);
             // add columns and vars
-            IloColumn col = cplex.column(obj, pattern.time);
+            IloColumn col = cplex.column(obj, pattern.profit);
             // range on driver
             col = col.and(cplex.column(ranges[pattern.driverId], 1));
             // range on two passengers
@@ -115,6 +119,41 @@ public class RestrictMasterProblem {
 
     void solveLP() throws IloException {
         boolean feasible = cplex.solve();
+    }
+
+    Solution solveIP() throws IloException {
+        Solution sol = null;
+        convertToIP();
+        cplex.solve();
+        boolean feasible = isModelFeasible();
+        if (feasible) {
+            sol = getIPSol();
+        }
+        convertToLP();
+        return sol;
+    }
+
+    private void convertToIP() {
+        try {
+            for (IloNumVar iloNumVar : x) {
+                IloConversion conv = cplex.conversion(iloNumVar, IloNumVarType.Int);
+                cplex.add(conv);
+                x_conv.add(conv);
+            }
+        } catch (IloException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void convertToLP() {
+        try {
+            for (IloConversion iloConversion : x_conv) {
+                cplex.remove(iloConversion);
+            }
+            x_conv.clear();
+        } catch (IloException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     double[] getDualsOfRanges() throws IloException {
@@ -155,6 +194,20 @@ public class RestrictMasterProblem {
             }
         }
         return new LPSol(vals, objVal);
+    }
+
+    Solution getIPSol() throws IloException {
+        double objVal = cplex.getObjValue();
+        Solution sol = new Solution();
+        for (int p = 0; p < pool.size(); p++) {
+            Pattern pattern = pool.get(p);
+            double val = cplex.getValue(x.get(p));
+            if (Param.equals(val, 1)) {
+                sol.patterns.add(pattern);
+            }
+        }
+        sol.profit = objVal;
+        return sol;
     }
 
     void end() {

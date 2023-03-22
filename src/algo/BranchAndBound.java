@@ -1,8 +1,10 @@
 package algo;
 
 import common.Param;
+import ilog.concert.IloException;
 import model.Instance;
 import model.Pattern;
+import model.Solution;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -12,6 +14,7 @@ public class BranchAndBound {
     public Instance inst;
     public int nDrivers;
     public int nPassengers;
+    public Solution bestSol;
 
     public RestrictMasterProblem rmp;
     public PricingProblem pp;
@@ -23,15 +26,23 @@ public class BranchAndBound {
         this.rmp = new RestrictMasterProblem(inst);
         this.pp = new PricingProblem(inst);
         this.cg = new ColumnGeneration(inst, rmp, pp);
+        this.bestSol = new Solution();
     }
 
     public void run() {
-        solve();
+        try {
+            bestSol = genMIPSol();
+        } catch (IloException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void solve() {
-        ArrayList<Pattern> pool = genInitPatterns();
-        cg.solve(pool);
+//        ArrayList<Pattern> pool = genInitPatterns();
+        ArrayList<Pattern> pool = genAllPatterns();
+        boolean isSolveAll = true;
+        boolean isSolveLP = false;
+        cg.solve(pool, isSolveAll, isSolveLP);
     }
 
     public void updateUB() {
@@ -44,6 +55,12 @@ public class BranchAndBound {
 
     public void createRoot() {
 
+    }
+
+    Solution genMIPSol() throws IloException {
+        ArrayList<Pattern> pool = genAllPatterns();
+        rmp.addColumns(pool);
+        return rmp.solveIP();
     }
 
     public ArrayList<Pattern> genInitPatterns() {
@@ -93,20 +110,25 @@ public class BranchAndBound {
         return pool;
     }
 
-    public void genAllPatterns() {
+    // 生成所有pattern
+    public ArrayList<Pattern> genAllPatterns() {
         ArrayList<Pattern> pool = new ArrayList<>();
         for (int j1 = 0; j1 < nPassengers; j1++) {
             for (int j2 = 0; j2 < nPassengers; j2++) {
-                if (inst.ppValidMatrix[j1][j2] > 0) {
+                double sameTime = inst.ppValidMatrix[j1][j2];
+                if (j1 != j2 && sameTime > 0) {
                     for (int i = 0; i < nDrivers; i++) {
-//                        if (inst.dpTimeMatrix[i][j1] < ) {
-//
-//                        }
+                        double getTime = inst.dpTimeMatrix[i][j1] + inst.ppTimeMatrix[j1][j2];
+                        if (getTime < Param.MAX_ETA) {
+                            Pattern pattern = new Pattern(i, j1, j2);
+                            pattern.setTime(sameTime, getTime);
+                            pool.add(pattern);
+                        }
                     }
                 }
             }
         }
-
+        return pool;
     }
 
     public void branch() {

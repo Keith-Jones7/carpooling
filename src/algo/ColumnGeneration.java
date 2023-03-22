@@ -22,12 +22,29 @@ public class ColumnGeneration {
         this.pp = pp;
     }
 
-    void solve(ArrayList<Pattern> pool) {
+    void solve(ArrayList<Pattern> pool, boolean isSolveAll, boolean isSolveLP) {
         try {
             rmp.addColumns(pool);
-            solve();
+            if (isSolveAll) {
+                solveAll(isSolveLP);
+            } else {
+                solve();
+            }
         } catch (IloException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    void solveAll(boolean isSolveLP) {
+        try {
+            if (isSolveLP) {
+                rmp.solveLP();
+            } else {
+                rmp.solveIP();
+            }
+
+        } catch (IloException e) {
+            e.printStackTrace();
         }
     }
 

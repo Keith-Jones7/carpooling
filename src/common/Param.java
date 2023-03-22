@@ -21,7 +21,7 @@ public class Param {
     /**
      * MAX_ETA：最长接驾时间，单位秒
      */
-    public static final long MAX_ETA = 600;
+    public static final long MAX_ETA = 300;
 
     /**
      * MAX_DETOUR_TIME：最长绕路时间，单位秒
@@ -33,10 +33,7 @@ public class Param {
     public static Random RND;
     public static final double eps = 1e-3;
 
-    public static final double obj1Coef = 100;
-
-    public static final double delta = 300;
-    public static final double sigma = 300;
+    public static final double obj1Coef = 1200;
 
     /**
      * 将角度值转为弧度值

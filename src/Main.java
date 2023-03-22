@@ -7,7 +7,8 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception{
-        runSample2(4);
+//        runSample2(4);
+        runDefault();
     }
     public static void runDefault() throws Exception{
         Batch batch = new Batch();
@@ -16,8 +17,8 @@ public class Main {
         batch.passengerList = new ArrayList<>();
         for (int i = 0; i < time_interval; i++) {
             long start_time = System.currentTimeMillis();
-            List<Driver> driverList = batch.generateDrivers(5);
-            List<Passenger> passengerList = batch.generatePassengers(5);
+            List<Driver> driverList = batch.generateDrivers(10);
+            List<Passenger> passengerList = batch.generatePassengers(10);
             batch.driverList.addAll(driverList);
             batch.passengerList.addAll(passengerList);
             batch.matching = new Match(batch.driverList, batch.passengerList);
