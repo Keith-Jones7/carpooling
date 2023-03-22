@@ -45,7 +45,8 @@ public class Batch {
                 }
             }
         }catch (Exception e) {
-            System.out.println();
+            System.out.println("读取司机信息错误！");
+            e.printStackTrace();
         }
     }
 
@@ -67,7 +68,8 @@ public class Batch {
                         new Coordinates(lng2, lat2), cur_time));
             }
         }catch (Exception e) {
-            System.out.println();
+            System.out.println("读取乘客信息错误！");
+            e.printStackTrace();
         }
     }
     /**

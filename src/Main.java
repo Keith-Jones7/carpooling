@@ -7,18 +7,16 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception{
-//        runSample2(4);
-        runDefault();
+        runSample2(4);
     }
-    public static void runDefault() throws Exception{
+    public static void runDefault(int batch_num, int driver_num, int passenger_num) throws Exception{
         Batch batch = new Batch();
-        int time_interval = 20;
         batch.driverList = new ArrayList<>();
         batch.passengerList = new ArrayList<>();
-        for (int i = 0; i < time_interval; i++) {
+        for (int i = 0; i < batch_num; i++) {
             long start_time = System.currentTimeMillis();
-            List<Driver> driverList = batch.generateDrivers(10);
-            List<Passenger> passengerList = batch.generatePassengers(10);
+            List<Driver> driverList = batch.generateDrivers(driver_num);
+            List<Passenger> passengerList = batch.generatePassengers(passenger_num);
             batch.driverList.addAll(driverList);
             batch.passengerList.addAll(passengerList);
             batch.matching = new Match(batch.driverList, batch.passengerList);
@@ -30,12 +28,12 @@ public class Main {
             System.out.println();
         }
     }
-    public static void runSample(int sample_index) throws Exception{
+    public static void runSample(int batch_num, int sample_index) throws Exception{
         Batch batch = new Batch();
         int time_intervals = 1;
-        for (int i = 0; i < time_intervals; i++) {
-            String file_name_driver = "D:\\Hubble_data\\Test_sample\\drs" + sample_index + "\\d\\driver_" + i + ".txt";
-            String file_name_passenger = "D:\\Hubble_data\\Test_sample\\drs" + sample_index + "\\passenger_" + i + ".txt";
+        for (int i = 0; i < batch_num; i++) {
+            String file_name_driver = "src/sample/drs" + sample_index + "/d/driver_" + i + ".txt";
+            String file_name_passenger = "src/sample/drs" + sample_index + "/p/passenger_" + i + ".txt";
             long start_time = System.currentTimeMillis();
             batch.updateDrivers(file_name_driver);
             batch.updatePassenger(file_name_passenger);
@@ -49,13 +47,12 @@ public class Main {
         }
         System.out.println();
     }
-    public static void runSample2(int sample_index) throws Exception{
+    public static void runSample2(int batch_num, int sample_index) throws Exception{
         Batch batch = new Batch();
-        int time_intervals = 20;
-        for (int i = 0; i < time_intervals; i++) {
+        for (int i = 0; i < batch_num; i++) {
             //    batch.cur_time = cur_time;
-            String file_name_driver = "D:\\Hubble_data\\Test_sample\\drs" + sample_index + "\\d\\driver_" + i + ".txt";
-            String file_name_passenger = "D:\\Hubble_data\\Test_sample\\drs" + sample_index + "\\p\\passenger_" + i + ".txt";
+            String file_name_driver = "src/sample/drs" + sample_index + "/d/driver_" + i + ".txt";
+            String file_name_passenger = "src/sample/drs" + sample_index + "/p/passenger_" + i + ".txt";
             long start_time = System.currentTimeMillis();
             //  batch.updateDrivers(file_name_driver);
             batch.updatePassenger(file_name_passenger);
