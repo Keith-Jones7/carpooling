@@ -27,7 +27,11 @@ public class Param {
      * MAX_DETOUR_TIME：最长绕路时间，单位秒
      */
     public static final long MAX_DETOUR_TIME = 600;
-    
+
+    /**
+     * GAP：随机生成坐标的地理范围，gap越大坐标范围越大
+     */
+    public static final double GAP = 0.1;
     public static final double EPS = 1e-6;
     public static final int SEED = 3;
     public static Random RND;

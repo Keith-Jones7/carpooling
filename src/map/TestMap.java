@@ -1,19 +1,11 @@
 package map;
 
+import common.Param;
 import model.Coordinates;
 import model.Passenger;
 
 public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
-
-    /**
-     * SPEED：车辆平均行驶速度,单位千米每秒
-     */
-    private static final double SPEED = 36 / 3600.0;
-
-    /**
-     * EARTH_RADIUS：地球半径
-     */
-    private static final double EARTH_RADIUS = 6378.137;
+    
 
     /**
      * 将角度值转为弧度值
@@ -50,7 +42,7 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
         double radLngGap = rad(o1.lng) - rad(o2.lng);
         double dis = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(radLatGap / 2), 2)) +
                 Math.cos(o1.lat) * Math.cos(o2.lat) * Math.pow(Math.sin(radLngGap / 2), 2));
-        dis *= EARTH_RADIUS;
+        dis *= Param.EARTH_RADIUS * 1000;
         return dis;
     }
 
@@ -63,7 +55,7 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
     @Override
     public double calTimeDistance(Coordinates o1, Coordinates o2) {
         double dis = calSpatialDistance(o1, o2);
-        return dis / SPEED;
+        return dis / Param.SPEED;
     }
 
     /**

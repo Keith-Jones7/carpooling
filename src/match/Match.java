@@ -7,6 +7,7 @@ import ilog.concert.IloIntExpr;
 import ilog.concert.IloIntVar;
 import ilog.concert.IloNumExpr;
 import ilog.cplex.IloCplex;
+import map.TestMap;
 import model.Driver;
 import model.Instance;
 import model.Passenger;
@@ -25,9 +26,8 @@ public class Match {
     public double[][] ppValidMatrix;                      // 顾客到顾客是否能拼车成功地计算, 0: 无法拼车成功 >0: 拼车成功后共同行驶时间
     public double[][] ppTimeMatrix;                       //
     public double[][] dpTimeMatrix;                        // 司机到顾客起点地时间
-
-    //    TestMap map = new TestMap();
-    private static final map.GISMap map = new GISMap();
+    private static final TestMap map = new TestMap();
+    //private static final map.GISMap map = new GISMap();
     public Match(List<Driver> drivers, List<Passenger> passengers) {
         driverList = drivers;
         passengerList = passengers;

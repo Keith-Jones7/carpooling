@@ -1,5 +1,6 @@
 package match;
 
+import common.Param;
 import model.Coordinates;
 import model.Driver;
 import model.Passenger;
@@ -11,7 +12,6 @@ import java.util.*;
 public class Batch {
     public long cur_time = 0;       //当前batch的时刻
     public Match matching;
-    double gap = 0.1;               //随机生成坐标的地理范围，gap越大坐标范围越大
 
     public List<Driver> driverList; //司机列表
     public List<Passenger> passengerList;//乘客列表
@@ -25,9 +25,10 @@ public class Batch {
 
     /**
      *
-     * @param file_name 读取司机的txt文件名，格式：ID lng lat
+     * @param   file_name 读取司机的txt文件名，格式：ID lng lat
+     * @return  读取文件成功，返回true，否则返回false
      */
-    public void updateDrivers(String file_name) {
+    public boolean updateDrivers(String file_name) {
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file_name));
             String line;
@@ -41,20 +42,24 @@ public class Batch {
                     driver.renew(lng, lat, cur_time);
                 }else {
                     Driver driver = new Driver(lng, lat, cur_time);
+                    driverMap.put(ID, driver);
                     driverList.add(driver);
                 }
             }
+            return true;
         }catch (Exception e) {
             System.out.println("读取司机信息错误！");
             e.printStackTrace();
+            return false;
         }
     }
 
     /**
      *
-     * @param file_name 读取乘客的txt文件名，格式：lng1 lat1 lng2 lat2
+     * @param   file_name 读取乘客的txt文件名，格式：lng1 lat1 lng2 lat2
+     * @return  读取文件成功，返回true，否则返回false
      */
-    public void updatePassenger(String file_name) {
+    public boolean updatePassenger(String file_name) {
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file_name));
             String line;
@@ -67,44 +72,47 @@ public class Batch {
                 passengerList.add(new Passenger(new Coordinates(lng1, lat1),
                         new Coordinates(lng2, lat2), cur_time));
             }
+            return true;
         }catch (Exception e) {
             System.out.println("读取乘客信息错误！");
             e.printStackTrace();
+            return false;
         }
     }
     /**
      * 
      * @param num   随机生成的司机数目
-     * @return      返回随机生成的司机
      */
-    public List<Driver> generateDrivers(int num) {
+    public void generateDrivers(int num) {
         Random random = new Random(1);
-        List<Driver> driverList = new ArrayList<>();
         for (int i = 0; i < num; i++) {
-            double lng = random.nextDouble() * gap + 118.6;
-            double lat = random.nextDouble() * gap + 31.9;
-            driverList.add(new Driver(lng, lat, cur_time));
+            double lng = random.nextDouble() * Param.GAP + 118.6;
+            double lat = random.nextDouble() * Param.GAP + 31.9;
+            if (driverMap.containsKey(i)) {
+                Driver driver = driverMap.get(i);
+                driver.renew(lng, lat, cur_time);
+            }else {
+                Driver driver = new Driver(lng, lat, cur_time);
+                driverList.add(driver);
+                driverMap.put(i, driver);
+            }
         }
-        return driverList;
     }
 
     /**
      * 
      * @param num   随机生成的乘客数目
-     * @return      返回随机生成的乘客
      */
-    public List<Passenger> generatePassengers(int num) {
+    public void generatePassengers(int num) {
         Random random = new Random(1);
-        List<Passenger> passengerList = new ArrayList<>();
         for (int i = 0; i < num; i++) {
-            double lng1 = random.nextDouble() * gap + 118.6;
-            double lat1 = random.nextDouble() * gap + 31.91;
-            double lng2 = random.nextDouble() * gap + 118.6;
-            double lat2 = random.nextDouble() * gap + 31.91;
+            double lng1 = random.nextDouble() * Param.GAP + 118.6;
+            double lat1 = random.nextDouble() * Param.GAP + 31.9;
+            double lng2 = random.nextDouble() * Param.GAP + 118.3;
+            double lat2 = random.nextDouble() * Param.GAP + 31.4;
             passengerList.add(new Passenger(new Coordinates(lng1, lat1),
                     new Coordinates(lng2, lat2), cur_time));
         }
-        return passengerList;
     }
     
 }
