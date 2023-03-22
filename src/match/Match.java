@@ -213,4 +213,9 @@ public class Match {
         passengerList.removeAll(removePassengers);
         return sol.patterns.size();
     }
+
+    // Todo: 将剩余为拼车顾客安排司机
+    public void railMatch() {
+
+    }
 }

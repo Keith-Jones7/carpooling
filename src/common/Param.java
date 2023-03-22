@@ -37,7 +37,7 @@ public class Param {
     public static Random RND;
     public static final double eps = 1e-3;
 
-    public static final double obj1Coef = 1200;
+    public static final double obj1Coef = 1800;
 
     /**
      * 将角度值转为弧度值

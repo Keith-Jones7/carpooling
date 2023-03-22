@@ -35,5 +35,6 @@ public class Pattern {
         this.eta = eta;
         this.profit = Param.obj1Coef * same - eta + Param.MAX_ETA;
 //        this.profit = same;
+//        this.profit = 1;
     }
 }
