@@ -85,7 +85,6 @@ public class Match {
                 }
             }
         }
-        System.out.println(System.currentTimeMillis() - s + "ppvalid") ;
     }
 
     void calDPTime() {
@@ -97,7 +96,6 @@ public class Match {
                 dpTimeMatrix[i][j] = map.calTimeDistance(driver.cur_coor, passenger.origin_coor); // Todo: ?
             }
         }
-        System.out.println(System.currentTimeMillis() - s + "DPtime");
     }
 //    public int match(long cur_time) throws Exception {
 //        IloCplex model = new IloCplex();
