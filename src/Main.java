@@ -40,15 +40,17 @@ public class Main {
             if (!batch.updateDrivers(file_name_driver)) {
                 batch.generateDrivers(50);
             }
+            int size1 = batch.passengerList.size();
             if (!batch.updatePassenger(file_name_passenger)) {
                 batch.generatePassengers(100);
             }
+            int size2 = batch.passengerList.size();
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
             batch.cur_time += 30;
             int result = batch.matching.match(batch.cur_time);
-            passenger_sum += waiting_passenger_num;
+            passenger_sum += size2 - size1;
             match_sum += result * 2;
             long end_time = System.currentTimeMillis();
             System.out.printf("第%d个阶段，待匹配司机数为%d，待匹配乘客数为%d，匹配成功对数为%d，" +
@@ -57,7 +59,7 @@ public class Main {
                     batch.driverList.size(), batch.passengerList.size(), end_time - start_time);
             System.out.println();
         }
-        System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，匹配成功率为%.2f%%",
+        System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，拼车成功率为%.2f%%",
                 passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size(), 
                 batch.passengerList.size(), (double) match_sum / passenger_sum * 100);
     }
