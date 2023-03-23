@@ -21,12 +21,12 @@ public class Param {
     /**
      * MAX_ETA：最长接驾时间，单位秒
      */
-    public static final long MAX_ETA = 600;
+    public static final long MAX_ETA = 300;
 
     /**
      * MAX_DETOUR_TIME：最长绕路时间，单位秒
      */
-    public static final long MAX_DETOUR_TIME = 600;
+    public static final long MAX_DETOUR_TIME = 300;
 
     /**
      * GAP：随机生成坐标的地理范围，gap越大坐标范围越大
@@ -65,7 +65,7 @@ public class Param {
         dis *= EARTH_RADIUS;
         return dis;
     }
-
+    
     /**
      *
      * @param o1 坐标1
