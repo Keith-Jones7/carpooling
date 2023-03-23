@@ -114,5 +114,4 @@ public class Batch {
                     new Coordinates(lng2, lat2), cur_time));
         }
     }
-    
 }
