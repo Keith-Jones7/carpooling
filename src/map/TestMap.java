@@ -111,7 +111,11 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
         double d1_d2 = calTimeDistance(p1.dest_coor, p2.dest_coor);
           
         double same = Math.min(o2_d1, o2_d2);
-        return same / (o1_o2 + same + d1_d2);
+        double similarity = same / (o1_o2 + same + d1_d2);
+        if (similarity < 0.4) {// Todo: 行程相似度阈值设置
+            return 0;
+        }
+        return similarity;
     }
 }
 
