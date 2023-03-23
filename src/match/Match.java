@@ -60,7 +60,12 @@ public class Match {
                     if (map.inEllipsoid(passenger1, passenger) ||
                             map.allInEllipsoid(passenger1, passenger)) {
                         valid_matrix[i][j] += 2;
-                        valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
+                        double similarity = map.calSimilarity(passenger1, passenger);
+                        if (similarity == 0) {
+                            valid_matrix[i][j] = 0;
+                        }else {
+                            valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
+                        }
                     }else {
                         valid_matrix[i][j] = 0;
                     }
@@ -75,8 +80,8 @@ public class Match {
     void calPPValid() {
         long s = System.currentTimeMillis();
         for (int i = 0; i < nPassengers; i++) {
+            Passenger passenger1 = passengerList.get(i);
             for (int j = 0; j < nPassengers; j++) {
-                Passenger passenger1 = passengerList.get(i);
                 Passenger passenger2 = passengerList.get(j);
                 ppTimeMatrix[i][j] = map.calTimeDistance(passenger1.cur_coor, passenger2.origin_coor);
                 if (map.inEllipsoid(passenger1, passenger2) || map.allInEllipsoid(passenger1, passenger2)) {
@@ -171,6 +176,10 @@ public class Match {
         for (int i = driver_num - 1; i >= 0; i--) {
             if (driverList.get(i).queue.size() == 2) {
                 count++;
+                Driver driver = driverList.get(i);
+                Passenger passenger1 = driver.queue.poll();
+                Passenger passenger2 = driver.queue.poll();
+                double simi = map.calSimilarity(passenger1, passenger2);// Todo: 导出拼车成功的结果
                 driverList.remove(i);
             }
         }
