@@ -1,5 +1,6 @@
 ## DynamicRideSharingSample description:
-$drs1$: 单阶段司机乘客稀疏数据，用于测试
+
+$drs1$:  单阶段司机乘客稀疏数据，用于测试
 
 $drs2$:
 
