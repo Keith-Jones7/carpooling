@@ -125,17 +125,17 @@ public class BranchAndBound {
                         Pattern pattern1 = new Pattern(i, j1, -1);
                         pattern1.setAim(0.0, etaAim1);
                         pool.add(pattern1);
-//                        // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
-//                        for (int j2 = 0; j2 < nPassengers && j2 != j1; j2++) {
-//                            double etaAim = etaAim1 + inst.ppTimeMatrix[j1][j2];
-//                            double sameAim = inst.ppValidMatrix[j1][j2];
-//                            if (etaAim <= Param.MAX_ETA && sameAim > 0) {
-//                                // 生成一个司机带两个乘客的拼车方案
-//                                Pattern pattern2 = new Pattern(i, j1, j2);
-//                                pattern2.setAim(sameAim, etaAim);
-//                                pool.add(pattern2);
-//                            }
-//                        }
+                        // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
+                        for (int j2 = 0; j2 < nPassengers && j2 != j1; j2++) {
+                            double etaAim = etaAim1 + inst.ppTimeMatrix[j1][j2];
+                            double sameAim = inst.ppValidMatrix[j1][j2];
+                            if (etaAim <= Param.MAX_ETA && sameAim > 0) {
+                                // 生成一个司机带两个乘客的拼车方案
+                                Pattern pattern2 = new Pattern(i, j1, j2);
+                                pattern2.setAim(sameAim, etaAim);
+                                pool.add(pattern2);
+                            }
+                        }
                     }
                 }
             } else {// 若司机已经接了一个乘客，则只能再接一个乘客

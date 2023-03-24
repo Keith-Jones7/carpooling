@@ -112,7 +112,7 @@ public class Match {
             }
         }
     }
-    
+
     public int match(long cur_time, int flag) throws Exception {
         if (flag == 1) {
             return match_zjr(cur_time);
@@ -193,7 +193,7 @@ public class Match {
             }
         }
         Solution solution = new Solution();
-        
+
         for (int i = driver_num - 1; i >= 0; i--) {
             Driver driver = driverList.get(i);
             if (driverList.get(i).queue.size() == 2) {
@@ -229,6 +229,10 @@ public class Match {
                 cnt++;
             }
         }
+        for (int j = 0; j < nPassengers; j++) {
+            Passenger passenger = passengerList.get(j);
+            passenger.renew(cur_time);
+        }
         // remove drivers and passengers
         List<Driver> removeDrivers = new ArrayList<>();
         List<Passenger> removePassengers = new ArrayList<>();
@@ -251,7 +255,6 @@ public class Match {
         }
         driverList.removeAll(removeDrivers);
         passengerList.removeAll(removePassengers);
-
 
         return cnt;
     }
