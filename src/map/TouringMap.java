@@ -1,6 +1,6 @@
 package map;
 
-public interface TouringMap<T> {
+public interface TouringMap<T, M> {
     /**
      * 判断两个元素是否位置重合
      * @param o1 元素1
@@ -26,5 +26,28 @@ public interface TouringMap<T> {
      */
     double calTimeDistance(T o1, T o2);
 
+    /**
+     * 计算两个元素是否相互包含
+     * @param o1    元素1
+     * @param o2    元素2
+     * @return true 包含，false 不包含
+     */
+    boolean inEllipsoid(M o1, M o2);
+
+    /**
+     * 计算一个元素是否完全被另一个元素包含
+     * @param o1    元素1
+     * @param o2    元素2
+     * @return 元素2是否在元素1中，true 包含，false 不包含
+     */
+    boolean allInEllipsoid(M o1, M o2);
+
+    /**
+     * 计算两个元素的相似度，0-1之间
+     * @param o1    元素1
+     * @param o2    元素2
+     * @return  相似度指标，1表示完全相同
+     */
+    double calSimilarity(M o1, M o2);
 }
 

@@ -3,8 +3,9 @@ package map;
 import common.Param;
 import model.Coordinates;
 import model.Passenger;
+import model.Pattern;
 
-public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
+public class TestMap implements TouringMap<Coordinates, Passenger> {
     
 
     /**
@@ -23,7 +24,7 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
      * @return true: 重合, false: 不重合
      */
     @Override
-    public boolean equals(Coordinates o1, Coordinates o2) {
+    public  boolean equals(Coordinates o1, Coordinates o2) {
         if (o1 == null || o2 == null) {
             return false;
         }
