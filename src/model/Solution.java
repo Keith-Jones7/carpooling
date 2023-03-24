@@ -28,6 +28,9 @@ public class Solution {
                     continue;
                 }
                 int driverID = pattern.driverId;
+                if (driverID == 572) {
+                    int i = 1;
+                }
                 double driverLng = pattern.driver.cur_coor.lng;
                 double driverLat = pattern.driver.cur_coor.lat;
                 

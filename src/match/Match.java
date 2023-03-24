@@ -63,14 +63,16 @@ public class Match {
                     }
                 }else if (driver.queue.size() == 1){
                     Passenger passenger1 = driver.queue.peek();
-                    if (map.inEllipsoid(passenger1, passenger) ||
-                            map.allInEllipsoid(passenger1, passenger)) {
+                    double eta = map.calTimeDistance(passenger1.origin_coor, passenger.origin_coor);
+                    if ((map.inEllipsoid(passenger1, passenger) ||
+                            map.allInEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA) {
                         valid_matrix[i][j] += 2;
                         double similarity = map.calSimilarity(passenger1, passenger);
                         if (similarity == 0) {
                             valid_matrix[i][j] = 0;
                         }else {
                             valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
+                            valid_matrix[i][j] += 2 - (eta) / Param.MAX_ETA;
                         }
                     }else {
                         valid_matrix[i][j] = 0;
@@ -195,7 +197,6 @@ public class Match {
             }
         }
         Solution solution = new Solution();
-
         for (int i = driver_num - 1; i >= 0; i--) {
             Driver driver = driverList.get(i);
             if (driver.queue.size() == 2) {
@@ -203,13 +204,17 @@ public class Match {
                 Passenger passenger1 = driver.queue.getFirst();
                 Passenger passenger2 = driver.queue.getLast();
                 Pattern pattern = new Pattern(driver, driver.queue.getFirst(), driver.queue.getLast());
-                pattern.setAim(map.calSimilarity(passenger1, passenger2), map.calTimeDistance(driver.cur_coor, passenger2.origin_coor));
+                pattern.setAim(map.calSimilarity(passenger1, passenger2), map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor));
                 solution.patterns.add(pattern);
+                solution.profit += pattern.aim;
                 driverList.remove(i);
             }else if (driver.queue.size() == 1) {
                 Passenger passenger1 = driver.queue.getFirst();
                 Pattern pattern = new Pattern(driver, passenger1, null);
-                solution.patterns.add(new Pattern(driver, driver.queue.getFirst(), null));
+                solution.patterns.add(pattern);
+                double temp = map.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
+                pattern.setAim(0, temp);
+                solution.profit += pattern.aim;
             }
         }
         for (int j = passenger_num - 1; j >= 0; j--) {
@@ -271,5 +276,23 @@ public class Match {
     // Todo: 将剩余为拼车顾客安排司机
     public void railMatch() {
 
+    }
+    public double calProfit(Solution sol) {
+        double profit = 0.0;
+        for (Pattern pattern : sol.patterns) {
+            Driver driver = pattern.driver;
+            Passenger passenger1 = pattern.passenger1;
+            // 接两个乘客
+            if (pattern.passenger2Id >= 0) {
+
+            } else {
+                // 接一个乘客
+                double etaAim = map.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
+                double sameAim = 0.0;
+                double aim = (sameAim > 0 ? (sameAim + 2) : 0) + 2 - etaAim/Param.MAX_ETA;
+                profit += aim;
+            }
+        }
+        return profit;
     }
 }
