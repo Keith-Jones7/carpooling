@@ -14,6 +14,11 @@ public class Solution {
         this.patterns = patterns;
         this.profit = profit;
     }
+
+    public double calProfit() {
+
+        return 0.0;
+    }
     public void outputSolution(long cur_time) {
         String file_name = String.format("src/output/drs4/solution_%d.csv", cur_time);
         File outputFile = new File(file_name);

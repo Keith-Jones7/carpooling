@@ -224,11 +224,14 @@ public class Match {
         Solution sol = bnp.bestSol;
         int cnt = 0;
         for (Pattern pattern : sol.patterns) {
-            if (pattern.passenger1Id >= 0) {
-                driverList.get(pattern.driverId).queue.add(passengerList.get(pattern.passenger1Id));
+            Driver driver = pattern.driver;
+            Passenger passenger1 = pattern.passenger1;
+            Passenger passenger2 = pattern.passenger2;
+            if (pattern.passenger1Id >= 0 && pattern.passenger1Id == passenger1.ID) {
+                driver.queue.add(passenger1);
             }
-            if (pattern.passenger2Id >= 0) {
-                driverList.get(pattern.driverId).queue.add(passengerList.get(pattern.passenger2Id));
+            if (pattern.passenger2Id >= 0 && pattern.passenger2Id == passenger2.ID) {
+                driver.queue.add(passenger2);
                 cnt++;
             }
         }
@@ -239,31 +242,26 @@ public class Match {
         // remove drivers and passengers
         List<Driver> removeDrivers = new ArrayList<>();
         List<Passenger> removePassengers = new ArrayList<>();
-        for (int i = 0; i < nDrivers; i++) {
+        for (Driver driver : driverList) {
             for (Pattern pattern : sol.patterns) {
-                if (pattern.driverId == i && pattern.passenger2Id >= 0) {
-                    removeDrivers.add(driverList.get(i));
+                if (pattern.driverId == driver.ID && pattern.passenger2Id >= 0) {
+                    removeDrivers.add(driver);
                 }
             }
         }
-        for (int j = 0; j < nPassengers; j++) {
+        for (Passenger passenger : passengerList) {
             for (Pattern pattern : sol.patterns) {
-                if (pattern.passenger1Id == j) {
-                    removePassengers.add(passengerList.get(j));
+                if (pattern.passenger1Id == passenger.ID) {
+                    removePassengers.add(passenger);
                 }
-                if (pattern.passenger2Id == j) {
-                    removePassengers.add(passengerList.get(j));
+                if (pattern.passenger2Id == passenger.ID) {
+                    removePassengers.add(passenger);
                 }
             }
         }
         driverList.removeAll(removeDrivers);
         passengerList.removeAll(removePassengers);
-
+        sol.patterns.sort(Comparator.comparingInt(o -> o.driverId));
         return cnt;
-    }
-
-    // Todo: 将剩余为拼车顾客安排司机
-    public void railMatch() {
-
     }
 }
