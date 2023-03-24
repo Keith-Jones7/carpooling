@@ -1,3 +1,4 @@
+import common.Param;
 import model.Driver;
 import model.Passenger;
 import match.Batch;
@@ -7,6 +8,7 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception{
+        
         runSample(20, 4);
     }
     public static void runDefault(int batch_num, int driver_num, int passenger_num) throws Exception{
@@ -20,7 +22,7 @@ public class Main {
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            int result = batch.matching.match(batch.cur_time);
+            int result = batch.matching.match(batch.cur_time, Param.MATCH_ALGO);
             batch.cur_time += 30;
             long end_time = System.currentTimeMillis();
             System.out.printf("第%d个阶段，待匹配司机数为%d，待匹配乘客数为%d，匹配成功对数为%d，" +
@@ -49,7 +51,7 @@ public class Main {
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
             batch.cur_time += 30;
-            int result = batch.matching.match(batch.cur_time);
+            int result = batch.matching.match(batch.cur_time, Param.MATCH_ALGO);
             passenger_sum += size2 - size1;
             match_sum += result * 2;
             long end_time = System.currentTimeMillis();

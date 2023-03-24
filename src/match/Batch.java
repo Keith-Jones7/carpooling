@@ -12,6 +12,7 @@ import java.util.*;
 public class Batch {
     public long cur_time = 0;       //当前batch的时刻
     public Match matching;
+    int p_index = 0;
 
     public List<Driver> driverList; //司机列表
     public List<Passenger> passengerList;//乘客列表
@@ -41,7 +42,7 @@ public class Batch {
                     Driver driver = driverMap.get(ID);
                     driver.renew(lng, lat, cur_time);
                 }else {
-                    Driver driver = new Driver(lng, lat, cur_time);
+                    Driver driver = new Driver(lng, lat, cur_time, ID);
                     driverMap.put(ID, driver);
                     driverList.add(driver);
                 }
@@ -70,7 +71,7 @@ public class Batch {
                 double lng2 = Double.parseDouble(strs[2]);
                 double lat2 = Double.parseDouble(strs[3]);
                 passengerList.add(new Passenger(new Coordinates(lng1, lat1),
-                        new Coordinates(lng2, lat2), cur_time));
+                        new Coordinates(lng2, lat2), cur_time, p_index++));
             }
             return true;
         }catch (Exception e) {
@@ -93,7 +94,7 @@ public class Batch {
                     double lng2 = Double.parseDouble(strs[3]);
                     double lat2 = Double.parseDouble(strs[4]);
                     passengerList.add(new Passenger(new Coordinates(lng1, lat1),
-                            new Coordinates(lng2, lat2), call_time));
+                            new Coordinates(lng2, lat2), call_time, p_index++));
                 }else if (call_time >= end_time){
                     break;
                 }
@@ -118,7 +119,7 @@ public class Batch {
                 Driver driver = driverMap.get(i);
                 driver.renew(lng, lat, cur_time);
             }else {
-                Driver driver = new Driver(lng, lat, cur_time);
+                Driver driver = new Driver(lng, lat, cur_time, i);
                 driverList.add(driver);
                 driverMap.put(i, driver);
             }
@@ -137,7 +138,7 @@ public class Batch {
             double lng2 = random.nextDouble() * Param.GAP + 118.3;
             double lat2 = random.nextDouble() * Param.GAP + 31.4;
             passengerList.add(new Passenger(new Coordinates(lng1, lat1),
-                    new Coordinates(lng2, lat2), cur_time));
+                    new Coordinates(lng2, lat2), cur_time, p_index++));
         }
     }
 }

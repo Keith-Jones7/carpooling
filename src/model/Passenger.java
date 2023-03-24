@@ -17,16 +17,19 @@ public class Passenger {
     public long past_time;
     public long expected_arrive_time;   //乘客预期到达时间
     public Driver cur_driver;
+    
+    public int ID;
     public Passenger() {
 
     }
 
-    public Passenger(Coordinates origin, Coordinates dest, long submit) {
+    public Passenger(Coordinates origin, Coordinates dest, long submit, int ID) {
         this.origin_coor = origin;
         this.dest_coor = dest;
         this.cur_coor = new Coordinates(origin.lng, origin.lat);
         this.submit_time = submit;
         this.expected_arrive_time = (long) new TestMap().calTimeDistance(origin_coor, dest_coor) + Param.MAX_DETOUR_TIME;
+        this.ID = ID;
     }
     public void renew(long cur_time) {
         if (cur_driver != null) {
