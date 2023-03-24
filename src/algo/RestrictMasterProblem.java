@@ -103,12 +103,16 @@ public class RestrictMasterProblem {
             int size = pool.size();
             pool.add(pattern);
             // add columns and vars
-            IloColumn col = cplex.column(obj, pattern.profit);
+            IloColumn col = cplex.column(obj, pattern.aim);
             // range on driver
             col = col.and(cplex.column(ranges[pattern.driverId], 1));
             // range on two passengers
-            col = col.and(cplex.column(ranges[pattern.passenger1Id], 1));
-            col = col.and(cplex.column(ranges[pattern.passenger2Id], 1));
+            if (pattern.passenger1Id >= 0) {
+                col = col.and(cplex.column(ranges[pattern.passenger1Id], 1));
+            }
+            if (pattern.passenger2Id >= 0) {
+                col = col.and(cplex.column(ranges[pattern.passenger2Id], 1));
+            }
             // new column var
             String name = "x_" + pattern.driverId + "," + pattern.passenger1Id + "," + pattern.passenger2Id;
             IloNumVar var = cplex.numVar(col, 0, IloInfinity, IloNumVarType.Float, name);

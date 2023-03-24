@@ -23,7 +23,8 @@ public class Match {
     double[][] valid_matrix;
     int[][] match_matrix;
 
-    public double[][] ppValidMatrix;                      // 顾客到顾客是否能拼车成功地计算, 0: 无法拼车成功 >0: 拼车成功后共同行驶时间
+    public double[][] ppValidMatrix;                      // 顾客到顾客是否能拼车成功地计算, 0: 无法拼车成功 >0: 拼车成功后共同里程相似度
+    public double[][] dpValidMatrix;                      // 接乘一个顾客的司机到第二个顾客是否能拼车成功的计算，0: 无法拼车成 >0: 拼车成功后共同里程相似度
     public double[][] ppTimeMatrix;                       //
     public double[][] dpTimeMatrix;                        // 司机到顾客起点地时间
     private static final TestMap map = new TestMap();
@@ -34,13 +35,14 @@ public class Match {
         this.nDrivers = driverList.size();
         this.nPassengers = passengerList.size();
         this.ppValidMatrix = new double[nPassengers][nPassengers];
+        this.dpValidMatrix = new double[nDrivers][nPassengers];
         this.ppTimeMatrix = new double[nPassengers][nPassengers];
         this.dpTimeMatrix = new double[nDrivers][nPassengers];
         match_matrix = new int[drivers.size()][passengers.size()];
         valid_matrix = new double[drivers.size()][passengers.size()];
         calValid();
         calPPValid();
-        calDPTime();
+        calDPValid();
     }
 
     public void calValid() {
@@ -88,13 +90,20 @@ public class Match {
         }
     }
 
-    void calDPTime() {
+    void calDPValid() {
         long s = System.currentTimeMillis();
         for (int i = 0; i < nDrivers; i++) {
             Driver driver = driverList.get(i);
             for (int j = 0; j < nPassengers; j++) {
                 Passenger passenger = passengerList.get(j);
                 dpTimeMatrix[i][j] = map.calTimeDistance(driver.cur_coor, passenger.origin_coor); // Todo: ?
+                // 只有当司机带了一个顾客时，才需要计算司机到顾客的里程相似度
+                if (driverList.get(i).queue.size() > 0) {
+                    Passenger passenger0 = driverList.get(i).queue.peek();
+                    if (map.inEllipsoid(passenger0, passenger) || map.allInEllipsoid(passenger0, passenger)) {
+                        dpValidMatrix[i][j] = map.calSimilarity(passenger0, passenger);
+                    }
+                }
             }
         }
     }
@@ -185,16 +194,26 @@ public class Match {
 //    }
 
     public int match(long cur_time) throws IloException {
-        Instance inst = new Instance(driverList, passengerList, ppValidMatrix, ppTimeMatrix, dpTimeMatrix );
+        Instance inst = new Instance(driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix );
         BranchAndBound bnp = new BranchAndBound(inst);
         bnp.run();
         Solution sol = bnp.bestSol;
+        int cnt = 0;
+        for (Pattern pattern : sol.patterns) {
+            if (pattern.passenger1Id >= 0) {
+                driverList.get(pattern.driverId).queue.add(passengerList.get(pattern.passenger1Id));
+            }
+            if (pattern.passenger2Id >= 0) {
+                driverList.get(pattern.driverId).queue.add(passengerList.get(pattern.passenger2Id));
+                cnt++;
+            }
+        }
         // remove drivers and passengers
         List<Driver> removeDrivers = new ArrayList<>();
         List<Passenger> removePassengers = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {
             for (Pattern pattern : sol.patterns) {
-                if (pattern.driverId == i) {
+                if (pattern.driverId == i && pattern.passenger2Id >= 0) {
                     removeDrivers.add(driverList.get(i));
                 }
             }
@@ -211,7 +230,9 @@ public class Match {
         }
         driverList.removeAll(removeDrivers);
         passengerList.removeAll(removePassengers);
-        return sol.patterns.size();
+
+
+        return cnt;
     }
 
     // Todo: 将剩余为拼车顾客安排司机
