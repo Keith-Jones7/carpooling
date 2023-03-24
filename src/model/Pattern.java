@@ -24,7 +24,7 @@ public class Pattern {
     public void setAim(double sameAim, double etaAim) {
         this.sameAim = sameAim;
         this.etaAim = etaAim;
-        this.aim = Param.obj1Coef * sameAim - etaAim + Param.MAX_ETA;
+        this.aim = (sameAim > 0 ? (sameAim + 2) : 0) + 2 - etaAim/Param.MAX_ETA;
 //        this.profit = same;
 //        this.profit = 1;
     }
