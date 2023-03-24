@@ -122,7 +122,7 @@ public class BranchAndBound {
                     double etaAim1 = inst.dpTimeMatrix[i][j1];
                     if (etaAim1 <= Param.MAX_ETA) {
                         // 生成一个司机只带一个顾客的方案
-                        Pattern pattern1 = new Pattern(i, j1, -1);
+                        Pattern pattern1 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), null);
                         pattern1.setAim(0.0, etaAim1);
                         pool.add(pattern1);
                         // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
@@ -131,7 +131,7 @@ public class BranchAndBound {
                             double sameAim = inst.ppValidMatrix[j1][j2];
                             if (etaAim <= Param.MAX_ETA && sameAim > 0) {
                                 // 生成一个司机带两个乘客的拼车方案
-                                Pattern pattern2 = new Pattern(i, j1, j2);
+                                Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), inst.passengerList.get(j2));
                                 pattern2.setAim(sameAim, etaAim);
                                 pool.add(pattern2);
                             }
@@ -145,7 +145,7 @@ public class BranchAndBound {
                     double sameAim = inst.dpValidMatrix[i][j2];
                     if (etaAim2 <= Param.MAX_ETA && sameAim > 0) {
                         // 生成一个司机带两个乘客的拼车方案
-                        Pattern pattern2 = new Pattern(i, -1, j2);
+                        Pattern pattern2 = new Pattern(inst.driverList.get(i), null, inst.passengerList.get(j2));
                         pattern2.setAim(sameAim, etaAim2);
                         pool.add(pattern2);
                     }

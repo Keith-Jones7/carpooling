@@ -29,6 +29,7 @@ public class Match {
     public double[][] dpTimeMatrix;                        // 司机到顾客起点地时间
     private static final TestMap map = new TestMap();
     //private static final map.GISMap map = new GISMap();
+    Solution solution;
     public Match(List<Driver> drivers, List<Passenger> passengers) {
         driverList = drivers;
         passengerList = passengers;
@@ -43,6 +44,7 @@ public class Match {
         calValid();
         calPPValid();
         calDPValid();
+        solution = new Solution();
     }
 
     public void calValid() {
@@ -198,10 +200,10 @@ public class Match {
             Driver driver = driverList.get(i);
             if (driverList.get(i).queue.size() == 2) {
                 count++;
-                solution.patterns.add(new Pattern(driver.ID, driver.queue.getFirst().ID, driver.queue.getLast().ID));
+                solution.patterns.add(new Pattern(driver, driver.queue.getFirst(), driver.queue.getLast()));
                 driverList.remove(i);
             }else if (driver.queue.size() == 1) {
-                solution.patterns.add(new Pattern(driver.ID, driver.queue.getFirst().ID, -1));
+                //solution.patterns.add(new Pattern(driver, driver.queue.getFirst(), null));
             }
         }
         for (int j = passenger_num - 1; j >= 0; j--) {
@@ -211,6 +213,7 @@ public class Match {
                 passengerList.remove(j);
             }
         }
+        solution.outputSolution(cur_time);
         return count;
     }
 

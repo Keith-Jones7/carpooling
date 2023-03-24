@@ -8,16 +8,24 @@ public class Pattern {
     public double aim;
     public double sameAim;
     public double etaAim;
+    public Driver driver;
+    
+    public Passenger passenger1;
+    
+    public Passenger passenger2;
     public int driverId;
     public int passenger1Id;
     public int passenger2Id;
 
     public IloNumVar colVar;
 
-    public Pattern(int driverId, int passenger1Id, int passenger2Id) {
-        this.driverId = driverId;
-        this.passenger1Id = passenger1Id;
-        this.passenger2Id = passenger2Id;
+    public Pattern(Driver driver, Passenger passenger1, Passenger passenger2) {
+        this.driver = driver;
+        this.passenger1 = passenger1;
+        this.passenger2 = passenger2;
+        this.driverId = driver.ID;
+        this.passenger1Id = passenger1 == null ? -1 : passenger1.ID;
+        this.passenger2Id = passenger2 == null ? -1 : passenger2.ID;
     }
 
     // Todo: 后续可以在这里修改方案变量的目标系数
