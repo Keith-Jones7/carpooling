@@ -79,6 +79,32 @@ public class Batch {
             return false;
         }
     }
+    
+    public boolean updatePassenger(String file_name, int start_time, int end_time) {// Todo: 增加算例数据，按照实际时间导入
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(file_name));
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] strs = line.split(" ");
+                int call_time = Integer.parseInt(strs[0]);
+                if (call_time >= start_time && call_time < end_time) {
+                    double lng1 = Double.parseDouble(strs[1]);
+                    double lat1 = Double.parseDouble(strs[2]);
+                    double lng2 = Double.parseDouble(strs[3]);
+                    double lat2 = Double.parseDouble(strs[4]);
+                    passengerList.add(new Passenger(new Coordinates(lng1, lat1),
+                            new Coordinates(lng2, lat2), call_time));
+                }else if (call_time >= end_time){
+                    break;
+                }
+            }
+            return true;
+        }catch (Exception e) {
+            System.out.println("读取乘客信息错误！");
+            e.printStackTrace();
+            return false;
+        }
+    }
     /**
      * 
      * @param num   随机生成的司机数目
@@ -114,5 +140,4 @@ public class Batch {
                     new Coordinates(lng2, lat2), cur_time));
         }
     }
-    
 }

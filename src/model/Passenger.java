@@ -30,8 +30,7 @@ public class Passenger {
     }
     public void renew(long cur_time) {
         if (cur_driver != null) {
-            cur_coor.lng = cur_driver.cur_coor.lng;
-            cur_coor.lat = cur_driver.cur_coor.lat;
+            cur_coor = cur_driver.cur_coor;
         }
         past_time = cur_time - submit_time;
     }

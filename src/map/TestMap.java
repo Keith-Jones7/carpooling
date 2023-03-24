@@ -40,10 +40,17 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
     public double calSpatialDistance(Coordinates o1, Coordinates o2) {
         double radLatGap = rad(o1.lat) - rad(o2.lat);
         double radLngGap = rad(o1.lng) - rad(o2.lng);
-        double dis = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(radLatGap / 2), 2)) +
-                Math.cos(o1.lat) * Math.cos(o2.lat) * Math.pow(Math.sin(radLngGap / 2), 2));
+        double dis = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(radLatGap / 2), 2) +
+                Math.cos(rad(o1.lat)) * Math.cos(rad(o2.lat)) * Math.pow(Math.sin(radLngGap / 2), 2)));
         dis *= Param.EARTH_RADIUS * 1000;
         return dis;
+//        double radLngGap = Math.toRadians(o2.lng - o1.lng);
+//        double radLatGap = Math.toRadians(o2.lat - o1.lat);
+//        double a = Math.sin(radLngGap / 2) * Math.sin(radLngGap / 2) +
+//                Math.cos(Math.toRadians(o1.lat)) * Math.cos(Math.toRadians(o2.lat)) *
+//                        Math.sin(radLatGap / 2) * Math.sin(radLatGap / 2);
+//        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//        return Param.EARTH_RADIUS * c * 1000;
     }
 
     /**
@@ -67,7 +74,7 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
 
     @Override
     public boolean inEllipsoid(Passenger p1, Passenger p2) {
-        double o1_o2 = calTimeDistance(p1.cur_coor, p2.origin_coor);
+        double o1_o2 = calTimeDistance(p1.origin_coor, p2.origin_coor);
         double o2_d1 = calTimeDistance(p2.origin_coor, p1.dest_coor);
         double d1_d2 = calTimeDistance(p1.dest_coor, p2.dest_coor);
         return o1_o2 + o2_d1 + p1.past_time < p1.expected_arrive_time - p1.submit_time
@@ -81,7 +88,7 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
      * @return  乘客2的两个焦点全部在乘客1的椭圆内
      */
     public boolean allInEllipsoid(Passenger p1, Passenger p2) {
-        double o1_o2 = calTimeDistance(p1.cur_coor, p2.origin_coor);
+        double o1_o2 = calTimeDistance(p1.origin_coor, p2.origin_coor);
         double o2_d2 = calTimeDistance(p2.origin_coor, p2.dest_coor);
         double d2_d1 = calTimeDistance(p2.dest_coor, p1.dest_coor);
         return o1_o2 + o2_d2 + d2_d1 + p1.past_time < p1.expected_arrive_time - p1.submit_time;
@@ -104,7 +111,11 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
         double d1_d2 = calTimeDistance(p1.dest_coor, p2.dest_coor);
           
         double same = Math.min(o2_d1, o2_d2);
-        return same / (o1_o2 + same + d1_d2);
+        double similarity = same / (o1_o2 + same + d1_d2);
+        if (similarity < 0.4) {// Todo: 行程相似度阈值设置
+            return 0;
+        }
+        return similarity;
     }
 }
 

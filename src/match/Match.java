@@ -64,7 +64,12 @@ public class Match {
                     if (map.inEllipsoid(passenger1, passenger) ||
                             map.allInEllipsoid(passenger1, passenger)) {
                         valid_matrix[i][j] += 2;
-                        valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
+                        double similarity = map.calSimilarity(passenger1, passenger);
+                        if (similarity == 0) {
+                            valid_matrix[i][j] = 0;
+                        }else {
+                            valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
+                        }
                     }else {
                         valid_matrix[i][j] = 0;
                     }
@@ -79,8 +84,8 @@ public class Match {
     void calPPValid() {
         long s = System.currentTimeMillis();
         for (int i = 0; i < nPassengers; i++) {
+            Passenger passenger1 = passengerList.get(i);
             for (int j = 0; j < nPassengers; j++) {
-                Passenger passenger1 = passengerList.get(i);
                 Passenger passenger2 = passengerList.get(j);
                 ppTimeMatrix[i][j] = map.calTimeDistance(passenger1.cur_coor, passenger2.origin_coor);
                 if (map.inEllipsoid(passenger1, passenger2) || map.allInEllipsoid(passenger1, passenger2)) {

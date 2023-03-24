@@ -13,8 +13,7 @@ public class Driver {
         this.cur_time = cur_time;
     }
     public void renew(double lng, double lat, long cur_time) {
-        this.cur_coor.lng = lng;
-        this.cur_coor.lat = lat;
+        this.cur_coor = new Coordinates(lng, lat);
         this.cur_time = cur_time;
     }
 }
