@@ -29,6 +29,9 @@ public class Solution {
                     "passenger1ID,passenger1Lng1,passenger1Lat1,passenger1Lng2,passenger1Lat2," +
                     "passenger2ID,passenger2Lng1,passenger2Lat1,passenger2Lng2,passenger2Lat2\n");
             for (Pattern pattern : patterns) {
+                if (pattern.passenger2Id == -1) {
+                    continue;
+                }
                 int driverID = pattern.driverId;
                 double driverLng = pattern.driver.cur_coor.lng;
                 double driverLat = pattern.driver.cur_coor.lat;
