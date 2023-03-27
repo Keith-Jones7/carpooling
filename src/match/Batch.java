@@ -25,11 +25,9 @@ public class Batch {
     }
 
     /**
-     *
-     * @param   file_name 读取司机的txt文件名，格式：ID lng lat
-     * @return  读取文件成功，返回true，否则返回false
+     * @param file_name 读取司机的txt文件名，格式：ID lng lat
      */
-    public boolean updateDrivers(String file_name) {
+    public void updateDrivers(String file_name) {
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file_name));
             String line;
@@ -47,20 +45,16 @@ public class Batch {
                     driverList.add(driver);
                 }
             }
-            return true;
         }catch (Exception e) {
             System.out.println("读取司机信息错误！");
             e.printStackTrace();
-            return false;
         }
     }
 
     /**
-     *
-     * @param   file_name 读取乘客的txt文件名，格式：lng1 lat1 lng2 lat2
-     * @return  读取文件成功，返回true，否则返回false
+     * @param file_name 读取乘客的txt文件名，格式：lng1 lat1 lng2 lat2
      */
-    public boolean updatePassenger(String file_name) {
+    public void updatePassenger(String file_name) {
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file_name));
             String line;
@@ -73,39 +67,12 @@ public class Batch {
                 passengerList.add(new Passenger(new Coordinates(lng1, lat1),
                         new Coordinates(lng2, lat2), cur_time, p_index++));
             }
-            return true;
         }catch (Exception e) {
             System.out.println("读取乘客信息错误！");
             e.printStackTrace();
-            return false;
         }
     }
     
-    public boolean updatePassenger(String file_name, int start_time, int end_time) {// Todo: 增加算例数据，按照实际时间导入
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(file_name));
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                String[] strs = line.split(" ");
-                int call_time = Integer.parseInt(strs[0]);
-                if (call_time >= start_time && call_time < end_time) {
-                    double lng1 = Double.parseDouble(strs[1]);
-                    double lat1 = Double.parseDouble(strs[2]);
-                    double lng2 = Double.parseDouble(strs[3]);
-                    double lat2 = Double.parseDouble(strs[4]);
-                    passengerList.add(new Passenger(new Coordinates(lng1, lat1),
-                            new Coordinates(lng2, lat2), call_time, p_index++));
-                }else if (call_time >= end_time){
-                    break;
-                }
-            }
-            return true;
-        }catch (Exception e) {
-            System.out.println("读取乘客信息错误！");
-            e.printStackTrace();
-            return false;
-        }
-    }
     /**
      * 
      * @param num   随机生成的司机数目

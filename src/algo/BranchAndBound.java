@@ -7,7 +7,6 @@ import model.Pattern;
 import model.Solution;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 
 public class BranchAndBound {
 
@@ -113,6 +112,7 @@ public class BranchAndBound {
 
     // 生成所有pattern
     public ArrayList<Pattern> genAllPatterns() {
+
         ArrayList<Pattern> pool = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {
             // 若司机尚未接客，则该司机可以接一个拼车方案或者只接一个乘客
@@ -155,6 +155,8 @@ public class BranchAndBound {
                 }
             }
         }
+
+        System.out.println(pool.size());
         return pool;
     }
 

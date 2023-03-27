@@ -3,7 +3,6 @@ package map;
 import common.Param;
 import model.Coordinates;
 import model.Passenger;
-import model.Pattern;
 
 public class TestMap implements TouringMap<Coordinates, Passenger> {
     
@@ -39,19 +38,9 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
      */
     @Override
     public double calSpatialDistance(Coordinates o1, Coordinates o2) {
-        double radLatGap = rad(o1.lat) - rad(o2.lat);
-        double radLngGap = rad(o1.lng) - rad(o2.lng);
-        double dis = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(radLatGap / 2), 2) +
-                Math.cos(rad(o1.lat)) * Math.cos(rad(o2.lat)) * Math.pow(Math.sin(radLngGap / 2), 2)));
-        dis *= Param.EARTH_RADIUS * 1000;
-        return dis;
-//        double radLngGap = Math.toRadians(o2.lng - o1.lng);
-//        double radLatGap = Math.toRadians(o2.lat - o1.lat);
-//        double a = Math.sin(radLngGap / 2) * Math.sin(radLngGap / 2) +
-//                Math.cos(Math.toRadians(o1.lat)) * Math.cos(Math.toRadians(o2.lat)) *
-//                        Math.sin(radLatGap / 2) * Math.sin(radLatGap / 2);
-//        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-//        return Param.EARTH_RADIUS * c * 1000;
+        double lngGap = (o1.lng - o2.lng) * Param.LNG;
+        double latGap = (o1.lat - o2.lat) * Param.LAT;
+        return Math.sqrt(lngGap * lngGap + latGap * latGap);
     }
 
     /**
@@ -113,7 +102,7 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
           
         double same = Math.min(o2_d1, o2_d2);
         double similarity = same / (o1_o2 + same + d1_d2);
-        if (similarity < 0.4) {// Todo: 行程相似度阈值设置
+        if (similarity < Param.MIN_TOURING_SIMILARITY) {// Todo: 行程相似度阈值设置
             return 0;
         }
         return similarity;

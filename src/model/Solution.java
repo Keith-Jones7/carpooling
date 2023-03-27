@@ -2,7 +2,8 @@ package model;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
 public class Solution {
     public double profit;
     public ArrayList<Pattern> patterns;
@@ -19,8 +20,8 @@ public class Solution {
 
         return 0.0;
     }
-    public void outputSolution(long cur_time) {
-        String file_name = String.format("src/output/drs4/solution_%d.csv", cur_time);
+    public void outputSolution(long cur_time, int sample_index) {
+        String file_name = String.format("src/output/drs%d/solution_%d.csv",sample_index, cur_time);
         File outputFile = new File(file_name);
         patterns.sort(Comparator.comparingInt(o -> o.driverId));
         try {
@@ -35,18 +36,19 @@ public class Solution {
                 int driverID = pattern.driverId;
                 double driverLng = pattern.driver.cur_coor.lng;
                 double driverLat = pattern.driver.cur_coor.lat;
+                Passenger passenger1 = pattern.driver.queue.getFirst();
+                Passenger passenger2 = pattern.driver.queue.getLast();
+                int passenger1ID = passenger1.ID;
+                double passenger1Lng1 = passenger1.origin_coor.lng;
+                double passenger1Lat1 = passenger1.origin_coor.lat;
+                double passenger1Lng2 = passenger1.dest_coor.lng;
+                double passenger1Lat2 = passenger1.dest_coor.lat;
                 
-                int passenger1ID = pattern.passenger1Id;
-                double passenger1Lng1 = pattern.passenger1.origin_coor.lng;
-                double passenger1Lat1 = pattern.passenger1.origin_coor.lat;
-                double passenger1Lng2 = pattern.passenger1.dest_coor.lng;
-                double passenger1Lat2 = pattern.passenger1.dest_coor.lat;
-                
-                int passenger2ID = pattern.passenger2Id;
-                double passenger2Lng1 = pattern.passenger2.origin_coor.lng;
-                double passenger2Lat1 = pattern.passenger2.origin_coor.lat;
-                double passenger2Lng2 = pattern.passenger2.dest_coor.lng;
-                double passenger2Lat2 = pattern.passenger2.dest_coor.lat;
+                int passenger2ID = passenger2.ID;
+                double passenger2Lng1 = passenger2.origin_coor.lng;
+                double passenger2Lat1 = passenger2.origin_coor.lat;
+                double passenger2Lng2 = passenger2.dest_coor.lng;
+                double passenger2Lat2 = passenger2.dest_coor.lat;
                 writer.append(String.valueOf(driverID)).append(",").
                         append(String.valueOf(driverLng)).append(",").
                         append(String.valueOf(driverLat)).append(",").
@@ -63,6 +65,7 @@ public class Solution {
             }
             writer.close();
         }catch (Exception e) {
+            e.printStackTrace();
             System.out.println("导出文件错误！");
         }
     }

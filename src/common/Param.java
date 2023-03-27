@@ -8,37 +8,26 @@ import java.util.Date;
 import java.util.Random;
 
 public class Param {
-    
+
+    public static final int MAP_CHOOSE = 1;
     public static final int MATCH_ALGO = 1;
+    public static final long MAX_ETA = 120;
+    public static final long MAX_ETA2 = 120;
+    public static final long MAX_DETOUR_TIME = 300;
+    public static final double MIN_TOURING_SIMILARITY = 0.4;
+    /**
+     * MAX_TIME：订单收集最长时间
+     */
+    public static final int MAX_TIME = 1200;
+    
+    public static long count_time = 0;
     /**
      * SPEED：车辆平均行驶速度,单位米每秒
      */
     public static final double SPEED = 10;
     
-    /**
-     * EARTH_RADIUS：地球半径，单位千米
-     */
-    public static final double EARTH_RADIUS = 6378.137;
-    
-    /**
-     * MAX_ETA：最长接驾时间，单位秒
-     */
-    public static final long MAX_ETA = 120;
-
-    /**
-     * 
-     * 
-     */
-    public static final long MAX_ETA2 = 120;
-    
-    /**
-     * MAX_DETOUR_TIME：最长绕路时间，单位秒
-     */
-    public static final long MAX_DETOUR_TIME = 300;
-
-    /**
-     * GAP：随机生成坐标的地理范围，gap越大坐标范围越大
-     */
+    public static double LNG = 85390;
+    public static double LAT = 92000;
     public static final double GAP = 0.1;
     public static final double EPS = 1e-6;
     public static final int SEED = 3;
@@ -63,12 +52,9 @@ public class Param {
      * @return 返回直线距离
      */
     public static double calSpatialDistance(Coordinates o1, Coordinates o2) {
-        double radLatGap = rad(o1.lat) - rad(o2.lat);
-        double radLngGap = rad(o1.lng) - rad(o2.lng);
-        double dis = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(radLatGap / 2), 2)) +
-                Math.cos(o1.lat) * Math.cos(o2.lat) * Math.pow(Math.sin(radLngGap / 2), 2));
-        dis *= EARTH_RADIUS;
-        return dis;
+        double lngGap = (o1.lng - o2.lng) * Param.LNG;
+        double latGap = (o1.lat - o2.lat) * Param.LAT;
+        return Math.sqrt(lngGap * lngGap + latGap * latGap);
     }
     
     /**

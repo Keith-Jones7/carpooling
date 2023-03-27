@@ -1,8 +1,6 @@
 package model;
 
 
-import map.TouringMap;
-
 import java.util.List;
 
 public class Instance {

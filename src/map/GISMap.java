@@ -12,15 +12,13 @@ import java.net.URL;
 import java.util.HashMap;
 
 public class GISMap implements TouringMap<Coordinates, Passenger>{
+    private static final String api = "http://gateway.t3go.com.cn/gis-map-api/lbs/v2/distance/mto";
+    private final HashMap<Integer, Double> spatialMap;
+    private final HashMap<Integer, Double> timeMap;
     public GISMap() {
         spatialMap = new HashMap<>();
         timeMap = new HashMap<>();
     }
-    private static final String api = "http://gateway.t3go.com.cn/gis-map-api/lbs/v2/distance/mto";
-
-    private final HashMap<Integer, Double> spatialMap;
-    private final HashMap<Integer, Double> timeMap;
-    
     private static String generateJson(Coordinates o, Coordinates d) {
         return "{\"cityCode\": \"320100\",\"dest\": {\"lat\":" +
                 String.format("%.6f", d.lat) +
