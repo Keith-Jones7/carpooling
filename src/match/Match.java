@@ -230,8 +230,7 @@ public class Match {
     }
 
     public Solution match_zjr(long cur_time) throws IloException {
-
-        Instance inst = new Instance(driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix );
+        Instance inst = new Instance(cur_time, driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix );
         BranchAndBound bnp = new BranchAndBound(inst);
         bnp.run();
         Solution sol = bnp.bestSol;
@@ -275,5 +274,24 @@ public class Match {
         sol.patterns.sort(Comparator.comparingInt(o -> o.driverId));
 
         return sol;
+    }
+
+    public double calProfit(Solution sol) {
+        double profit = 0.0;
+        for (Pattern pattern : sol.patterns) {
+            Driver driver = pattern.driver;
+            Passenger passenger1 = pattern.passenger1;
+            // 接两个乘客
+            if (pattern.passenger2Id >= 0) {
+
+            } else {
+            // 接一个乘客
+                double etaAim = map.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
+                double sameAim = 0.0;
+                double aim = (sameAim > 0 ? (sameAim + 2) : 0) + 2 - etaAim/Param.MAX_ETA;
+                profit += aim;
+            }
+        }
+        return profit;
     }
 }
