@@ -49,7 +49,7 @@ public class RestrictMasterProblem {
         x = new ArrayList<>();
         x_conv = new ArrayList<>();
         pool = new ArrayList<>();
-        ranges = new IloRange[nPassengers + nDrivers];
+        ranges = new IloRange[nDrivers + nPassengers];
         // objective
         obj = cplex.addMaximize();
 
@@ -71,7 +71,7 @@ public class RestrictMasterProblem {
     }
 
     void addArtificialVariables() throws IloException {
-        artificialVars = new IloNumVar[nPassengers + nDrivers];
+        artificialVars = new IloNumVar[nDrivers + nPassengers];
         // artificial var added in the constraints(1)
         for (int i = 0; i < nDrivers; i++) {
             IloColumn col = cplex.column(obj, -bigM);
@@ -105,16 +105,16 @@ public class RestrictMasterProblem {
             // add columns and vars
             IloColumn col = cplex.column(obj, pattern.aim);
             // range on driver
-            col = col.and(cplex.column(ranges[pattern.driverId], 1));
+            col = col.and(cplex.column(ranges[pattern.driverIdx], 1));
             // range on two passengers
             if (pattern.passenger1Id >= 0) {
-                col = col.and(cplex.column(ranges[pattern.passenger1Id], 1));
+                col = col.and(cplex.column(ranges[nDrivers + pattern.passenger1Idx], 1));
             }
             if (pattern.passenger2Id >= 0) {
-                col = col.and(cplex.column(ranges[pattern.passenger2Id], 1));
+                col = col.and(cplex.column(ranges[nDrivers + pattern.passenger2Idx], 1));
             }
             // new column var
-            String name = "x_" + pattern.driverId + "," + pattern.passenger1Id + "," + pattern.passenger2Id;
+            String name = "x_" + pattern.driverIdx + "," + pattern.passenger1Idx + "," + pattern.passenger2Idx;
             IloNumVar var = cplex.numVar(col, 0, IloInfinity, IloNumVarType.Float, name);
             pattern.colVar = var;
             x.add(var);

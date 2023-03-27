@@ -107,6 +107,7 @@ public class Match {
                 // 只有当司机带了一个顾客时，才需要计算司机到顾客的里程相似度
                 if (driverList.get(i).queue.size() > 0) {
                     Passenger passenger0 = driverList.get(i).queue.peek();
+                    dpTimeMatrix[i][j] = map.calTimeDistance(passenger0.origin_coor, passenger.origin_coor);
                     if (map.inEllipsoid(passenger0, passenger) || map.allInEllipsoid(passenger0, passenger)) {
                         dpValidMatrix[i][j] = map.calSimilarity(passenger0, passenger);
                     }
@@ -224,6 +225,11 @@ public class Match {
         Solution sol = bnp.bestSol;
         int cnt = 0;
         for (Pattern pattern : sol.patterns) {
+            if (cur_time == 150 && pattern.driverId == 572) {
+                TestMap testMap = map;
+                double d = testMap.calSimilarity(pattern.driver.queue.getFirst(), pattern.passenger2);
+                int tmp = 1;
+            }
             Driver driver = pattern.driver;
             Passenger passenger1 = pattern.passenger1;
             Passenger passenger2 = pattern.passenger2;
@@ -262,6 +268,26 @@ public class Match {
         driverList.removeAll(removeDrivers);
         passengerList.removeAll(removePassengers);
         sol.patterns.sort(Comparator.comparingInt(o -> o.driverId));
+        double profit = calProfit(sol);
         return cnt;
+    }
+
+    public double calProfit(Solution sol) {
+        double profit = 0.0;
+        for (Pattern pattern : sol.patterns) {
+            Driver driver = pattern.driver;
+            Passenger passenger1 = pattern.passenger1;
+            // 接两个乘客
+            if (pattern.passenger2Id >= 0) {
+
+            } else {
+            // 接一个乘客
+                double etaAim = map.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
+                double sameAim = 0.0;
+                double aim = (sameAim > 0 ? (sameAim + 2) : 0) + 2 - etaAim/Param.MAX_ETA;
+                profit += aim;
+            }
+        }
+        return profit;
     }
 }

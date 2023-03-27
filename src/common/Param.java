@@ -9,7 +9,7 @@ import java.util.Random;
 
 public class Param {
     
-    public static final int MATCH_ALGO = 2;
+    public static final int MATCH_ALGO = 1;
     /**
      * SPEED：车辆平均行驶速度,单位米每秒
      */

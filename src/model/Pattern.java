@@ -16,6 +16,9 @@ public class Pattern {
     public int driverId;
     public int passenger1Id;
     public int passenger2Id;
+    public int driverIdx;
+    public int passenger1Idx;
+    public int passenger2Idx;
 
     public IloNumVar colVar;
 
@@ -28,13 +31,18 @@ public class Pattern {
         this.passenger2Id = passenger2 == null ? -1 : passenger2.ID;
     }
 
+    public void setIdx(int driverIdx, int passenger1Idx, int passenger2Idx) {
+        this.driverIdx = driverIdx;
+        this.passenger1Idx = passenger1Idx;
+        this.passenger2Idx = passenger2Idx;
+    }
+
     // Todo: 后续可以在这里修改方案变量的目标系数
     public void setAim(double sameAim, double etaAim) {
         this.sameAim = sameAim;
         this.etaAim = etaAim;
         this.aim = (sameAim > 0 ? (sameAim + 2) : 0) + 2 - etaAim/Param.MAX_ETA;
-//        this.profit = same;
-//        this.profit = 1;
+//        this.aim = (sameAim > 0 ? 1 : 0);
     }
 
     public String toString() {

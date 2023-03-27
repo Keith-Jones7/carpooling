@@ -124,6 +124,7 @@ public class BranchAndBound {
                         // 生成一个司机只带一个顾客的方案
                         Pattern pattern1 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), null);
                         pattern1.setAim(0.0, etaAim1);
+                        pattern1.setIdx(i, j1, -1);
                         pool.add(pattern1);
                         // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
                         for (int j2 = 0; j2 < nPassengers && j2 != j1; j2++) {
@@ -133,6 +134,7 @@ public class BranchAndBound {
                                 // 生成一个司机带两个乘客的拼车方案
                                 Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), inst.passengerList.get(j2));
                                 pattern2.setAim(sameAim, etaAim);
+                                pattern2.setIdx(i, j1, j2);
                                 pool.add(pattern2);
                             }
                         }
@@ -147,6 +149,7 @@ public class BranchAndBound {
                         // 生成一个司机带两个乘客的拼车方案
                         Pattern pattern2 = new Pattern(inst.driverList.get(i), null, inst.passengerList.get(j2));
                         pattern2.setAim(sameAim, etaAim2);
+                        pattern2.setIdx(i, -1, j2);
                         pool.add(pattern2);
                     }
                 }

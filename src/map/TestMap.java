@@ -107,8 +107,8 @@ public class TestMap implements TouringMap<Coordinates>, TravelCal<Passenger>  {
         }
         double o1_o2 = calSpatialDistance(p1.origin_coor, p2.origin_coor);
         double o2_d1 = calSpatialDistance(p2.origin_coor, p1.dest_coor);
-        double o2_d2 = calTimeDistance(p2.origin_coor, p2.dest_coor);
-        double d1_d2 = calTimeDistance(p1.dest_coor, p2.dest_coor);
+        double o2_d2 = calSpatialDistance(p2.origin_coor, p2.dest_coor);
+        double d1_d2 = calSpatialDistance(p1.dest_coor, p2.dest_coor);
           
         double same = Math.min(o2_d1, o2_d2);
         double similarity = same / (o1_o2 + same + d1_d2);
