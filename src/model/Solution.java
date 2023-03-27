@@ -15,7 +15,7 @@ public class Solution {
     }
 
     public void outputSolution(int sample_index) {
-        String file_name = String.format("src/output/drs%d/solution.csv",sample_index);
+        String file_name = String.format("test/output/drs%d/solution.csv",sample_index);
         File outputFile = new File(file_name);
         patterns.sort(Comparator.comparingInt(o -> o.driverId));
         try {

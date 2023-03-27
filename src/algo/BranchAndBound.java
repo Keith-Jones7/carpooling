@@ -155,8 +155,6 @@ public class BranchAndBound {
                 }
             }
         }
-
-        System.out.println(pool.size());
         return pool;
     }
 
