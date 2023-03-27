@@ -28,7 +28,7 @@ public class Passenger {
         this.dest_coor = dest;
         this.cur_coor = new Coordinates(origin.lng, origin.lat);
         this.submit_time = submit;
-        this.expected_arrive_time = (long) new TestMap().calTimeDistance(origin_coor, dest_coor) + Param.MAX_DETOUR_TIME;
+        this.expected_arrive_time = (long) (new TestMap().calTimeDistance(origin_coor, dest_coor) * Param.DETOUR_RATIO);
         this.ID = ID;
     }
     public void renew(long cur_time) {
