@@ -7,7 +7,7 @@ import java.util.Comparator;
 public class Solution {
     public double profit;
     public ArrayList<Pattern> patterns;
-
+    
     public Solution() {
         this.patterns = new ArrayList<>();
     }

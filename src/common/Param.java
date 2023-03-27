@@ -11,10 +11,10 @@ public class Param {
 
     public static final int MAP_CHOOSE = 1;
     public static final int MATCH_ALGO = 1;
-    public static final long MAX_ETA = 120;
+    public static final long MAX_ETA = 60;
     public static final long MAX_ETA2 = 120;
-    public static final long MAX_DETOUR_TIME = 300;
-    public static final double MIN_TOURING_SIMILARITY = 0.4;
+    public static final long MAX_DETOUR_TIME = 180;
+    public static final double MIN_TOURING_SIMILARITY = 0.6;
     /**
      * MAX_TIME：订单收集最长时间
      */

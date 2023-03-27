@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class Main {
     public static void main(String[] args) throws Exception{
         
-        Solution solution = runSample(1200, 2);
+        Solution solution = runSample(30, 2);
     }
     public static void runDefault(int batch_num, int driver_num, int passenger_num) throws Exception{
         Solution solution = new Solution();
@@ -60,9 +60,9 @@ public class Main {
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            batch.cur_time += time_interval;
             Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO);
-           // cur_solution.outputSolution(batch.cur_time, sample_index);
+            cur_solution.outputSolution(batch.cur_time, sample_index);
+            batch.cur_time += time_interval;
             int result = 0;
             for (Pattern pattern : cur_solution.patterns) {
                 if (pattern.passenger2Id != -1) {
