@@ -9,7 +9,7 @@ import java.util.Random;
 
 public class Param {
 
-    public static final int MAP_CHOOSE = 1;                                       // 地图选择参数     1: TestMap    2: GISMap
+    public static final int MAP_CHOOSE = 2;                                       // 地图选择参数     1: TestMap    2: GISMap
     public static final int MATCH_ALGO = 1;                                       // 匹配算法选择参数  1: match_zjr  2: match_zkj
     public static final long MAX_ETA = 60;                                        // 接第一个乘客最大eta
     public static final long MAX_ETA2 = 120;                                      // 接第二个乘客最大eta

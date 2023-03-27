@@ -271,8 +271,11 @@ public class Match {
         }
         driverList.removeAll(removeDrivers);
         passengerList.removeAll(removePassengers);
-        sol.patterns.sort(Comparator.comparingInt(o -> o.driverId));
-
+        for (Pattern pattern : sol.patterns) {
+            if (pattern.driver.queue.size() > 0 && pattern.driver.match_coor == null) {
+                pattern.driver.saveMatch_coor();
+            }
+        }
         return sol;
     }
 

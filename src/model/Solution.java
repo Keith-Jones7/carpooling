@@ -17,7 +17,6 @@ public class Solution {
     public void outputSolution(int sample_index) {
         String file_name = String.format("test/output/drs%d/solution.csv",sample_index);
         File outputFile = new File(file_name);
-        patterns.sort(Comparator.comparingInt(o -> o.driverId));
         try {
             PrintWriter writer = new PrintWriter(outputFile);
             writer.append("curTime,driverID,driverLat,driverLng," +
@@ -29,8 +28,8 @@ public class Solution {
                 }
                 long curTime = pattern.cur_time;
                 int driverID = pattern.driverId;
-                double driverLng = pattern.driver.cur_coor.lng;
-                double driverLat = pattern.driver.cur_coor.lat;
+                double driverLng = pattern.driver.match_coor.lng;
+                double driverLat = pattern.driver.match_coor.lat;
                 Passenger passenger1 = pattern.driver.queue.getFirst();
                 Passenger passenger2 = pattern.driver.queue.getLast();
                 int passenger1ID = passenger1.ID;

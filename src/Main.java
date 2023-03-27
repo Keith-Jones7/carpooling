@@ -9,8 +9,8 @@ import java.util.ArrayList;
 public class Main {
     public static void main(String[] args) throws Exception{
         
-        Solution solution = runSample(30, 2);
-        //runDefault(30);
+        //Solution solution = runSample(30, 2);
+        runDefault(1);
     }
     public static void runDefault(int time_interval) throws Exception{
         Batch batch = new Batch();
