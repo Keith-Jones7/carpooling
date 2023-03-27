@@ -6,6 +6,7 @@ public class Driver {
 
     public Deque<Passenger> queue;
     public Coordinates cur_coor;
+    public Coordinates match_coor;
     long cur_time;
     
     public int ID;
@@ -18,5 +19,9 @@ public class Driver {
     public void renew(double lng, double lat, long cur_time) {
         this.cur_coor = new Coordinates(lng, lat);
         this.cur_time = cur_time;
+    }
+
+    public void saveMatch_coor() {
+        this.match_coor = cur_coor;
     }
 }

@@ -272,7 +272,11 @@ public class Match {
         driverList.removeAll(removeDrivers);
         passengerList.removeAll(removePassengers);
         sol.patterns.sort(Comparator.comparingInt(o -> o.driverId));
-
+        for (Pattern pattern : sol.patterns) {
+            if (pattern.passenger2Id >= 0) {
+                pattern.driver.saveMatch_coor();
+            }
+        }
         return sol;
     }
 
