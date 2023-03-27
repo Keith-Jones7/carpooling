@@ -2,4 +2,6 @@
 /lib/
 /out/
 *.iml
-/src/output/*/*.csv
+/test/sample/
+/test/output/
+/test/plot/

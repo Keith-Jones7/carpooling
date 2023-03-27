@@ -61,7 +61,7 @@ public class Main {
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
             Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO);
-            cur_solution.outputSolution(batch.cur_time, sample_index);
+            cur_solution.outputSolution(sample_index);
             batch.cur_time += time_interval;
             int result = 0;
             for (Pattern pattern : cur_solution.patterns) {
