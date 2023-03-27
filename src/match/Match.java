@@ -63,14 +63,16 @@ public class Match {
                     }
                 }else if (driver.queue.size() == 1){
                     Passenger passenger1 = driver.queue.peek();
-                    if (map.inEllipsoid(passenger1, passenger) ||
-                            map.allInEllipsoid(passenger1, passenger)) {
+                    double eta = map.calTimeDistance(passenger1.origin_coor, passenger.origin_coor);
+                    if ((map.inEllipsoid(passenger1, passenger) ||
+                            map.allInEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA2) {
                         valid_matrix[i][j] += 2;
                         double similarity = map.calSimilarity(passenger1, passenger);
                         if (similarity == 0) {
                             valid_matrix[i][j] = 0;
                         }else {
                             valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
+                            valid_matrix[i][j] += 2 - (eta) / Param.MAX_ETA2;
                         }
                     }else {
                         valid_matrix[i][j] = 0;
@@ -116,16 +118,16 @@ public class Match {
         }
     }
 
-    public int match(long cur_time, int flag) throws Exception {
+    public Solution match(long cur_time, int flag) throws Exception {
         if (flag == 1) {
             return match_zjr(cur_time);
         }
         if (flag == 2) {
             return match_zkj(cur_time);
         }
-        return -1;
+        return null;
     }
-    public int match_zkj(long cur_time) throws Exception {
+    public Solution match_zkj(long cur_time) throws Exception {
         IloCplex model = new IloCplex();
         double precision = 1e-5;
         model.setParam(IloCplex.Param.Simplex.Tolerances.Optimality, precision);
@@ -196,15 +198,24 @@ public class Match {
             }
         }
         Solution solution = new Solution();
-
         for (int i = driver_num - 1; i >= 0; i--) {
             Driver driver = driverList.get(i);
-            if (driverList.get(i).queue.size() == 2) {
+            if (driver.queue.size() == 2) {
                 count++;
-                solution.patterns.add(new Pattern(driver, driver.queue.getFirst(), driver.queue.getLast()));
+                Passenger passenger1 = driver.queue.getFirst();
+                Passenger passenger2 = driver.queue.getLast();
+                Pattern pattern = new Pattern(driver, driver.queue.getFirst(), driver.queue.getLast());
+                pattern.setAim(map.calSimilarity(passenger1, passenger2), map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor));
+                solution.patterns.add(pattern);
+                solution.profit += pattern.aim;
                 driverList.remove(i);
             }else if (driver.queue.size() == 1) {
-                //solution.patterns.add(new Pattern(driver, driver.queue.getFirst(), null));
+                Passenger passenger1 = driver.queue.getFirst();
+                Pattern pattern = new Pattern(driver, passenger1, null);
+                solution.patterns.add(pattern);
+                double temp = map.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
+                pattern.setAim(0, temp);
+                solution.profit += pattern.aim;
             }
         }
         for (int j = passenger_num - 1; j >= 0; j--) {
@@ -214,11 +225,10 @@ public class Match {
                 passengerList.remove(j);
             }
         }
-        solution.outputSolution(cur_time);
-        return count;
+        return solution;
     }
 
-    public int match_zjr(long cur_time) throws IloException {
+    public Solution match_zjr(long cur_time) throws IloException {
         Instance inst = new Instance(driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix );
         BranchAndBound bnp = new BranchAndBound(inst);
         bnp.run();
@@ -269,7 +279,8 @@ public class Match {
         passengerList.removeAll(removePassengers);
         sol.patterns.sort(Comparator.comparingInt(o -> o.driverId));
         double profit = calProfit(sol);
-        return cnt;
+
+        return sol;
     }
 
     public double calProfit(Solution sol) {
