@@ -19,6 +19,8 @@ public class Match {
     int nPassengers;
     public List<Driver> driverList;
     public List<Passenger> passengerList;
+    public List<Driver> invalidDriverList;
+    public List<Passenger> invalidPassengerList;
 
     double[][] valid_matrix;
     int[][] match_matrix;
@@ -41,9 +43,6 @@ public class Match {
         this.dpTimeMatrix = new double[nDrivers][nPassengers];
         match_matrix = new int[drivers.size()][passengers.size()];
         valid_matrix = new double[drivers.size()][passengers.size()];
-        calValid();
-        calPPValid();
-        calDPValid();
         solution = new Solution();
     }
 
@@ -120,9 +119,12 @@ public class Match {
 
     public Solution match(long cur_time, int flag) throws Exception {
         if (flag == 1) {
+            calPPValid();
+            calDPValid();
             return match_zjr(cur_time);
         }
         if (flag == 2) {
+            calValid();
             return match_zkj(cur_time);
         }
         return null;
@@ -229,7 +231,7 @@ public class Match {
     }
 
     public Solution match_zjr(long cur_time) throws IloException {
-        Instance inst = new Instance(driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix );
+        Instance inst = new Instance(cur_time, driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix );
         BranchAndBound bnp = new BranchAndBound(inst);
         bnp.run();
         Solution sol = bnp.bestSol;

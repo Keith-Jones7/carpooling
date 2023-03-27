@@ -4,6 +4,7 @@ import common.Param;
 import ilog.concert.IloNumVar;
 
 public class Pattern {
+    public long cur_time;
 
     public double aim;
     public double sameAim;
@@ -45,6 +46,9 @@ public class Pattern {
 //        this.aim = (sameAim > 0 ? 1 : 0);
     }
 
+    public void setCur_time(long cur_time) {
+        this.cur_time = cur_time;
+    }
     public String toString() {
         return "(" + driverId + ", " + passenger1Id + ", " + passenger2Id + ")";
     }

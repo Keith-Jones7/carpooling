@@ -6,6 +6,8 @@ import map.TouringMap;
 import java.util.List;
 
 public class Instance {
+    public long cur_time;
+
     public int nPassengers;
     public int nDrivers;
     public List<Driver> driverList;
@@ -16,8 +18,9 @@ public class Instance {
     public double[][] ppTimeMatrix;
     public double[][] dpTimeMatrix;
 
-    public Instance(List<Driver> driverList, List<Passenger> passengerList, double[][] ppValidMatrix,
+    public Instance(long cur_time, List<Driver> driverList, List<Passenger> passengerList, double[][] ppValidMatrix,
                     double[][] dpValidMatrix, double[][] ppTimeMatrix, double[][] dpTimeMatrix) {
+        this.cur_time = cur_time;
         this.nDrivers = driverList.size();
         this.nPassengers = passengerList.size();
         this.driverList = driverList;
