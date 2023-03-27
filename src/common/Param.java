@@ -19,8 +19,7 @@ public class Param {
      * MAX_TIME：订单收集最长时间
      */
     public static final int MAX_TIME = 1200;
-    
-    public static long count_time = 0;
+
     /**
      * SPEED：车辆平均行驶速度,单位米每秒
      */

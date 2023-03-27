@@ -27,7 +27,7 @@ public class Solution {
                 if (pattern.passenger2Id == -1) {
                     continue;
                 }
-                long curTime = 0;
+                long curTime = pattern.cur_time;
                 int driverID = pattern.driverId;
                 double driverLng = pattern.driver.cur_coor.lng;
                 double driverLat = pattern.driver.cur_coor.lat;
