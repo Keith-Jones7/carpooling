@@ -23,8 +23,14 @@ public class Param {
     /**
      * MAX_ETA：最长接驾时间，单位秒
      */
-    public static final long MAX_ETA = 60;
+    public static final long MAX_ETA = 120;
 
+    /**
+     * 
+     * 
+     */
+    public static final long MAX_ETA2 = 120;
+    
     /**
      * MAX_DETOUR_TIME：最长绕路时间，单位秒
      */

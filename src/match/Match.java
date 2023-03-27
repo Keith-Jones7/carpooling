@@ -65,14 +65,14 @@ public class Match {
                     Passenger passenger1 = driver.queue.peek();
                     double eta = map.calTimeDistance(passenger1.origin_coor, passenger.origin_coor);
                     if ((map.inEllipsoid(passenger1, passenger) ||
-                            map.allInEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA) {
+                            map.allInEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA2) {
                         valid_matrix[i][j] += 2;
                         double similarity = map.calSimilarity(passenger1, passenger);
                         if (similarity == 0) {
                             valid_matrix[i][j] = 0;
                         }else {
                             valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
-                            valid_matrix[i][j] += 2 - (eta) / Param.MAX_ETA;
+                            valid_matrix[i][j] += 2 - (eta) / Param.MAX_ETA2;
                         }
                     }else {
                         valid_matrix[i][j] = 0;
@@ -224,7 +224,6 @@ public class Match {
                 passengerList.remove(j);
             }
         }
-        solution.outputSolution(cur_time);
         return solution;
     }
 
