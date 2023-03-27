@@ -9,14 +9,14 @@ import java.util.ArrayList;
 public class Main {
     public static void main(String[] args) throws Exception{
         
-       // Solution solution = runSample(30, 2);
-        runDefault(30);
+        //Solution solution = runSample(30, 2);
+        runDefault(1);
     }
     public static void runDefault(int time_interval) throws Exception{
         Batch batch = new Batch();
         int passenger_sum = 0, match_sum = 0;
         int start, end = 0;
-        while (end < Param.MAX_TIME) {
+        while (end < 20) {
             long start_time = System.currentTimeMillis();
             start = end;
             end += time_interval;
@@ -73,7 +73,6 @@ public class Main {
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
             Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO);
-            cur_solution.outputSolution(sample_index);
             batch.cur_time += time_interval;
             int result = 0;
             for (Pattern pattern : cur_solution.patterns) {
@@ -91,6 +90,7 @@ public class Main {
                     batch.driverList.size(), batch.passengerList.size(), end_time - start_time);
             System.out.println();
         }
+        solution.outputSolution(sample_index);
         System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，拼车成功率为%.2f%%",
                 passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size(), 
                 batch.passengerList.size(), (double) match_sum / passenger_sum * 100);
