@@ -82,19 +82,21 @@ public class Main {
                     result++;
                 }
             }
+            solution.leave_count += cur_solution.leave_count;
             passenger_sum += size2 - size1;
             match_sum += result * 2;
             long end_time = System.currentTimeMillis();
             System.out.printf("第%d个阶段，待匹配司机数为%d，待匹配乘客数为%d，匹配成功对数为%d，" +
-                            "当前阶段剩余司机数为%d，剩余乘客数为%d，求解总消耗时长%d毫秒",
+                            "当前阶段剩余司机数为%d，剩余乘客数为%d，取消订单乘客数为%d，求解总消耗时长%d毫秒",
                     end / time_interval, waiting_driver_num, waiting_passenger_num, result,
-                    batch.driverList.size(), batch.passengerList.size(), end_time - start_time);
+                    batch.driverList.size(), batch.passengerList.size(), cur_solution.leave_count, end_time - start_time);
             System.out.println();
+
         }
-        solution.outputSolution(sample_index);
-        System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，拼车成功率为%.2f%%",
-                passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size(), 
-                batch.passengerList.size(), (double) match_sum / passenger_sum * 100);
+       // solution.outputSolution(sample_index);
+        System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，取消订单乘客数为%d，拼车成功率为%.2f%%",
+                passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size() - solution.leave_count, 
+                batch.passengerList.size(), solution.leave_count, (double) match_sum / passenger_sum * 100);
         return solution;
     }
 }

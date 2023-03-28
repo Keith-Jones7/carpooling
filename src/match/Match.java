@@ -64,7 +64,7 @@ public class Match {
                             valid_matrix[i][j] = 0;
                         }else {
                             valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
-                            valid_matrix[i][j] += 2 - (eta) / Param.MAX_ETA2;
+                            valid_matrix[i][j] += 2 - eta / Param.MAX_ETA2;
                         }
                     }else {
                         valid_matrix[i][j] = 0;
@@ -110,6 +110,7 @@ public class Match {
     }
 
     public Solution match(long cur_time, int flag) throws Exception {
+        Solution solution = null;
         if (flag == 1) {
             this.ppValidMatrix = new double[nPassengers][nPassengers];
             this.dpValidMatrix = new double[nDrivers][nPassengers];
@@ -117,15 +118,16 @@ public class Match {
             this.dpTimeMatrix = new double[nDrivers][nPassengers];
             calPPValid();
             calDPValid();
-            return match_zjr(cur_time);
+            solution = match_zjr(cur_time);
         }
         if (flag == 2) {
             match_matrix = new int[nDrivers][nPassengers];
             valid_matrix = new double[nDrivers][nPassengers];
             calValid();
-            return match_zkj(cur_time);
+            solution = match_zkj(cur_time);
         }
-        return null;
+        remove(solution, cur_time);
+        return solution;
     }
     public Solution match_zkj(long cur_time) throws Exception {
         IloCplex model = new IloCplex();
@@ -206,35 +208,19 @@ public class Match {
          //           System.out.println(map.calSpatialDistance(driver.cur_coor, passenger.origin_coor));
                     driver.queue.add(passenger);
                     passenger.cur_driver = driver;
-                    driver.match_coor = driver.cur_coor;
                 }
             }
         }
         Solution solution = new Solution();
-        for (int i = driver_num - 1; i >= 0; i--) {
-            Driver driver = driverList.get(i);
-            if (driver.queue.size() == 2) {
+        for (Driver driver : driverList) {
+            if (driver.queue.size() > 0) {
                 Passenger passenger1 = driver.queue.getFirst();
-                Passenger passenger2 = driver.queue.getLast();
-                Pattern pattern = new Pattern(driver, driver.queue.getFirst(), driver.queue.getLast());
-                pattern.setAim(map.calSimilarity(passenger1, passenger2), map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor));
+                Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
+                Pattern pattern = new Pattern(driver, passenger1, passenger2);
+                pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2),
+                        map.calTimeDistance(passenger1.origin_coor, passenger2 == null ? driver.cur_coor : passenger2.origin_coor));
                 solution.patterns.add(pattern);
                 solution.profit += pattern.aim;
-                driverList.remove(i);
-            }else if (driver.queue.size() == 1) {
-                Passenger passenger1 = driver.queue.getFirst();
-                Pattern pattern = new Pattern(driver, passenger1, null);
-                solution.patterns.add(pattern);
-                double temp = map.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
-                pattern.setAim(0, temp);
-                solution.profit += pattern.aim;
-            }
-        }
-        for (int j = passenger_num - 1; j >= 0; j--) {
-            Passenger passenger = passengerList.get(j);
-            passenger.renew(cur_time);
-            if (passenger.cur_driver != null) {
-                passengerList.remove(j);
             }
         }
         return solution;
@@ -255,12 +241,17 @@ public class Match {
             if (pattern.passenger2Id >= 0 && pattern.passenger2Id == passenger2.ID) {
                 driver.queue.add(passenger2);
             }
+            if (pattern.driver.queue.size() > 0 && pattern.driver.match_coor == null) {
+                pattern.driver.saveMatch_coor();
+            }
         }
-        for (int j = 0; j < nPassengers; j++) {
-            Passenger passenger = passengerList.get(j);
-            passenger.renew(cur_time);
+        return sol;
+    }
+
+    public void remove(Solution sol, long cur_time) {
+        if (sol == null) {
+            return;
         }
-        // remove drivers and passengers
         List<Driver> removeDrivers = new ArrayList<>();
         List<Passenger> removePassengers = new ArrayList<>();
         for (Driver driver : driverList) {
@@ -271,25 +262,24 @@ public class Match {
             }
         }
         for (Passenger passenger : passengerList) {
-            for (Pattern pattern : sol.patterns) {
-                if (pattern.passenger1Id == passenger.ID) {
-                    removePassengers.add(passenger);
-                }
-                if (pattern.passenger2Id == passenger.ID) {
-                    removePassengers.add(passenger);
+            passenger.renew(cur_time);
+            if (passenger.past_time > passenger.expected_arrive_time * Param.LEAVING_COFF) {
+                removePassengers.add(passenger);
+                sol.leave_count++;
+            }else {
+                for (Pattern pattern : sol.patterns) {
+                    if (pattern.passenger1Id == passenger.ID) {
+                        removePassengers.add(passenger);
+                    }
+                    if (pattern.passenger2Id == passenger.ID) {
+                        removePassengers.add(passenger);
+                    }
                 }
             }
         }
         driverList.removeAll(removeDrivers);
         passengerList.removeAll(removePassengers);
-        for (Pattern pattern : sol.patterns) {
-            if (pattern.driver.queue.size() > 0 && pattern.driver.match_coor == null) {
-                pattern.driver.saveMatch_coor();
-            }
-        }
-        return sol;
     }
-
     public double calProfit(Solution sol) {
         double profit = 0.0;
         for (Pattern pattern : sol.patterns) {

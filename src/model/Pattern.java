@@ -2,6 +2,7 @@ package model;
 
 import common.Param;
 import ilog.concert.IloNumVar;
+import map.GISMap;
 
 public class Pattern {
     public long cur_time;
@@ -42,10 +43,9 @@ public class Pattern {
     public void setAim(double sameAim, double etaAim) {
         this.sameAim = sameAim;
         this.etaAim = etaAim;
-        this.aim = (sameAim > 0 ? (1) : 0) + 2 - etaAim/Param.MAX_ETA;
+        this.aim = sameAim + 2 - etaAim/Param.MAX_ETA;
 //        this.aim = (sameAim > 0 ? 1 : 0);
     }
-
     public void setCur_time(long cur_time) {
         this.cur_time = cur_time;
     }
