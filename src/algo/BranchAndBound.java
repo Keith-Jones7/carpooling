@@ -59,6 +59,7 @@ public class BranchAndBound {
     Solution genMIPSol() throws IloException {
         ArrayList<Pattern> pool = genAllPatterns();
         rmp.addColumns(pool);
+//        rmp.removeInvalidRanges(pool);
         return rmp.solveIP();
     }
 

@@ -4,14 +4,15 @@ import common.Param;
 import ilog.concert.*;
 import ilog.cplex.IloCplex;
 import javafx.util.Pair;
-import model.Instance;
-import model.Pattern;
-import model.Solution;
+import model.*;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RestrictMasterProblem {
+    // instance
     Instance inst;
     int nPassengers;
     int nDrivers;
@@ -28,7 +29,7 @@ public class RestrictMasterProblem {
     // diving heuristic
     BitSet fixedItems;
 
-    // param
+    // final param
     private final int IloIntMax = Integer.MAX_VALUE;
     private final double IloInfinity = Double.MAX_VALUE;
     private final double bigM = 1e8;
@@ -44,6 +45,7 @@ public class RestrictMasterProblem {
         }
     }
 
+    // 建立模型
     void formulate() throws IloException {
         cplex = new IloCplex();
         x = new ArrayList<>();
@@ -70,6 +72,7 @@ public class RestrictMasterProblem {
         cplex.setParam(IloCplex.IntParam.RootAlgorithm, IloCplex.Algorithm.Primal);
     }
 
+    // 添加虚拟变量
     void addArtificialVariables() throws IloException {
         artificialVars = new IloNumVar[nDrivers + nPassengers];
         // artificial var added in the constraints(1)
@@ -86,18 +89,22 @@ public class RestrictMasterProblem {
         }
     }
 
+    // 设置属性
     void set() {
 
     }
 
+    // 设置潜水启发式
     void setDiving() {
 
     }
 
+    // 移除潜水启发式
     void recoverDiving() {
 
     }
 
+    // 添加列变量
     void addColumns(ArrayList<Pattern> patterns) throws IloException {
         for (Pattern pattern : patterns) {
             int size = pool.size();
@@ -121,10 +128,34 @@ public class RestrictMasterProblem {
         }
     }
 
+    void removeInvalidRanges(ArrayList<Pattern> allPatterns) throws IloException {
+        int[] validRangesIdx = new int[nDrivers + nPassengers];
+        IloRange[] removeRanges = new IloRange[nDrivers + nPassengers];
+        for (Pattern pattern : allPatterns) {
+            if (pattern.driverIdx >= 0) {
+                validRangesIdx[pattern.driverIdx] = 1;
+            }
+            if (pattern.passenger1Idx >= 0) {
+                validRangesIdx[nDrivers + pattern.passenger1Idx] = 1;
+            }
+            if (pattern.passenger2Idx >= 0) {
+                validRangesIdx[nDrivers + pattern.passenger2Idx] = 1;
+            }
+        }
+        for (int i = 0; i < nDrivers + nPassengers; i++) {
+            if (validRangesIdx[i] == 0) {
+                removeRanges[i] = ranges[i];
+            }
+        }
+        cplex.remove(removeRanges);
+    }
+
+    // 求解线性规划
     void solveLP() throws IloException {
         boolean feasible = cplex.solve();
     }
 
+    // 求解整数规划
     Solution solveIP() throws IloException {
         Solution sol = null;
         convertToIP();
@@ -137,6 +168,7 @@ public class RestrictMasterProblem {
         return sol;
     }
 
+    // 转变为线性规划
     private void convertToIP() {
         try {
             for (IloNumVar iloNumVar : x) {
@@ -149,6 +181,7 @@ public class RestrictMasterProblem {
         }
     }
 
+    // 转变为整数规划
     private void convertToLP() {
         try {
             for (IloConversion iloConversion : x_conv) {
@@ -160,6 +193,7 @@ public class RestrictMasterProblem {
         }
     }
 
+    // 获取对偶变量
     double[] getDualsOfRanges() throws IloException {
         return cplex.getDuals(ranges);
     }
@@ -183,10 +217,12 @@ public class RestrictMasterProblem {
         return true;
     }
 
+    // 获取最优目标值
     double getObjVal() throws IloException {
         return cplex.getObjValue();
     }
 
+    // 获取线性规划解
     LPSol getLPSol() throws IloException {
         double objVal = cplex.getObjValue();
         ArrayList<Pair<Pattern, Double>> vals = new ArrayList<>();
@@ -200,6 +236,7 @@ public class RestrictMasterProblem {
         return new LPSol(vals, objVal);
     }
 
+    // 获取整数规划解
     Solution getIPSol() throws IloException {
         double objVal = cplex.getObjValue();
         Solution sol = new Solution();
@@ -214,6 +251,7 @@ public class RestrictMasterProblem {
         return sol;
     }
 
+    // 求解结束
     void end() {
         cplex.end();
     }

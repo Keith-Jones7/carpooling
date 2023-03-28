@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 
 public class ColumnGeneration {
+    // instance
     Instance inst;
     int nDrivers;
     int nPassengers;
