@@ -8,9 +8,7 @@ import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws Exception{
-        
-        Solution solution = runSample(30, 3);
-        
+        Solution solution = runSample(30, 2);
         //runDefault(1);
     }
     public static void runDefault(int time_interval) throws Exception{
@@ -74,6 +72,7 @@ public class Main {
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
             Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO);
+            cur_solution.checkSolution(2);
             batch.cur_time += time_interval;
             int result = 0;
             for (Pattern pattern : cur_solution.patterns) {
@@ -92,11 +91,12 @@ public class Main {
                     batch.driverList.size(), batch.passengerList.size(), cur_solution.leave_count, end_time - start_time);
             System.out.println();
 
-        }
-       // solution.outputSolution(sample_index);
+          }
+        solution.outputSolution(sample_index);
         System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，取消订单乘客数为%d，拼车成功率为%.2f%%",
                 passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size() - solution.leave_count, 
                 batch.passengerList.size(), solution.leave_count, (double) match_sum / passenger_sum * 100);
+        System.out.println(solution.leave_count + "\t" + (double) match_sum / passenger_sum * 100);
         return solution;
     }
 }

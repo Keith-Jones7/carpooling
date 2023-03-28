@@ -11,10 +11,10 @@ public class Param {
 
     public static final int MAP_CHOOSE = 1;                                       // 地图选择参数     1: TestMap    2: GISMap
     public static final int MATCH_ALGO = 1;                                       // 匹配算法选择参数  1: match_zjr  2: match_zkj
-    public static final long MAX_ETA = 300;                                        // 接第一个乘客最大eta
+    public static long MAX_ETA = 300;                                        // 接第一个乘客最大eta
     public static final long MAX_ETA2 = 120;                                      // 接第二个乘客最大eta
-    public static final double DETOUR_RATIO = 1.5;                             // 最大绕行比
-    public static final double MIN_TOURING_SIMILARITY = 0.4;                      // 最小行程相似度
+    public static double DETOUR_RATIO = 1.4;                             // 最大绕行比
+    public static double MIN_TOURING_SIMILARITY = 0.5;                      // 最小行程相似度
     public static final int MAX_TIME = 1200;                                    // 订单收集期
     public static final double LEAVING_COFF = 0.1;                              // 乘客根据预期到达时间决定的取消订单时间系数
     public static int COUNT = 0;
