@@ -2,10 +2,7 @@ package match;
 
 import algo.BranchAndBound;
 import common.Param;
-import ilog.concert.IloException;
-import ilog.concert.IloIntExpr;
-import ilog.concert.IloIntVar;
-import ilog.concert.IloNumExpr;
+import ilog.concert.*;
 import ilog.cplex.IloCplex;
 import map.GISMap;
 import map.TestMap;
@@ -142,19 +139,21 @@ public class Match {
 
         //决策变量
         //匹配成功数最大
-        IloIntVar[][] match = new IloIntVar[driver_num][passenger_num];
+        IloNumVar[][] match = new IloNumVar[driver_num][passenger_num];
         for (int i = 0; i < driver_num; i++) {
             for (int j = 0; j < passenger_num; j++) {
-                match[i][j] = model.intVar(0, 1, "M" + i + "," + j);
+                match[i][j] = model.boolVar();
             }
         }
 
         //目标函数
         //将匹配成功数作为最大化目标函数
-        IloNumExpr obj = model.intExpr();
+        IloNumExpr obj = model.linearNumExpr();
         for (int i = 0; i < driver_num; i++) {
             for (int j = 0; j < passenger_num; j++) {
-                obj = model.sum(obj, model.prod(match[i][j], valid_matrix[i][j]));
+                if (valid_matrix[i][j] > 0) {
+                    obj = model.sum(obj, model.prod(match[i][j], valid_matrix[i][j]));
+                }
             }
         }
         //将带权路径总和作为最大化目标函数
@@ -162,40 +161,52 @@ public class Match {
         model.addMaximize(obj);
         //约束条件
 
+        //可行约束
+        for (int i = 0; i < driver_num; i++) {
+            for (int j = 0; j < passenger_num; j++) {
+                if (valid_matrix[i][j] > 0) {
+                    IloNumExpr expr = model.linearNumExpr();
+                    expr = model.sum(expr, match[i][j]);
+                    model.addLe(expr, valid_matrix[i][j]);
+                }
+            }
+        }
+        
         //一个司机最多匹配一个乘客
         for (int i = 0; i < driver_num; i++) {
-            IloIntExpr expr = model.intExpr();
+            IloNumExpr expr = model.linearNumExpr();
             for (int j = 0; j < passenger_num; j++) {
-                expr = model.sum(expr, match[i][j]);
+                if (valid_matrix[i][j] > 0) {
+                    expr = model.sum(expr, match[i][j]);
+                }
             }
             model.addLe(expr, 1);
         }
         //一个乘客最多匹配一个司机
         for (int j = 0; j < passenger_num; j++) {
-            IloIntExpr expr = model.intExpr();
+            IloNumExpr expr = model.linearNumExpr();
             for (int i = 0; i < driver_num; i++) {
-                expr = model.sum(expr, match[i][j]);
+                if (valid_matrix[i][j] > 0) {
+                    expr = model.sum(expr, match[i][j]);
+                }
             }
             model.addLe(expr, 1);
         }
-        //可行约束
-        for (int i = 0; i < driver_num; i++) {
-            for (int j = 0; j < passenger_num; j++) {
-                IloIntExpr expr = model.intExpr();
-                expr = model.sum(expr, match[i][j]);
-                model.addLe(expr, valid_matrix[i][j]);
-            }
-        }
+        
         model.solve();
+        
         for (int i = driver_num - 1; i >= 0; i--) {
             for (int j = passenger_num - 1; j >= 0; j--) {
-                match_matrix[i][j] = (int) model.getValue(match[i][j]);
+                if (valid_matrix[i][j] > 0) {
+                    match_matrix[i][j] = (int) model.getValue(match[i][j]);
+                }
                 if (match_matrix[i][j] == 1) {
                     Driver driver = driverList.get(i);
                     Passenger passenger = passengerList.get(j);
          //           System.out.println(map.calSpatialDistance(driver.cur_coor, passenger.origin_coor));
                     driver.queue.add(passenger);
                     passenger.cur_driver = driver;
+                    driver.match_coor = driver.cur_coor;
                 }
             }
         }

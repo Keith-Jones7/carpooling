@@ -15,11 +15,8 @@ public class Param {
     public static final long MAX_ETA2 = 120;                                      // 接第二个乘客最大eta
     public static final double DETOUR_RATIO = 1.5;                             // 最大绕行比
     public static final double MIN_TOURING_SIMILARITY = 0.4;                      // 最小行程相似度
-    /**
-     * MAX_TIME：订单收集最长时间
-     */
     public static final int MAX_TIME = 1200;
-
+    public static int COUNT = 0;
     /**
      * SPEED：车辆平均行驶速度,单位米每秒
      */
