@@ -13,8 +13,8 @@ public class Param {
     public static final int MATCH_ALGO = 1;                                       // 匹配算法选择参数  1: match_zjr  2: match_zkj
     public static final long MAX_ETA = 180;                                        // 接第一个乘客最大eta
     public static final long MAX_ETA2 = 120;                                      // 接第二个乘客最大eta
-    public static final double DETOUR_RATIO = 1.4;                             // 最大绕行比
-    public static final double MIN_TOURING_SIMILARITY = 0.6;                      // 最小行程相似度
+    public static final double DETOUR_RATIO = 1.5;                             // 最大绕行比
+    public static final double MIN_TOURING_SIMILARITY = 0.4;                      // 最小行程相似度
     /**
      * MAX_TIME：订单收集最长时间
      */
