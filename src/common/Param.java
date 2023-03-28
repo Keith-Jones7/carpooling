@@ -11,7 +11,7 @@ public class Param {
 
     public static final int MAP_CHOOSE = 1;                                       // 地图选择参数     1: TestMap    2: GISMap
     public static final int MATCH_ALGO = 1;                                       // 匹配算法选择参数  1: match_zjr  2: match_zkj
-    public static final long MAX_ETA = 180;                                        // 接第一个乘客最大eta
+    public static final long MAX_ETA = 300;                                        // 接第一个乘客最大eta
     public static final long MAX_ETA2 = 120;                                      // 接第二个乘客最大eta
     public static final double DETOUR_RATIO = 1.5;                             // 最大绕行比
     public static final double MIN_TOURING_SIMILARITY = 0.4;                      // 最小行程相似度
@@ -22,8 +22,8 @@ public class Param {
      */
     public static final double SPEED = 10;                                         // 车辆平均行驶速度,单位米每秒
     
-    public static double LNG = 85390;                                              // 每经度距离, 单位米
-    public static double LAT = 92000;                                              // 每纬度距离, 单位米
+    public static double LNG = 94403.94;                                              // 每经度距离, 单位米
+    public static double LAT = 111319.49;                                              // 每纬度距离, 单位米
     public static final double GAP = 0.1;
     public static final double EPS = 1e-6;
     public static final int SEED = 3;
