@@ -44,7 +44,7 @@ public class Pattern {
         this.sameAim = sameAim;
         this.etaAim = etaAim;
         this.aim = (sameAim > 0 ? sameAim + 2 : 0) + 2 - etaAim/Param.MAX_ETA;
-//        this.aim = (sameAim > 0 ? 1 : 0);
+        //this.aim = (sameAim > 0 ? sameAim + 2 : 0);
     }
     public void setCur_time(long cur_time) {
         this.cur_time = cur_time;
