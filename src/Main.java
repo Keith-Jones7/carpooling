@@ -92,7 +92,7 @@ public class Main {
             System.out.println();
 
           }
-        solution.outputSolution(sample_index);
+        //solution.outputSolution(sample_index);
         System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，取消订单乘客数为%d，拼车成功率为%.2f%%",
                 passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size() - solution.leave_count, 
                 batch.passengerList.size(), solution.leave_count, (double) match_sum / passenger_sum * 100);

@@ -244,18 +244,16 @@ public class Match {
         }
         for (Passenger passenger : passengerList) {
             passenger.renew(cur_time);
-            if (passenger.past_time > passenger.expected_arrive_time * Param.LEAVING_COFF) {
+            boolean flag = false;
+            for (Pattern pattern : sol.patterns) {
+                if (pattern.passenger1Id == passenger.ID || pattern.passenger2Id == passenger.ID) {
+                    removePassengers.add(passenger);
+                    flag = true;
+                }
+            }
+            if (!flag && (passenger.past_time > passenger.expected_arrive_time * Param.LEAVING_COFF)) {
                 removePassengers.add(passenger);
                 sol.leave_count++;
-            }else {
-                for (Pattern pattern : sol.patterns) {
-                    if (pattern.passenger1Id == passenger.ID) {
-                        removePassengers.add(passenger);
-                    }
-                    if (pattern.passenger2Id == passenger.ID) {
-                        removePassengers.add(passenger);
-                    }
-                }
             }
         }
         driverList.removeAll(removeDrivers);
