@@ -10,7 +10,8 @@ import java.util.Random;
 public class Param {
 
     public static final int MAP_CHOOSE = 1;                                       // 地图选择参数     1: TestMap    2: GISMap
-    public static final int MATCH_ALGO = 3;                                       // 匹配算法选择参数  1: match_zjr  2: match_zkj  2.match_hung
+    public static final int MATCH_ALGO = 1;                                       // 匹配算法选择参数  1: match_zjr  2: match_zkj
+    public static final int MATCH_MODEL = 2;                                   // 匹配算法模式参数     0: 0-1匹配    1: 1-1匹配    2: 0-2匹配
     public static long MAX_ETA = 300;                                        // 接第一个乘客最大eta
     public static final long MAX_ETA2 = 120;                                      // 接第二个乘客最大eta
     public static double DETOUR_RATIO = 1.4;                             // 最大绕行比
@@ -19,7 +20,7 @@ public class Param {
     public static final double LEAVING_COFF = 0.1;                              // 乘客根据预期到达时间决定的取消订单时间系数
     public static int COUNT = 0;
     public static final double SPEED = 10;                                         // 车辆平均行驶速度,单位米每秒
-    
+
     public static double LNG = 94403.94;                                              // 每经度距离, 单位米
     public static double LAT = 111319.49;                                              // 每纬度距离, 单位米
     public static final double GAP = 0.1;
@@ -88,25 +89,9 @@ public class Param {
         double d2_d1 = calTimeDistance(p2.dest_coor, p1.dest_coor);
         return o1_o2 + o2_d2 + d2_d1 + p1.past_time < p1.expected_arrive_time - p1.submit_time;
     }
-    
-    public static void renewRandom() {
-        RND = new Random(SEED);
-    }
 
     public static double getTimecost(long start) {
         return 0.001 * (System.currentTimeMillis() - start);
-    }
-
-    public static String getCurrentDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        return sdf.format(new Date());
-        // return LocalDate.now().toString();
-    }
-
-    public static String getCurrentTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmm");
-        return sdf.format(new Date());
-        // return LocalDateTime.now().toString();
     }
 
     public static int min(int[] nums) {
@@ -150,47 +135,5 @@ public class Param {
 
     public static int ceilToInt(double d) {
         return (int) Math.ceil(d - EPS);
-    }
-
-    public static int getRandomNum(int n1, int n2) { // [n1, n2)
-        return RND.nextInt(n2 - n1) + n1;
-    }
-
-    public static void copyTo(int[] src, int[] dest) {
-        System.arraycopy(src, 0, dest, 0, src.length);
-    }
-
-    public static void copyTo(int[][] src, int[][] dest) {
-        for (int i = 0; i < src.length; i++) {
-            System.arraycopy(src[i], 0, dest[i], 0, src[i].length);
-        }
-    }
-
-    public static void copyTo(boolean[][] src, boolean[][] dest) {
-        for (int i = 0; i < src.length; i++) {
-            System.arraycopy(src[i], 0, dest[i], 0, src[i].length);
-        }
-    }
-
-    // required: left[0] < right[0], ASC order, no duplicated items
-    public static int[] mergeSort(int[] left, int[] right) {
-        int[] res = new int[left.length + right.length];
-        int h = 0; // index in res
-        int i = 0; // index in left
-        int j = 0; // index in right
-        while (i < left.length && j < right.length) {
-            if (left[i] < right[j]) { // <
-                res[h++] = left[i++];
-            } else { // >
-                res[h++] = right[j++];
-            }
-        }
-        while (i < left.length) {
-            res[h++] = left[i++];
-        }
-        while (j < right.length) {
-            res[h++] = right[j++];
-        }
-        return res;
     }
 }

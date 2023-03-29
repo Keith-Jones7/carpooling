@@ -5,6 +5,7 @@ import java.util.List;
 
 public class Instance {
     public long cur_time;
+    public int match_flag;
 
     public int nPassengers;
     public int nDrivers;
@@ -16,9 +17,10 @@ public class Instance {
     public double[][] ppTimeMatrix;
     public double[][] dpTimeMatrix;
 
-    public Instance(long cur_time, List<Driver> driverList, List<Passenger> passengerList, double[][] ppValidMatrix,
+    public Instance(long cur_time, int match_flag, List<Driver> driverList, List<Passenger> passengerList, double[][] ppValidMatrix,
                     double[][] dpValidMatrix, double[][] ppTimeMatrix, double[][] dpTimeMatrix) {
         this.cur_time = cur_time;
+        this.match_flag = match_flag;
         this.nDrivers = driverList.size();
         this.nPassengers = passengerList.size();
         this.driverList = driverList;

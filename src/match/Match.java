@@ -105,7 +105,7 @@ public class Match {
             }
         }
     }
-
+    
     public Solution match(long cur_time, int algo_flag, int match_flag) throws Exception {
         Solution solution = null;
         if (algo_flag== 1) {
@@ -115,7 +115,7 @@ public class Match {
             this.dpTimeMatrix = new double[nDrivers][nPassengers];
             calPPValid();
             calDPValid();
-            solution = match_zjr(cur_time);
+            solution = match_zjr(cur_time, match_flag);
         }
         if (algo_flag == 2) {
             match_matrix = new int[nDrivers][nPassengers];
@@ -283,8 +283,8 @@ public class Match {
         return solution;
     }
 
-    public Solution match_zjr(long cur_time) throws IloException {
-        Instance inst = new Instance(cur_time, driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix );
+    public Solution match_zjr(long cur_time, int match_flag) throws IloException {
+        Instance inst = new Instance(cur_time, match_flag, driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix);
         BranchAndBound bnp = new BranchAndBound(inst);
         bnp.run();
         Solution sol = bnp.bestSol;
@@ -320,18 +320,16 @@ public class Match {
         }
         for (Passenger passenger : passengerList) {
             passenger.renew(cur_time);
-            if (passenger.past_time > passenger.expected_arrive_time * Param.LEAVING_COFF) {
+            boolean flag = false;
+            for (Pattern pattern : sol.patterns) {
+                if (pattern.passenger1Id == passenger.ID || pattern.passenger2Id == passenger.ID) {
+                    removePassengers.add(passenger);
+                    flag = true;
+                }
+            }
+            if (!flag && (passenger.past_time > passenger.expected_arrive_time * Param.LEAVING_COFF)) {
                 removePassengers.add(passenger);
                 sol.leave_count++;
-            }else {
-                for (Pattern pattern : sol.patterns) {
-                    if (pattern.passenger1Id == passenger.ID) {
-                        removePassengers.add(passenger);
-                    }
-                    if (pattern.passenger2Id == passenger.ID) {
-                        removePassengers.add(passenger);
-                    }
-                }
             }
         }
         driverList.removeAll(removeDrivers);
