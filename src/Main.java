@@ -30,7 +30,7 @@ public class Main {
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, 1);
+            Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
             batch.cur_time += time_interval;
             int result = 0;
             for (Pattern pattern : cur_solution.patterns) {
@@ -71,7 +71,7 @@ public class Main {
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, 1);
+            Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
             cur_solution.checkSolution(2);
             batch.cur_time += time_interval;
             int result = 0;

@@ -9,7 +9,9 @@ public class Pattern {
 
     public double aim;
     public double sameAim;
-    public double etaAim;
+    public double etaAim1;
+    
+    public double etaAim2;
     public Driver driver;
     
     public Passenger passenger1;
@@ -40,10 +42,11 @@ public class Pattern {
     }
 
     // Todo: 后续可以在这里修改方案变量的目标系数
-    public void setAim(double sameAim, double etaAim) {
+    public void setAim(double sameAim, double etaAim1, double etaAim2) {
         this.sameAim = sameAim;
-        this.etaAim = etaAim;
-        this.aim = (sameAim > 0 ? sameAim + 2 : 0) + 2 - etaAim/Param.MAX_ETA;
+        this.etaAim1 = etaAim1;
+        this.etaAim2 = etaAim2;
+        this.aim = (sameAim > 0 ? sameAim + 2 : 0) + 1 - etaAim1/Param.MAX_ETA + 1 - etaAim2 / Param.MAX_ETA2;
         //this.aim = (sameAim > 0 ? sameAim + 2 : 0);
     }
     public void setCur_time(long cur_time) {

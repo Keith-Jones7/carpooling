@@ -124,19 +124,19 @@ public class BranchAndBound {
                     if (etaAim1 <= Param.MAX_ETA) {
                         // 生成一个司机只带一个顾客的方案
                         Pattern pattern1 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), null);
-                        pattern1.setAim(0.0, etaAim1);
+                        pattern1.setAim(0.0, etaAim1, Param.MAX_ETA2);
                         pattern1.setIdx(i, j1, -1);
                         pattern1.setCur_time(inst.cur_time);
                         pool.add(pattern1);
                         // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
                         if (inst.match_flag >= 2) {
                             for (int j2 = 0; j2 < nPassengers && j2 != j1; j2++) {
-                                double etaAim = etaAim1 + inst.ppTimeMatrix[j1][j2];
+                                double etaAim2 = inst.ppTimeMatrix[j1][j2];
                                 double sameAim = inst.ppValidMatrix[j1][j2];
-                                if (etaAim <= Param.MAX_ETA2 && sameAim > 0) {
+                                if (etaAim2 <= Param.MAX_ETA2 && sameAim > 0) {
                                     // 生成一个司机带两个乘客的拼车方案
                                     Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), inst.passengerList.get(j2));
-                                    pattern2.setAim(sameAim, etaAim);
+                                    pattern2.setAim(sameAim, etaAim1, etaAim2);
                                     pattern2.setIdx(i, j1, j2);
                                     pattern2.setCur_time(inst.cur_time);
                                     pool.add(pattern2);
@@ -154,7 +154,7 @@ public class BranchAndBound {
                         if (etaAim2 <= Param.MAX_ETA2 && sameAim > 0) {
                             // 生成一个司机带两个乘客的拼车方案
                             Pattern pattern2 = new Pattern(inst.driverList.get(i), null, inst.passengerList.get(j2));
-                            pattern2.setAim(sameAim, etaAim2);
+                            pattern2.setAim(sameAim, Param.MAX_ETA, etaAim2);
                             pattern2.setIdx(i, -1, j2);
                             pattern2.setCur_time(inst.cur_time);
                             pool.add(pattern2);
