@@ -131,6 +131,11 @@ public class Match {
             calValid(match_flag);
             solution = match_hung();
         }
+        if (algo_flag == 4) {
+            valid_matrix = new double[nDrivers][nPassengers];
+            calValid(match_flag);
+            solution = match_km();
+        }
         remove(solution, cur_time);
         return solution;
     }
@@ -161,18 +166,30 @@ public class Match {
         return solution;
     }
     
-    public boolean find(int i) {
-        for (int j = 0; j < nPassengers; j++) {
-            if (valid_matrix[i][j] > 0 && !visited[j]) {
-                visited[j] = true;
-                if (match[j] == -1 ||find(match[j])) {
-                    match[j] = i;
-                    return true;
+    public Solution match_km() {
+        match_matrix = maxWeightBipartiteMatching(valid_matrix);
+        Solution solution = new Solution();
+        for (int i = 0; i < nDrivers; i++) {
+            for (int j = 0; j < nPassengers; j++) {
+                if (match_matrix[i][j] == 1) {
+                    Driver driver = driverList.get(i);
+                    Passenger passenger = passengerList.get(j);
+                    //           System.out.println(map.calSpatialDistance(driver.cur_coor, passenger.origin_coor));
+                    driver.queue.add(passenger);
+                    passenger.cur_driver = driver;
+                    Passenger passenger1 = driver.queue.getFirst();
+                    Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
+                    Pattern pattern = new Pattern(driver, passenger1, passenger2);
+                    pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2),
+                            map.calTimeDistance(passenger1.origin_coor, passenger2 == null ? driver.cur_coor : passenger2.origin_coor));
+                    solution.patterns.add(pattern);
+                    solution.profit += pattern.aim;
                 }
             }
         }
-        return false;
+        return solution;
     }
+
     public Solution match_zkj() throws Exception {
         IloCplex model = new IloCplex();
         double precision = 1e-5;
@@ -337,5 +354,83 @@ public class Match {
             }
         }
         return profit;
+    }
+
+    public boolean find(int i) {
+        for (int j = 0; j < nPassengers; j++) {
+            if (valid_matrix[i][j] > 0 && !visited[j]) {
+                visited[j] = true;
+                if (match[j] == -1 ||find(match[j])) {
+                    match[j] = i;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public int[][] maxWeightBipartiteMatching(double[][] weights) {
+        int numRows = weights.length;
+        int numCols = weights[0].length;
+        int[][] match = new int[numRows][numCols];
+
+        // Step 1: Subtract row minimums from each row
+        double[] rowMins = new double[numRows];
+        Arrays.fill(rowMins, Double.POSITIVE_INFINITY);
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numCols; j++) {
+                rowMins[i] = Math.min(rowMins[i], weights[i][j]);
+            }
+            for (int j = 0; j < numCols; j++) {
+                weights[i][j] -= rowMins[i];
+            }
+        }
+
+        // Step 2: Subtract column minimums from each column
+        double[] colMins = new double[numCols];
+        Arrays.fill(colMins, Double.POSITIVE_INFINITY);
+        for (int j = 0; j < numCols; j++) {
+            for (double[] weight : weights) {
+                colMins[j] = Math.min(colMins[j], weight[j]);
+            }
+            for (int i = 0; i < numRows; i++) {
+                weights[i][j] -= colMins[j];
+            }
+        }
+
+        // Step 3: Find a maximum matching
+        int[] rowMatch = new int[numRows];
+        int[] colMatch = new int[numCols];
+        Arrays.fill(rowMatch, -1);
+        Arrays.fill(colMatch, -1);
+        for (int i = 0; i < numRows; i++) {
+            boolean[] visited = new boolean[numCols];
+            if (findAugmentingPath(i, weights, rowMatch, colMatch, visited)) {
+                Arrays.fill(visited, false);
+            }
+        }
+
+        // Step 4: Construct the match matrix
+        for (int i = 0; i < numRows; i++) {
+            if (rowMatch[i] != -1) {
+                match[i][rowMatch[i]] = 1;
+            }
+        }
+        return match;
+    }
+
+    private boolean findAugmentingPath(int i, double[][] weights, int[] rowMatch, int[] colMatch, boolean[] visited) {
+        int numCols = weights[0].length;
+        for (int j = 0; j < numCols; j++) {
+            if (weights[i][j] > 0 && !visited[j]) {
+                visited[j] = true;
+                if (colMatch[j] == -1 || findAugmentingPath(colMatch[j], weights, rowMatch, colMatch, visited)) {
+                    rowMatch[i] = j;
+                    colMatch[j] = i;
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
