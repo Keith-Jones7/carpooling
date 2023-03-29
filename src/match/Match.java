@@ -50,7 +50,7 @@ public class Match {
                 if (driver.queue.size() == 0) {
                     double eta = map.calTimeDistance(driver.cur_coor, passenger.origin_coor);
                     if (eta <= Param.MAX_ETA) {
-                        valid_matrix[i][j] = 2 - (eta) / Param.MAX_ETA;
+                        valid_matrix[i][j] = 1 - eta / Param.MAX_ETA;
                     }
                 }else if (flag == 1 && driver.queue.size() == 1){
                     Passenger passenger1 = driver.queue.peek();
@@ -63,7 +63,7 @@ public class Match {
                             valid_matrix[i][j] = 0;
                         }else {
                             valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
-                            valid_matrix[i][j] += 2 - eta / Param.MAX_ETA2;
+                            valid_matrix[i][j] += 1 - eta / Param.MAX_ETA2;
                         }
                     }
                 }
@@ -108,7 +108,7 @@ public class Match {
     
     public Solution match(long cur_time, int algo_flag, int match_flag) throws Exception {
         Solution solution = null;
-        if (algo_flag== 1) {
+        if (algo_flag == 1) {
             this.ppValidMatrix = new double[nPassengers][nPassengers];
             this.dpValidMatrix = new double[nDrivers][nPassengers];
             this.ppTimeMatrix = new double[nPassengers][nPassengers];
@@ -157,8 +157,9 @@ public class Match {
                 Passenger passenger1 = driver.queue.getFirst();
                 Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
                 Pattern pattern = new Pattern(driver, passenger1, passenger2);
-                pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2),
-                        map.calTimeDistance(passenger1.origin_coor, passenger2 == null ? driver.cur_coor : passenger2.origin_coor));
+                double eta1 = map.calTimeDistance(passenger1.origin_coor, driver.cur_coor);
+                double eta2 = passenger2 == null ? Param.MAX_ETA2 : map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
+                pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2), eta1, eta2);
                 solution.patterns.add(pattern);
                 solution.profit += pattern.aim;
             }
@@ -180,8 +181,9 @@ public class Match {
                     Passenger passenger1 = driver.queue.getFirst();
                     Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
                     Pattern pattern = new Pattern(driver, passenger1, passenger2);
-                    pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2),
-                            map.calTimeDistance(passenger1.origin_coor, passenger2 == null ? driver.cur_coor : passenger2.origin_coor));
+                    double eta1 = map.calTimeDistance(passenger1.origin_coor, driver.cur_coor);
+                    double eta2 = passenger2 == null ? Param.MAX_ETA2 : map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
+                    pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2), eta1, eta2);
                     solution.patterns.add(pattern);
                     solution.profit += pattern.aim;
                 }
@@ -222,18 +224,6 @@ public class Match {
         //将带权路径总和作为最大化目标函数
 
         model.addMaximize(obj);
-        //约束条件
-
-        //可行约束
-        for (int i = 0; i < driver_num; i++) {
-            for (int j = 0; j < passenger_num; j++) {
-                if (valid_matrix[i][j] > 0) {
-                    IloNumExpr expr = model.linearNumExpr();
-                    expr = model.sum(expr, match[i][j]);
-                    model.addLe(expr, valid_matrix[i][j]);
-                }
-            }
-        }
         
         //一个司机最多匹配一个乘客
         for (int i = 0; i < driver_num; i++) {
@@ -273,8 +263,9 @@ public class Match {
                     Passenger passenger1 = driver.queue.getFirst();
                     Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
                     Pattern pattern = new Pattern(driver, passenger1, passenger2);
-                    pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2),
-                            map.calTimeDistance(passenger1.origin_coor, passenger2 == null ? driver.cur_coor : passenger2.origin_coor));
+                    double eta1 = map.calTimeDistance(passenger1.origin_coor, driver.cur_coor);
+                    double eta2 = passenger2 == null ? Param.MAX_ETA2 : map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
+                    pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2), eta1, eta2);
                     solution.patterns.add(pattern);
                     solution.profit += pattern.aim;
                 }
