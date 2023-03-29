@@ -88,25 +88,9 @@ public class Param {
         double d2_d1 = calTimeDistance(p2.dest_coor, p1.dest_coor);
         return o1_o2 + o2_d2 + d2_d1 + p1.past_time < p1.expected_arrive_time - p1.submit_time;
     }
-    
-    public static void renewRandom() {
-        RND = new Random(SEED);
-    }
 
     public static double getTimecost(long start) {
         return 0.001 * (System.currentTimeMillis() - start);
-    }
-
-    public static String getCurrentDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        return sdf.format(new Date());
-        // return LocalDate.now().toString();
-    }
-
-    public static String getCurrentTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmm");
-        return sdf.format(new Date());
-        // return LocalDateTime.now().toString();
     }
 
     public static int min(int[] nums) {
@@ -150,47 +134,5 @@ public class Param {
 
     public static int ceilToInt(double d) {
         return (int) Math.ceil(d - EPS);
-    }
-
-    public static int getRandomNum(int n1, int n2) { // [n1, n2)
-        return RND.nextInt(n2 - n1) + n1;
-    }
-
-    public static void copyTo(int[] src, int[] dest) {
-        System.arraycopy(src, 0, dest, 0, src.length);
-    }
-
-    public static void copyTo(int[][] src, int[][] dest) {
-        for (int i = 0; i < src.length; i++) {
-            System.arraycopy(src[i], 0, dest[i], 0, src[i].length);
-        }
-    }
-
-    public static void copyTo(boolean[][] src, boolean[][] dest) {
-        for (int i = 0; i < src.length; i++) {
-            System.arraycopy(src[i], 0, dest[i], 0, src[i].length);
-        }
-    }
-
-    // required: left[0] < right[0], ASC order, no duplicated items
-    public static int[] mergeSort(int[] left, int[] right) {
-        int[] res = new int[left.length + right.length];
-        int h = 0; // index in res
-        int i = 0; // index in left
-        int j = 0; // index in right
-        while (i < left.length && j < right.length) {
-            if (left[i] < right[j]) { // <
-                res[h++] = left[i++];
-            } else { // >
-                res[h++] = right[j++];
-            }
-        }
-        while (i < left.length) {
-            res[h++] = left[i++];
-        }
-        while (j < right.length) {
-            res[h++] = right[j++];
-        }
-        return res;
     }
 }
