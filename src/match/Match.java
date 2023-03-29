@@ -90,7 +90,7 @@ public class Match {
         }
     }
 
-    public Solution match(long cur_time, int flag) throws Exception {
+    public Solution match(long cur_time, int flag, int match_flag) throws Exception {
         Solution solution = null;
         if (flag == 1) {
             this.ppValidMatrix = new double[nPassengers][nPassengers];
@@ -99,7 +99,7 @@ public class Match {
             this.dpTimeMatrix = new double[nDrivers][nPassengers];
             calPPValid();
             calDPValid();
-            solution = match_zjr(cur_time);
+            solution = match_zjr(cur_time, match_flag);
         }
         if (flag == 2) {
             match_matrix = new int[nDrivers][nPassengers];
@@ -207,8 +207,8 @@ public class Match {
         return solution;
     }
 
-    public Solution match_zjr(long cur_time) throws IloException {
-        Instance inst = new Instance(cur_time, driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix );
+    public Solution match_zjr(long cur_time, int match_flag) throws IloException {
+        Instance inst = new Instance(cur_time, match_flag, driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix);
         BranchAndBound bnp = new BranchAndBound(inst);
         bnp.run();
         Solution sol = bnp.bestSol;

@@ -8,8 +8,8 @@ import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws Exception{
-        Solution solution = runSample(30, 2);
-        //runDefault(1);
+        Solution solution = runSample(30, 1);
+//        runDefault(30);
     }
     public static void runDefault(int time_interval) throws Exception{
         Batch batch = new Batch();
@@ -30,7 +30,7 @@ public class Main {
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO);
+            Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, 1);
             batch.cur_time += time_interval;
             int result = 0;
             for (Pattern pattern : cur_solution.patterns) {
@@ -71,7 +71,7 @@ public class Main {
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO);
+            Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, 1);
             cur_solution.checkSolution(2);
             batch.cur_time += time_interval;
             int result = 0;

@@ -129,7 +129,7 @@ public class BranchAndBound {
                         pattern1.setCur_time(inst.cur_time);
                         pool.add(pattern1);
                         // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
-                        if (Param.MATCH_MODEL >= 2) {
+                        if (inst.match_flag >= 2) {
                             for (int j2 = 0; j2 < nPassengers && j2 != j1; j2++) {
                                 double etaAim = etaAim1 + inst.ppTimeMatrix[j1][j2];
                                 double sameAim = inst.ppValidMatrix[j1][j2];
@@ -147,7 +147,7 @@ public class BranchAndBound {
                 }
             } else {// 若司机已经接了一个乘客，则只能再接一个乘客
                 // 遍历第二个乘客
-                if (Param.MATCH_MODEL >= 1) {
+                if (inst.match_flag >= 1) {
                     for (int j2 = 0; j2 < nPassengers; j2++) {
                         double etaAim2 = inst.dpTimeMatrix[i][j2];
                         double sameAim = inst.dpValidMatrix[i][j2];
