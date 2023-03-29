@@ -10,7 +10,7 @@ import map.TouringMap;
 import model.*;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
 public class Match {
     int nDrivers;
@@ -21,6 +21,8 @@ public class Match {
     double[][] valid_matrix;
     int[][] match_matrix;
 
+    boolean[] visited;
+    int[] match;
     public double[][] ppValidMatrix;                      // 顾客到顾客是否能拼车成功地计算, 0: 无法拼车成功 >0: 拼车成功后共同里程相似度
     public double[][] dpValidMatrix;                      // 接乘一个顾客的司机到第二个顾客是否能拼车成功的计算，0: 无法拼车成 >0: 拼车成功后共同里程相似度
     public double[][] ppTimeMatrix;                       //
@@ -40,23 +42,37 @@ public class Match {
         solution = new Solution();
     }
 
-    public void calValid() {
+    public void calValid(int flag) {//flag == 1 考虑拼车，其他：不考虑
         int i = 0;
         for (Driver driver : driverList) {
             int j = 0;
             for (Passenger passenger : passengerList) {
-                double eta = map.calTimeDistance(driver.cur_coor, passenger.origin_coor);
-                if (driver.queue.size() == 0 && eta <= Param.MAX_ETA) {
-                    valid_matrix[i][j] = 2 - (eta) / Param.MAX_ETA;
-                }else {
-                    valid_matrix[i][j] = 0;
+                if (driver.queue.size() == 0) {
+                    double eta = map.calTimeDistance(driver.cur_coor, passenger.origin_coor);
+                    if (eta <= Param.MAX_ETA) {
+                        valid_matrix[i][j] = 2 - (eta) / Param.MAX_ETA;
+                    }
+                }else if (flag == 1 && driver.queue.size() == 1){
+                    Passenger passenger1 = driver.queue.peek();
+                    double eta = map.calTimeDistance(passenger1.origin_coor, passenger.origin_coor);
+                    if ((map.inEllipsoid(passenger1, passenger) ||
+                            map.allInEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA2) {
+                        valid_matrix[i][j] += 2;
+                        double similarity = map.calSimilarity(passenger1, passenger);
+                        if (similarity == 0) {
+                            valid_matrix[i][j] = 0;
+                        }else {
+                            valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
+                            valid_matrix[i][j] += 2 - eta / Param.MAX_ETA2;
+                        }
+                    }
                 }
                 j++;
             }
             i++;
         }
     }
-
+    
     void calPPValid() {
         long s = System.currentTimeMillis();
         for (int i = 0; i < nPassengers; i++) {
@@ -90,9 +106,9 @@ public class Match {
         }
     }
 
-    public Solution match(long cur_time, int flag) throws Exception {
+    public Solution match(long cur_time, int algo_flag, int match_flag) throws Exception {
         Solution solution = null;
-        if (flag == 1) {
+        if (algo_flag== 1) {
             this.ppValidMatrix = new double[nPassengers][nPassengers];
             this.dpValidMatrix = new double[nDrivers][nPassengers];
             this.ppTimeMatrix = new double[nPassengers][nPassengers];
@@ -101,16 +117,63 @@ public class Match {
             calDPValid();
             solution = match_zjr(cur_time);
         }
-        if (flag == 2) {
+        if (algo_flag == 2) {
             match_matrix = new int[nDrivers][nPassengers];
             valid_matrix = new double[nDrivers][nPassengers];
-            calValid();
-            solution = match_zkj(cur_time);
+            calValid(match_flag);
+            solution = match_zkj();
+        }
+        if (algo_flag == 3) {
+            valid_matrix = new double[nDrivers][nPassengers];
+            visited = new boolean[nDrivers];
+            match = new int[nPassengers];
+            Arrays.fill(match, -1);
+            calValid(match_flag);
+            solution = match_hung();
         }
         remove(solution, cur_time);
         return solution;
     }
-    public Solution match_zkj(long cur_time) throws Exception {
+    
+    public Solution match_hung() {
+        for (int i = 0; i < nDrivers; i++) {
+            Arrays.fill(visited, false);
+            find(i);
+        }
+        Solution solution = new Solution();
+        for (int j = 0; j < nPassengers; j++) {
+            int val = match[j];
+            if (val != -1) {
+                Driver driver = driverList.get(val);
+                Passenger passenger = passengerList.get(j);
+                //           System.out.println(map.calSpatialDistance(driver.cur_coor, passenger.origin_coor));
+                driver.queue.add(passenger);
+                passenger.cur_driver = driver;
+                Passenger passenger1 = driver.queue.getFirst();
+                Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
+                Pattern pattern = new Pattern(driver, passenger1, passenger2);
+                pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2),
+                        map.calTimeDistance(passenger1.origin_coor, passenger2 == null ? driver.cur_coor : passenger2.origin_coor));
+                solution.patterns.add(pattern);
+                solution.profit += pattern.aim;
+            }
+        }
+        return solution;
+    }
+    
+    public boolean find(int i) {
+        for (int j = 0; j < nPassengers; j++) {
+            if (valid_matrix[i][j] > 0 && !visited[j]) {
+                visited[j] = true;
+                if (match[j] == -1 ||find(match[j])) {
+                    match[j] = i;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    public Solution match_zkj() throws Exception {
         IloCplex model = new IloCplex();
         double precision = 1e-5;
         model.setParam(IloCplex.Param.Simplex.Tolerances.Optimality, precision);
@@ -178,6 +241,7 @@ public class Match {
         
         model.solve();
         
+        Solution solution = new Solution();
         for (int i = driver_num - 1; i >= 0; i--) {
             for (int j = passenger_num - 1; j >= 0; j--) {
                 if (valid_matrix[i][j] > 0) {
@@ -189,19 +253,14 @@ public class Match {
          //           System.out.println(map.calSpatialDistance(driver.cur_coor, passenger.origin_coor));
                     driver.queue.add(passenger);
                     passenger.cur_driver = driver;
+                    Passenger passenger1 = driver.queue.getFirst();
+                    Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
+                    Pattern pattern = new Pattern(driver, passenger1, passenger2);
+                    pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2),
+                            map.calTimeDistance(passenger1.origin_coor, passenger2 == null ? driver.cur_coor : passenger2.origin_coor));
+                    solution.patterns.add(pattern);
+                    solution.profit += pattern.aim;
                 }
-            }
-        }
-        Solution solution = new Solution();
-        for (Driver driver : driverList) {
-            if (driver.queue.size() > 0) {
-                Passenger passenger1 = driver.queue.getFirst();
-                Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
-                Pattern pattern = new Pattern(driver, passenger1, passenger2);
-                pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2),
-                        map.calTimeDistance(passenger1.origin_coor, passenger2 == null ? driver.cur_coor : passenger2.origin_coor));
-                solution.patterns.add(pattern);
-                solution.profit += pattern.aim;
             }
         }
         return solution;
