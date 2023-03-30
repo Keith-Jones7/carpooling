@@ -2,13 +2,11 @@ import common.Param;
 import match.Batch;
 import match.Match;
 import model.Pattern;
-import model.Solution;
-
-import java.util.ArrayList;
+import model.Sol;
 
 public class Main {
     public static void main(String[] args) throws Exception{
-        Solution solution = runSample(30, 1);
+        Sol solution = runSample(30, 1);
 //        runDefault(30);
     }
     public static void runDefault(int time_interval) throws Exception{
@@ -30,7 +28,7 @@ public class Main {
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
+            Sol cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
             batch.cur_time += time_interval;
             int result = 0;
             for (Pattern pattern : cur_solution.patterns) {
@@ -51,9 +49,9 @@ public class Main {
                 passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size(),
                 batch.passengerList.size(), (double) match_sum / passenger_sum * 100);
     }
-    public static Solution runSample(int time_interval, int sample_index) throws Exception{
+    public static Sol runSample(int time_interval, int sample_index) throws Exception{
         Batch batch = new Batch();
-        Solution solution = new Solution();
+        Sol solution = new Sol();
         int passenger_sum = 0, match_sum = 0;
         int start, end = 0;
         while (end < Param.MAX_TIME) {
@@ -71,7 +69,7 @@ public class Main {
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
+            Sol cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
             cur_solution.checkSolution(2);
             batch.cur_time += time_interval;
             int result = 0;

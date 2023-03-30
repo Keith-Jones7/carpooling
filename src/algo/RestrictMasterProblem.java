@@ -8,8 +8,6 @@ import model.*;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Map;
 
 public class RestrictMasterProblem {
     // instance
@@ -156,8 +154,8 @@ public class RestrictMasterProblem {
     }
 
     // 求解整数规划
-    Solution solveIP() throws IloException {
-        Solution sol = null;
+    Sol solveIP() throws IloException {
+        Sol sol = null;
         convertToIP();
         cplex.solve();
         boolean feasible = isModelFeasible();
@@ -237,9 +235,9 @@ public class RestrictMasterProblem {
     }
 
     // 获取整数规划解
-    Solution getIPSol() throws IloException {
+    Sol getIPSol() throws IloException {
         double objVal = cplex.getObjValue();
-        Solution sol = new Solution();
+        Sol sol = new Sol();
         for (int p = 0; p < pool.size(); p++) {
             Pattern pattern = pool.get(p);
             double val = cplex.getValue(x.get(p));

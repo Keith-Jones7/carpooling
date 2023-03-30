@@ -7,17 +7,17 @@ import map.TouringMap;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
-public class Solution {
+public class Sol {
     public double profit;
     
     public int leave_count;
     public ArrayList<Pattern> patterns;
     private static TouringMap<Coordinates, Passenger> map;
-    public Solution() {
+    public Sol() {
         this.patterns = new ArrayList<>();
         leave_count = 0;
     }
-    public Solution(ArrayList<Pattern> patterns, double profit) {
+    public Sol(ArrayList<Pattern> patterns, double profit) {
         this.patterns = patterns;
         this.profit = profit;
     }

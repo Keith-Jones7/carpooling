@@ -4,7 +4,7 @@ import common.Param;
 import ilog.concert.IloException;
 import model.Instance;
 import model.Pattern;
-import model.Solution;
+import model.Sol;
 
 import java.util.ArrayList;
 
@@ -13,7 +13,7 @@ public class BranchAndBound {
     public Instance inst;
     public int nDrivers;
     public int nPassengers;
-    public Solution bestSol;
+    public Sol bestSol;
 
     public RestrictMasterProblem rmp;
     public PricingProblem pp;
@@ -25,7 +25,7 @@ public class BranchAndBound {
         this.rmp = new RestrictMasterProblem(inst);
         this.pp = new PricingProblem(inst);
         this.cg = new ColumnGeneration(inst, rmp, pp);
-        this.bestSol = new Solution();
+        this.bestSol = new Sol();
     }
 
     public void run() {
@@ -56,7 +56,7 @@ public class BranchAndBound {
 
     }
 
-    Solution genMIPSol() throws IloException {
+    Sol genMIPSol() throws IloException {
         ArrayList<Pattern> pool = genAllPatterns();
         rmp.addColumns(pool);
 //        rmp.removeInvalidRanges(pool);
