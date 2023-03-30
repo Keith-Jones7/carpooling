@@ -54,7 +54,7 @@ public class Batch {
     /**
      * @param file_name 读取乘客的txt文件名，格式：lng1 lat1 lng2 lat2
      */
-    public void updatePassenger(String file_name) {
+    public void updatePassenger(String file_name, int sample_index) {
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file_name));
             String line;
@@ -65,7 +65,8 @@ public class Batch {
                 double lng2 = Double.parseDouble(strs[2]);
                 double lat2 = Double.parseDouble(strs[3]);
                 passengerList.add(new Passenger(new Coordinates(lng1, lat1),
-                        new Coordinates(lng2, lat2), cur_time, p_index++));
+                        new Coordinates(lng2, lat2), sample_index, p_index++));
+                
             }
         }catch (Exception e) {
             System.out.println("读取乘客信息错误！");

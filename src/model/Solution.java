@@ -34,9 +34,6 @@ public class Solution {
                 if (pattern.passenger2Id == -1) {
                     continue;
                 }
-                if (pattern.driverId == 1344) {
-                    int i = 1;
-                }
                 long curTime = pattern.cur_time;
                 int driverID = pattern.driverId;
                 double driverLng = pattern.driver.match_coor.lng;
