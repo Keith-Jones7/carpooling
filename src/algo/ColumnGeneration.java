@@ -13,9 +13,9 @@ public class ColumnGeneration {
     int nDrivers;
     int nPassengers;
 
-    RestrictMasterProblem rmp;
+    RMP_SCIP rmp;
     PricingProblem pp;
-    public ColumnGeneration(Instance inst, RestrictMasterProblem rmp, PricingProblem pp) {
+    public ColumnGeneration(Instance inst, RMP_SCIP rmp, PricingProblem pp) {
         this.inst = inst;
         this.nDrivers = inst.driverList.size();
         this.nPassengers = inst.passengerList.size();
@@ -37,16 +37,11 @@ public class ColumnGeneration {
     }
 
     void solveAll(boolean isSolveLP) {
-        try {
             if (isSolveLP) {
                 rmp.solveLP();
             } else {
                 rmp.solveIP();
             }
-
-        } catch (IloException e) {
-            e.printStackTrace();
-        }
     }
 
     void solve() {
@@ -81,6 +76,6 @@ public class ColumnGeneration {
     }
 
     void end() {
-        rmp.cplex.end();
+        rmp.end();
     }
 }

@@ -15,14 +15,14 @@ public class BranchAndBound {
     public int nPassengers;
     public Sol bestSol;
 
-    public RestrictMasterProblem rmp;
+    public RMP_SCIP rmp;
     public PricingProblem pp;
     public ColumnGeneration cg;
     public BranchAndBound(Instance inst) {
         this.inst = inst;
         this.nDrivers = inst.nDrivers;
         this.nPassengers = inst.nPassengers;
-        this.rmp = new RestrictMasterProblem(inst);
+        this.rmp = new RMP_SCIP(inst);
         this.pp = new PricingProblem(inst);
         this.cg = new ColumnGeneration(inst, rmp, pp);
         this.bestSol = new Sol();
