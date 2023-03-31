@@ -6,7 +6,7 @@ import model.Solution;
 
 public class Main {
     public static void main(String[] args) throws Exception{
-        Solution solution = runSample(30, 1);
+        Solution solution = runSample(200, 4);
 //        runDefault(30);
     }
     public static void runDefault(int time_interval) throws Exception{
@@ -48,6 +48,7 @@ public class Main {
         System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，拼车成功率为%.2f%%",
                 passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size(),
                 batch.passengerList.size(), (double) match_sum / passenger_sum * 100);
+
     }
     public static Solution runSample(int time_interval, int sample_index) throws Exception{
         Batch batch = new Batch();
@@ -69,7 +70,10 @@ public class Main {
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
+            long time = System.currentTimeMillis();
             Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
+            System.out.println(System.currentTimeMillis() - time);
+            solution.profit += cur_solution.profit;
             cur_solution.checkSolution(2);
             batch.cur_time += time_interval;
             int result = 0;
@@ -94,7 +98,8 @@ public class Main {
         System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，取消订单乘客数为%d，拼车成功率为%.2f%%",
                 passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size() - solution.leave_count, 
                 batch.passengerList.size(), solution.leave_count, (double) match_sum / passenger_sum * 100);
-        System.out.println(solution.leave_count + "\t" + (double) match_sum / passenger_sum * 100);
+        System.out.println();
+        System.out.println(solution.profit);
         return solution;
     }
 }

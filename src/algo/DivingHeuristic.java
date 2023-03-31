@@ -52,7 +52,7 @@ public class DivingHeuristic {
             fracIdx.clear(boundVarIdx);
             fixedIdx.set(boundVarIdx);
             // solve modified LP; update nlp
-            rmp.setDiving(fixedIdx, lpSol.vals);
+            rmp.setDiving(fixedIdx, this.lpSol.vals);
             this.lpSol = rmp.solveLP();
             // update fracIdx and nFrac
             fracPair = setFixedAndFracIdx();
@@ -61,6 +61,7 @@ public class DivingHeuristic {
             fracIdx = fracPair.getValue()[1];
             obj = getObj();
         }
+        System.out.println(iter);
         // recover diving
 //        rmp.recoverDiving(fixedIdx, lpSol.vals);
         // return sol
@@ -120,7 +121,7 @@ public class DivingHeuristic {
     // 获取可行解
     public Solution getSol() {
         ArrayList<Pattern> patterns = new ArrayList<>();
-        int cost = 0;
+        double cost = 0;
         for (int h = 0; h < lpSol.vals.size(); h++) {
             patterns.add(lpSol.vals.get(h).getKey());
             cost += lpSol.vals.get(h).getKey().aim;

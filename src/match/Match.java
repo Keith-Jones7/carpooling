@@ -136,37 +136,53 @@ public class Match {
             calValid(match_flag);
             solution = match_ortools();
         }
-        if (algo_flag == 4) {
-            valid_matrix = new double[nDrivers][nPassengers];
-            visited = new boolean[nDrivers];
-            match = new int[nPassengers];
-            Arrays.fill(match, -1);
-            calValid(match_flag);
-            solution = match_hung();
-        }
-        if (algo_flag == 5) {
-            valid_matrix = new double[nDrivers][nPassengers];
-            calValid(match_flag);
-            solution = match_km();
-        }
-        solution.leave_count = leave_count;
         remove(solution, cur_time);
         return solution;
     }
     public Solution match_ortools() {
         Loader.loadNativeLibraries();
         MPSolver solver = MPSolver.createSolver("SCIP");
-        MPVariable[][] match = new MPVariable[nDrivers][nPassengers];
-        for (int i = 0; i < nDrivers; i++) {
-            for (int j = 0; j < nPassengers; j++) {
-                match[i][j] = solver.makeBoolVar("x" + i + " " + j);
+        MPVariable[][] d1 = new MPVariable[nDrivers][nPassengers];
+        MPVariable[][] d2 = new MPVariable[nDrivers][nPassengers];
+        MPVariable[][] dp = new MPVariable[nDrivers][nPassengers];
+        MPVariable[][] pp = new MPVariable[nPassengers][nPassengers];
+        boolean isIP = true;
+        for (int j = 0; j < nPassengers; j++) {
+            for (int i = 0; i < nDrivers; i++) {
+                if (driverList.get(i).queue.size() > 0) {
+                    if (dpValidMatrix[i][j] > 0 && dpTimeMatrix[i][j] <= Param.MAX_ETA2) {
+                        dp[i][j] = solver.makeVar(0, 1, isIP, i + " dp " + j);
+                    }
+                }else {
+                    if (dpTimeMatrix[i][j] <= Param.MAX_ETA) {
+                        MPConstraint constraint = solver.makeConstraint(0, Double.POSITIVE_INFINITY);
+                        d1[i][j] = solver.makeVar(0, 1, isIP, i + " d1 " + j);
+                        d2[i][j] = solver.makeVar(0, 1, isIP, i + " d2 " + j);
+                        constraint.setCoefficient(d1[i][j], 1);
+                        constraint.setCoefficient(d2[i][j], -1);
+                    }
+                }
             }
         }
+        for (int j = 0; j < nPassengers; j++) {
+            for (int jj = 0; jj < nPassengers; jj++) {
+                if (ppValidMatrix[j][jj] > 0) {
+                    pp[j][jj] = solver.makeVar(0, 1, isIP, j + " pp " + jj);
+                    for (int i = 0; i < nDrivers; i++) {
+                        MPConstraint constraint = solver.makeConstraint(Double.NEGATIVE_INFINITY, 1);
+                        constraint.setCoefficient(d1[i][j], 1);
+                        constraint.setCoefficient(d2[i][jj], 1);
+                        constraint.setCoefficient(pp[j][jj], -1);
+                    }
+                }
+            }
+        }
+        
         for (int i = 0; i < nDrivers; i++) {
             MPConstraint d = solver.makeConstraint(0, 1, "d" + i);
             for (int j = 0; j < nPassengers; j++) {
                 if (valid_matrix[i][j] > 0) {
-                    d.setCoefficient(match[i][j], 1);
+                    d.setCoefficient(pp[i][j], 1);
                 }
             }
         }
@@ -175,7 +191,7 @@ public class Match {
             MPConstraint p = solver.makeConstraint(0, 1, "p" + "j");
             for (int i = 0; i < nDrivers; i++) {
                 if (valid_matrix[i][j] > 0) {
-                    p.setCoefficient(match[i][j], 1);
+                    p.setCoefficient(pp[i][j], 1);
                 }
             }
         }
@@ -184,7 +200,7 @@ public class Match {
         for (int i = 0; i < nDrivers; i++) {
             for (int j = 0; j < nPassengers; j++) {
                 if (valid_matrix[i][j] > 0) {
-                    obj.setCoefficient(match[i][j], valid_matrix[i][j]);
+                    obj.setCoefficient(pp[i][j], valid_matrix[i][j]);
                 }
             }
         }
@@ -194,7 +210,10 @@ public class Match {
         for (int i = 0; i < nDrivers; i++) {
             for (int j = 0; j < nPassengers; j++) {
                 if (valid_matrix[i][j] > 0) {
-                    match_matrix[i][j] = (int) match[i][j].solutionValue();
+                    double val = pp[i][j].solutionValue();
+                    if (Param.equals(val, 1)) {
+                        match_matrix[i][j] = 1;
+                    }
                 }
                 if (match_matrix[i][j] == 1) {
                     Driver driver = driverList.get(i);
@@ -232,7 +251,9 @@ public class Match {
         IloNumVar[][] match = new IloNumVar[driver_num][passenger_num];
         for (int i = 0; i < driver_num; i++) {
             for (int j = 0; j < passenger_num; j++) {
-                match[i][j] = model.boolVar();
+                if (valid_matrix[i][j] > 0) {
+                    match[i][j] = model.boolVar();
+                }
             }
         }
 
@@ -372,133 +393,5 @@ public class Match {
             }
         }
         return profit;
-    }
-    public Solution match_hung() {
-        for (int i = 0; i < nDrivers; i++) {
-            Arrays.fill(visited, false);
-            find(i);
-        }
-        Solution solution = new Solution();
-        for (int j = 0; j < nPassengers; j++) {
-            int val = match[j];
-            if (val != -1) {
-                Driver driver = driverList.get(val);
-                Passenger passenger = passengerList.get(j);
-                //           System.out.println(map.calSpatialDistance(driver.cur_coor, passenger.origin_coor));
-                driver.queue.add(passenger);
-                passenger.cur_driver = driver;
-                Passenger passenger1 = driver.queue.getFirst();
-                Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
-                Pattern pattern = new Pattern(driver, passenger1, passenger2);
-                double eta1 = map.calTimeDistance(passenger1.origin_coor, driver.cur_coor);
-                double eta2 = passenger2 == null ? Param.MAX_ETA2 : map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
-                pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2), eta1, eta2);
-                solution.patterns.add(pattern);
-                solution.profit += pattern.aim;
-            }
-        }
-        return solution;
-    }
-
-    public Solution match_km() {
-        match_matrix = maxWeightBipartiteMatching(valid_matrix);
-        Solution solution = new Solution();
-        for (int i = 0; i < nDrivers; i++) {
-            for (int j = 0; j < nPassengers; j++) {
-                if (match_matrix[i][j] == 1) {
-                    Driver driver = driverList.get(i);
-                    Passenger passenger = passengerList.get(j);
-                    //           System.out.println(map.calSpatialDistance(driver.cur_coor, passenger.origin_coor));
-                    driver.queue.add(passenger);
-                    passenger.cur_driver = driver;
-                    Passenger passenger1 = driver.queue.getFirst();
-                    Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
-                    Pattern pattern = new Pattern(driver, passenger1, passenger2);
-                    double eta1 = map.calTimeDistance(passenger1.origin_coor, driver.cur_coor);
-                    double eta2 = passenger2 == null ? Param.MAX_ETA2 : map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
-                    pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2), eta1, eta2);
-                    solution.patterns.add(pattern);
-                    solution.profit += pattern.aim;
-                }
-            }
-        }
-        return solution;
-    }
-    public boolean find(int i) {
-        for (int j = 0; j < nPassengers; j++) {
-            if (valid_matrix[i][j] > 0 && !visited[j]) {
-                visited[j] = true;
-                if (match[j] == -1 ||find(match[j])) {
-                    match[j] = i;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public int[][] maxWeightBipartiteMatching(double[][] weights) {
-        int numRows = weights.length;
-        int numCols = weights[0].length;
-        int[][] match = new int[numRows][numCols];
-
-        // Step 1: Subtract row minimums from each row
-        double[] rowMins = new double[numRows];
-        Arrays.fill(rowMins, Double.POSITIVE_INFINITY);
-        for (int i = 0; i < numRows; i++) {
-            for (int j = 0; j < numCols; j++) {
-                rowMins[i] = Math.min(rowMins[i], weights[i][j]);
-            }
-            for (int j = 0; j < numCols; j++) {
-                weights[i][j] -= rowMins[i];
-            }
-        }
-
-        // Step 2: Subtract column minimums from each column
-        double[] colMins = new double[numCols];
-        Arrays.fill(colMins, Double.POSITIVE_INFINITY);
-        for (int j = 0; j < numCols; j++) {
-            for (double[] weight : weights) {
-                colMins[j] = Math.min(colMins[j], weight[j]);
-            }
-            for (int i = 0; i < numRows; i++) {
-                weights[i][j] -= colMins[j];
-            }
-        }
-
-        // Step 3: Find a maximum matching
-        int[] rowMatch = new int[numRows];
-        int[] colMatch = new int[numCols];
-        Arrays.fill(rowMatch, -1);
-        Arrays.fill(colMatch, -1);
-        for (int i = 0; i < numRows; i++) {
-            boolean[] visited = new boolean[numCols];
-            if (findAugmentingPath(i, weights, rowMatch, colMatch, visited)) {
-                Arrays.fill(visited, false);
-            }
-        }
-
-        // Step 4: Construct the match matrix
-        for (int i = 0; i < numRows; i++) {
-            if (rowMatch[i] != -1) {
-                match[i][rowMatch[i]] = 1;
-            }
-        }
-        return match;
-    }
-
-    private boolean findAugmentingPath(int i, double[][] weights, int[] rowMatch, int[] colMatch, boolean[] visited) {
-        int numCols = weights[0].length;
-        for (int j = 0; j < numCols; j++) {
-            if (weights[i][j] > 0 && !visited[j]) {
-                visited[j] = true;
-                if (colMatch[j] == -1 || findAugmentingPath(colMatch[j], weights, rowMatch, colMatch, visited)) {
-                    rowMatch[i] = j;
-                    colMatch[j] = i;
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }

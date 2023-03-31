@@ -1,14 +1,10 @@
 package algo;
 
+import com.google.ortools.linearsolver.*;
 import common.Param;
 import javafx.util.Pair;
-import jscip.Variable;
 import model.*;
 import com.google.ortools.Loader;
-import com.google.ortools.linearsolver.MPConstraint;
-import com.google.ortools.linearsolver.MPObjective;
-import com.google.ortools.linearsolver.MPSolver;
-import com.google.ortools.linearsolver.MPVariable;
 
 
 import java.util.*;
@@ -21,6 +17,7 @@ public class RMP_SCIP {
 
     // ortools
     MPSolver solver;
+    MPSolverParameters parameters;
     MPObjective obj;
     MPConstraint[] ranges;
     ArrayList<MPVariable> x;
@@ -47,7 +44,8 @@ public class RMP_SCIP {
     void formulate() {
         // init
         Loader.loadNativeLibraries();
-        solver = MPSolver.createSolver("SCIP");
+        solver = MPSolver.createSolver("GLOP");
+        parameters = new MPSolverParameters();
         x = new ArrayList<>();
         pool = new ArrayList<>();
         ranges = new MPConstraint[nDrivers + nPassengers];
@@ -71,7 +69,8 @@ public class RMP_SCIP {
         for (int j = 0; j < nPassengers; j++) {
             ranges[nDrivers + j] = solver.makeConstraint(0, 1, "rangeOnPassenger" + j);
         }
-
+//        solver.setTimeLimit(2000);
+        parameters.setIntegerParam(MPSolverParameters.IntegerParam.LP_ALGORITHM, 2);
     }
 
     public void set() {
@@ -82,7 +81,7 @@ public class RMP_SCIP {
             for (int h = fixedIdx.nextSetBit(0); h >= 0; h = fixedIdx.nextSetBit(h+1)) {
                 Pair<Pattern, Double> val = vals.get(h);
                 MPVariable var = val.getKey().var;
-                var.setBounds(1.0, 1.0);
+                var.setBounds(1.0, 1.0 + Param.EPS);
                 // fix drivers and passengers
                 fixedDrivers.set(val.getKey().driverIdx);
                 if (val.getKey().passenger1Idx >= 0) {
