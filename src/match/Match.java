@@ -303,8 +303,8 @@ public class Match {
         Instance inst = new Instance(cur_time, match_flag, driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix);
         BranchAndBound bnp = new BranchAndBound(inst);
         bnp.run();
-        Solution solution = bnp.bestSol;
-        for (Pattern pattern : solution.patterns) {
+        Solution sol = bnp.bestSol;
+        for (Pattern pattern : sol.patterns) {
             Driver driver = pattern.driver;
             Passenger passenger1 = pattern.passenger1;
             Passenger passenger2 = pattern.passenger2;
@@ -318,7 +318,7 @@ public class Match {
                 pattern.driver.saveMatch_coor();
             }
         }
-        return solution;
+        return sol;
     }
     public int removeInvalid(long cur_time) {
         List<Passenger> removePassengers = new ArrayList<>();
@@ -331,14 +331,14 @@ public class Match {
         return removePassengers.size();
     }
 
-    public void remove(Solution solution, long cur_time) {
-        if (solution == null) {
+    public void remove(Solution sol, long cur_time) {
+        if (sol == null) {
             return;
         }
         List<Driver> removeDrivers = new ArrayList<>();
         List<Passenger> removePassengers = new ArrayList<>();
         for (Driver driver : driverList) {
-            for (Pattern pattern : solution.patterns) {
+            for (Pattern pattern : sol.patterns) {
                 if (pattern.driverId == driver.ID && pattern.passenger2Id >= 0) {
                     removeDrivers.add(driver);
                 }
@@ -346,7 +346,7 @@ public class Match {
         }
         for (Passenger passenger : passengerList) {
             passenger.renew(cur_time);
-            for (Pattern pattern : solution.patterns) {
+            for (Pattern pattern : sol.patterns) {
                 if (pattern.passenger1Id == passenger.ID || pattern.passenger2Id == passenger.ID) {
                     removePassengers.add(passenger);
                 }
@@ -355,9 +355,9 @@ public class Match {
         driverList.removeAll(removeDrivers);
         passengerList.removeAll(removePassengers);
     }
-    public double calProfit(Solution solution) {
+    public double calProfit(Solution sol) {
         double profit = 0.0;
-        for (Pattern pattern : solution.patterns) {
+        for (Pattern pattern : sol.patterns) {
             Driver driver = pattern.driver;
             Passenger passenger1 = pattern.passenger1;
             // 接两个乘客

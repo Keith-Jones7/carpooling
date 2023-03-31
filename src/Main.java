@@ -6,7 +6,7 @@ import model.Solution;
 
 public class Main {
     public static void main(String[] args) throws Exception{
-        Solution solution = runSample(30, 3);
+        Solution solution = runSample(30, 1);
 //        runDefault(30);
     }
     public static void runDefault(int time_interval) throws Exception{

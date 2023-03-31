@@ -1,10 +1,6 @@
 package algo;
 
 import common.Param;
-import ilog.concert.IloColumn;
-import ilog.concert.IloException;
-import ilog.concert.IloNumVar;
-import ilog.concert.IloNumVarType;
 import model.*;
 import com.google.ortools.Loader;
 import com.google.ortools.linearsolver.MPConstraint;
@@ -21,7 +17,7 @@ public class RMP_SCIP {
     int nPassengers;
     int nDrivers;
 
-    // scip
+    // ortools
     MPSolver solver;
     MPObjective obj;
     MPConstraint[] ranges;
@@ -45,12 +41,14 @@ public class RMP_SCIP {
 
     void formulate() {
         // init
+        Loader.loadNativeLibraries();
         solver = MPSolver.createSolver("SCIP");
         x = new ArrayList<>();
         pool = new ArrayList<>();
         ranges = new MPConstraint[nDrivers + nPassengers];
         // objective
         obj = solver.objective();
+        obj.setMaximization();
 //        // add variables
 //        for (int p = 0; p < pool.size(); p++) {
 //            Pattern pattern = pool.get(p);
@@ -75,13 +73,14 @@ public class RMP_SCIP {
 
     }
 
-    void addColumns(ArrayList<Pattern> patterns) throws IloException {
+    void addColumns(ArrayList<Pattern> patterns) {
         for (Pattern pattern : patterns) {
             pool.add(pattern);
             // add var
             String name = "x_" + pattern.driverIdx + "," + pattern.passenger1Idx + "," + pattern.passenger2Idx;
             MPVariable var = solver.makeVar(0, 1, true, name);
             // set obj
+            obj.setCoefficient(var, pattern.aim);
             // set range on driver
             ranges[pattern.driverIdx].setCoefficient(var, 1);
             // set range on two passengers
@@ -105,7 +104,6 @@ public class RMP_SCIP {
         // solve
         solver.solve();
         Solution sol = getIPSol();
-        end();
         return sol;
     }
 
@@ -126,16 +124,16 @@ public class RMP_SCIP {
     // 获取整数规划解
     Solution getIPSol() {
         double objVal = obj.value();
-        Solution solution = new Solution();
+        Solution sol = new Solution();
         for (int p = 0; p < pool.size(); p++) {
             Pattern pattern = pool.get(p);
             double val = x.get(p).solutionValue();
             if (Param.equals(val, 1)) {
-                solution.patterns.add(pattern);
+                sol.patterns.add(pattern);
             }
         }
-        solution.profit = objVal;
-        return solution;
+        sol.profit = objVal;
+        return sol;
     }
 
     // 求解结束

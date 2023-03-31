@@ -24,16 +24,12 @@ public class ColumnGeneration {
     }
 
     void solve(ArrayList<Pattern> pool, boolean isSolveAll, boolean isSolveLP) {
-        try {
             rmp.addColumns(pool);
             if (isSolveAll) {
                 solveAll(isSolveLP);
             } else {
                 solve();
             }
-        } catch (IloException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     void solveAll(boolean isSolveLP) {

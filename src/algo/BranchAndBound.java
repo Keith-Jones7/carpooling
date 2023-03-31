@@ -24,7 +24,7 @@ public class BranchAndBound {
         this.nPassengers = inst.nPassengers;
         this.rmp = new RMP_SCIP(inst);
         this.pp = new PricingProblem(inst);
-        this.cg = new ColumnGeneration(inst, rmp, pp);
+//        this.cg = new ColumnGeneration(inst, rmp, pp);
         this.bestSol = new Solution();
     }
 
