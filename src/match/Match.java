@@ -34,7 +34,7 @@ public class Match {
     public double[][] ppTimeMatrix;                       //
     public double[][] dpTimeMatrix;                        // 司机到顾客起点地时间
     private static TouringMap<Coordinates, Passenger> map;
-    Sol solution;
+    Solution solution;
     public Match(List<Driver> drivers, List<Passenger> passengers) {
         driverList = drivers;
         passengerList = passengers;
@@ -46,7 +46,7 @@ public class Match {
         }else{
             map = new TestMap();
         }
-        solution = new Sol();
+        solution = new Solution();
     }
 
     public void calValid(int flag) {//flag == 1 考虑拼车，其他：不考虑
@@ -113,8 +113,8 @@ public class Match {
         }
     }
     
-    public Sol match(long cur_time, int algo_flag, int match_flag) throws Exception {
-        Sol solution = null;
+    public Solution match(long cur_time, int algo_flag, int match_flag) throws Exception {
+        Solution solution = null;
         if (algo_flag == 1) {
             this.ppValidMatrix = new double[nPassengers][nPassengers];
             this.dpValidMatrix = new double[nDrivers][nPassengers];
@@ -153,13 +153,13 @@ public class Match {
         remove(solution, cur_time);
         return solution;
     }
-    public Sol match_ortools() {
+    public Solution match_ortools() {
         Loader.loadNativeLibraries();
         MPSolver solver = MPSolver.createSolver("SCIP");
         MPVariable[][] match = new MPVariable[nDrivers][nPassengers];
         for (int i = 0; i < nDrivers; i++) {
             for (int j = 0; j < nPassengers; j++) {
-                match[i][j] = solver.makeBoolVar("x" + i + "" + j);
+                match[i][j] = solver.makeBoolVar("x" + i + " " + j);
             }
         }
         for (int i = 0; i < nDrivers; i++) {
@@ -189,12 +189,35 @@ public class Match {
             }
         }
         obj.setMaximization();
-        final MPSolver.ResultStatus resultStatus = solver.solve();
+        solver.solve();
+        Solution solution = new Solution();
+        for (int i = 0; i < nDrivers; i++) {
+            for (int j = 0; j < nPassengers; j++) {
+                if (valid_matrix[i][j] > 0) {
+                    match_matrix[i][j] = (int) match[i][j].solutionValue();
+                }
+                if (match_matrix[i][j] == 1) {
+                    Driver driver = driverList.get(i);
+                    Passenger passenger = passengerList.get(j);
+                    //           System.out.println(map.calSpatialDistance(driver.cur_coor, passenger.origin_coor));
+                    driver.queue.add(passenger);
+                    passenger.cur_driver = driver;
+                    Passenger passenger1 = driver.queue.getFirst();
+                    Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
+                    Pattern pattern = new Pattern(driver, passenger1, passenger2);
+                    double eta1 = map.calTimeDistance(passenger1.origin_coor, driver.cur_coor);
+                    double eta2 = passenger2 == null ? Param.MAX_ETA2 : map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
+                    pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2), eta1, eta2);
+                    solution.patterns.add(pattern);
+                    solution.profit += pattern.aim;
+                }
+            }
+        }
         return solution;
     }
     
 
-    public Sol match_zkj() throws Exception {
+    public Solution match_zkj() throws Exception {
         IloCplex model = new IloCplex();
         double precision = 1e-5;
         model.setParam(IloCplex.Param.Simplex.Tolerances.Optimality, precision);
@@ -250,7 +273,7 @@ public class Match {
         
         model.solve();
         
-        Sol solution = new Sol();
+        Solution solution = new Solution();
         for (int i = driver_num - 1; i >= 0; i--) {
             for (int j = passenger_num - 1; j >= 0; j--) {
                 if (valid_matrix[i][j] > 0) {
@@ -276,12 +299,12 @@ public class Match {
         return solution;
     }
 
-    public Sol match_zjr(long cur_time, int match_flag) throws IloException {
+    public Solution match_zjr(long cur_time, int match_flag) throws IloException {
         Instance inst = new Instance(cur_time, match_flag, driverList, passengerList, ppValidMatrix, dpValidMatrix, ppTimeMatrix, dpTimeMatrix);
         BranchAndBound bnp = new BranchAndBound(inst);
         bnp.run();
-        Sol sol = bnp.bestSol;
-        for (Pattern pattern : sol.patterns) {
+        Solution solution = bnp.bestSol;
+        for (Pattern pattern : solution.patterns) {
             Driver driver = pattern.driver;
             Passenger passenger1 = pattern.passenger1;
             Passenger passenger2 = pattern.passenger2;
@@ -295,7 +318,7 @@ public class Match {
                 pattern.driver.saveMatch_coor();
             }
         }
-        return sol;
+        return solution;
     }
     public int removeInvalid(long cur_time) {
         List<Passenger> removePassengers = new ArrayList<>();
@@ -308,14 +331,14 @@ public class Match {
         return removePassengers.size();
     }
 
-    public void remove(Sol sol, long cur_time) {
-        if (sol == null) {
+    public void remove(Solution solution, long cur_time) {
+        if (solution == null) {
             return;
         }
         List<Driver> removeDrivers = new ArrayList<>();
         List<Passenger> removePassengers = new ArrayList<>();
         for (Driver driver : driverList) {
-            for (Pattern pattern : sol.patterns) {
+            for (Pattern pattern : solution.patterns) {
                 if (pattern.driverId == driver.ID && pattern.passenger2Id >= 0) {
                     removeDrivers.add(driver);
                 }
@@ -323,7 +346,7 @@ public class Match {
         }
         for (Passenger passenger : passengerList) {
             passenger.renew(cur_time);
-            for (Pattern pattern : sol.patterns) {
+            for (Pattern pattern : solution.patterns) {
                 if (pattern.passenger1Id == passenger.ID || pattern.passenger2Id == passenger.ID) {
                     removePassengers.add(passenger);
                 }
@@ -332,9 +355,9 @@ public class Match {
         driverList.removeAll(removeDrivers);
         passengerList.removeAll(removePassengers);
     }
-    public double calProfit(Sol sol) {
+    public double calProfit(Solution solution) {
         double profit = 0.0;
-        for (Pattern pattern : sol.patterns) {
+        for (Pattern pattern : solution.patterns) {
             Driver driver = pattern.driver;
             Passenger passenger1 = pattern.passenger1;
             // 接两个乘客
@@ -350,12 +373,12 @@ public class Match {
         }
         return profit;
     }
-    public Sol match_hung() {
+    public Solution match_hung() {
         for (int i = 0; i < nDrivers; i++) {
             Arrays.fill(visited, false);
             find(i);
         }
-        Sol solution = new Sol();
+        Solution solution = new Solution();
         for (int j = 0; j < nPassengers; j++) {
             int val = match[j];
             if (val != -1) {
@@ -377,9 +400,9 @@ public class Match {
         return solution;
     }
 
-    public Sol match_km() {
+    public Solution match_km() {
         match_matrix = maxWeightBipartiteMatching(valid_matrix);
-        Sol solution = new Sol();
+        Solution solution = new Solution();
         for (int i = 0; i < nDrivers; i++) {
             for (int j = 0; j < nPassengers; j++) {
                 if (match_matrix[i][j] == 1) {

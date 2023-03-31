@@ -154,16 +154,16 @@ public class RestrictMasterProblem {
     }
 
     // 求解整数规划
-    Sol solveIP() throws IloException {
-        Sol sol = null;
+    Solution solveIP() throws IloException {
+        Solution solution = null;
         convertToIP();
         cplex.solve();
         boolean feasible = isModelFeasible();
         if (feasible) {
-            sol = getIPSol();
+            solution = getIPSol();
         }
         convertToLP();
-        return sol;
+        return solution;
     }
 
     // 转变为线性规划
@@ -235,18 +235,18 @@ public class RestrictMasterProblem {
     }
 
     // 获取整数规划解
-    Sol getIPSol() throws IloException {
+    Solution getIPSol() throws IloException {
         double objVal = cplex.getObjValue();
-        Sol sol = new Sol();
+        Solution solution = new Solution();
         for (int p = 0; p < pool.size(); p++) {
             Pattern pattern = pool.get(p);
             double val = cplex.getValue(x.get(p));
             if (Param.equals(val, 1)) {
-                sol.patterns.add(pattern);
+                solution.patterns.add(pattern);
             }
         }
-        sol.profit = objVal;
-        return sol;
+        solution.profit = objVal;
+        return solution;
     }
 
     // 求解结束
