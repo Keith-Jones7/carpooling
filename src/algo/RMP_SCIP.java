@@ -5,7 +5,6 @@ import ilog.concert.IloColumn;
 import ilog.concert.IloException;
 import ilog.concert.IloNumVar;
 import ilog.concert.IloNumVarType;
-import jscip.*;
 import model.*;
 import com.google.ortools.Loader;
 import com.google.ortools.linearsolver.MPConstraint;
@@ -102,10 +101,10 @@ public class RMP_SCIP {
     }
 
     // 求解整数规划
-    Sol solveIP() {
+    Solution solveIP() {
         // solve
         solver.solve();
-        Sol sol = getIPSol();
+        Solution sol = getIPSol();
         end();
         return sol;
     }
@@ -125,18 +124,18 @@ public class RMP_SCIP {
     }
 
     // 获取整数规划解
-    Sol getIPSol() {
+    Solution getIPSol() {
         double objVal = obj.value();
-        Sol sol = new Sol();
+        Solution solution = new Solution();
         for (int p = 0; p < pool.size(); p++) {
             Pattern pattern = pool.get(p);
             double val = x.get(p).solutionValue();
             if (Param.equals(val, 1)) {
-                sol.patterns.add(pattern);
+                solution.patterns.add(pattern);
             }
         }
-        sol.profit = objVal;
-        return sol;
+        solution.profit = objVal;
+        return solution;
     }
 
     // 求解结束
