@@ -18,7 +18,8 @@ public class PricingProblem {
 
 
     double[] dualsOfRanges;
-    BitSet fixedItems;
+    BitSet fixedDrivers;
+    BitSet fixedPassengers;
     ArrayList<Pattern> patterns;
     Pattern patternWithMaxCost;
     double maxCost;
@@ -39,10 +40,11 @@ public class PricingProblem {
 
     }
 
-    void solve(double[] dualsOfRanges, BitSet fixedItems) {
+    void solve(double[] dualsOfRanges, BitSet fixedDrivers, BitSet fixedPassengers) {
         // solve init
         this.dualsOfRanges = dualsOfRanges;
-        this.fixedItems = fixedItems;
+        this.fixedDrivers = fixedDrivers;
+        this.fixedPassengers = fixedPassengers;
         patterns.clear();
         maxCost = 0;
         patternWithMaxCost = null;

@@ -17,6 +17,7 @@ public class BranchAndBound {
 
     public RMP_SCIP rmp;
     public PricingProblem pp;
+    public DivingHeuristic divingHeur;
     public ColumnGeneration cg;
     public BranchAndBound(Instance inst) {
         this.inst = inst;
@@ -24,6 +25,7 @@ public class BranchAndBound {
         this.nPassengers = inst.nPassengers;
         this.rmp = new RMP_SCIP(inst);
         this.pp = new PricingProblem(inst);
+        this.divingHeur = new DivingHeuristic(inst, rmp, pp);
 //        this.cg = new ColumnGeneration(inst, rmp, pp);
         this.bestSol = new Solution();
     }
@@ -60,7 +62,12 @@ public class BranchAndBound {
         ArrayList<Pattern> pool = genAllPatterns();
         rmp.addColumns(pool);
 //        rmp.removeInvalidRanges(pool);
-        return rmp.solveIP();
+        if (Param.LP_IP) {
+            LPSol lpSol = rmp.solveLP();
+            return divingHeur.solve(lpSol, Integer.MAX_VALUE);
+        } else {
+            return rmp.solveIP();
+        }
     }
 
 //    public ArrayList<Pattern> genInitPatterns() {
@@ -130,7 +137,10 @@ public class BranchAndBound {
                         pool.add(pattern1);
                         // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
                         if (inst.match_flag >= 2) {
-                            for (int j2 = 0; j2 < nPassengers && j2 != j1; j2++) {
+                            for (int j2 = 0; j2 < nPassengers; j2++) {
+                                if (j2 == j1) {
+                                    continue;
+                                }
                                 double etaAim2 = inst.ppTimeMatrix[j1][j2];
                                 double sameAim = inst.ppValidMatrix[j1][j2];
                                 if (etaAim2 <= Param.MAX_ETA2 && sameAim > 0) {

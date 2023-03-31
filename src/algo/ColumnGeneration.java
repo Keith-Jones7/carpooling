@@ -53,20 +53,22 @@ public class ColumnGeneration {
 
     void cg() throws IloException {
         double[] dualsOfRanges;
-        BitSet fixedItems;
+        BitSet fixedDrivers;
+        BitSet fixedPassengers;
         double obj;
         rmp.solveLP();
         obj = rmp.getObjVal();
         dualsOfRanges = rmp.getDualsOfRanges();
-        fixedItems = rmp.fixedItems;
+        fixedDrivers = rmp.fixedDrivers;
+        fixedPassengers = rmp.fixedPassengers;
 
-        pp.solve(dualsOfRanges, fixedItems);
+        pp.solve(dualsOfRanges, fixedDrivers, fixedPassengers);
         while (pp.findNewColumns()) {
             rmp.addColumns(pp.patterns);
             rmp.solveLP();
             obj = rmp.getObjVal();
             dualsOfRanges = rmp.getDualsOfRanges();
-            pp.solve(dualsOfRanges, fixedItems);
+            pp.solve(dualsOfRanges, fixedDrivers, fixedPassengers);
         }
 
     }

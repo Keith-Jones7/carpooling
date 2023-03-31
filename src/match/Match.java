@@ -32,7 +32,7 @@ public class Match {
     public double[][] ppValidMatrix;                      // 顾客到顾客是否能拼车成功地计算, 0: 无法拼车成功 >0: 拼车成功后共同里程相似度
     public double[][] dpValidMatrix;                      // 接乘一个顾客的司机到第二个顾客是否能拼车成功的计算，0: 无法拼车成 >0: 拼车成功后共同里程相似度
     public double[][] ppTimeMatrix;                       //
-    public double[][] dpTimeMatrix;                        // 司机到顾客起点地时间
+    public double[][] dpTimeMatrix;                       // 司机到顾客起点地时间
     private static TouringMap<Coordinates, Passenger> map;
     Solution solution;
     public Match(List<Driver> drivers, List<Passenger> passengers) {

@@ -1,6 +1,8 @@
 package algo;
 
 import common.Param;
+import javafx.util.Pair;
+import jscip.Variable;
 import model.*;
 import com.google.ortools.Loader;
 import com.google.ortools.linearsolver.MPConstraint;
@@ -25,7 +27,8 @@ public class RMP_SCIP {
     ArrayList<Pattern> pool;
 
     // diving heuristic
-    BitSet fixedItems;
+    BitSet fixedDrivers;
+    BitSet fixedPassengers;
 
     // final param
     private final int intMax = Integer.MAX_VALUE;
@@ -36,6 +39,8 @@ public class RMP_SCIP {
         this.inst = inst;
         this.nPassengers = inst.nPassengers;
         this.nDrivers = inst.nDrivers;
+        this.fixedDrivers = new BitSet(nDrivers);
+        this.fixedPassengers = new BitSet(nPassengers);
         formulate();
     }
 
@@ -73,12 +78,38 @@ public class RMP_SCIP {
 
     }
 
+    public void setDiving(BitSet fixedIdx, ArrayList<Pair<Pattern, Double>> vals) {
+            for (int h = fixedIdx.nextSetBit(0); h >= 0; h = fixedIdx.nextSetBit(h+1)) {
+                Pair<Pattern, Double> val = vals.get(h);
+                MPVariable var = val.getKey().var;
+                var.setBounds(1.0, 1.0);
+                // fix drivers and passengers
+                fixedDrivers.set(val.getKey().driverIdx);
+                if (val.getKey().passenger1Idx >= 0) {
+                    fixedPassengers.set(val.getKey().passenger1Idx);
+                }
+                if (val.getKey().passenger2Idx >= 0) {
+                    fixedPassengers.set(val.getKey().passenger2Idx);
+                }
+            }
+    }
+
+    public void recoverDiving(BitSet fixedIdx, ArrayList<Pair<Pattern, Double>> vals) {
+        fixedDrivers = new BitSet(nDrivers);
+        fixedPassengers = new BitSet(nPassengers);
+        for (int h = fixedIdx.nextSetBit(0); h >= 0; h = fixedIdx.nextSetBit(h+1)) {
+            Pair<Pattern, Double> val = vals.get(h);
+            MPVariable var = val.getKey().var;
+            var.setBounds(0, infinity);
+        }
+    }
+
     void addColumns(ArrayList<Pattern> patterns) {
         for (Pattern pattern : patterns) {
             pool.add(pattern);
             // add var
             String name = "x_" + pattern.driverIdx + "," + pattern.passenger1Idx + "," + pattern.passenger2Idx;
-            MPVariable var = solver.makeVar(0, 1, true, name);
+            MPVariable var = solver.makeVar(0, 1, false, name);
             // set obj
             obj.setCoefficient(var, pattern.aim);
             // set range on driver
@@ -95,16 +126,31 @@ public class RMP_SCIP {
         }
     }
 
-    void solveLP() {
+    LPSol solveLP() {
         solver.solve();
+        return getLPSol();
     }
 
     // 求解整数规划
     Solution solveIP() {
         // solve
+        convertToIP();
         solver.solve();
-        Solution sol = getIPSol();
-        return sol;
+        return getIPSol();
+    }
+
+    // 转变为整数规划
+    private void convertToIP() {
+        for (MPVariable var : x) {
+            var.setInteger(true);
+        }
+    }
+
+    // 转变为线性规划
+    private void convertToLP() {
+        for (MPVariable var : x) {
+            var.setInteger(false);
+        }
     }
 
     // 获取对偶变量
@@ -119,6 +165,20 @@ public class RMP_SCIP {
     // 获取最优目标值
     double getObjVal() {
         return obj.value();
+    }
+
+    // 获取线性规划解
+    LPSol getLPSol() {
+        double objVal = obj.value();
+        ArrayList<Pair<Pattern, Double>> vals = new ArrayList<>();
+        for (int p = 0; p < pool.size(); p++) {
+            Pattern pattern = pool.get(p);
+            double val = x.get(p).solutionValue();
+            if (val > Param.EPS) {
+                vals.add(new Pair<>(pattern, val));
+            }
+        }
+        return new LPSol(vals, objVal);
     }
 
     // 获取整数规划解
