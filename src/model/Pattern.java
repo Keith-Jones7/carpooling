@@ -1,5 +1,6 @@
 package model;
 
+import com.google.ortools.linearsolver.MPVariable;
 import common.Param;
 import ilog.concert.IloNumVar;
 import map.GISMap;
@@ -25,6 +26,7 @@ public class Pattern {
     public int passenger2Idx;
 
     public IloNumVar colVar;
+    public MPVariable var;
 
     public Pattern(Driver driver, Passenger passenger1, Passenger passenger2) {
         this.driver = driver;
