@@ -17,7 +17,7 @@ public class RMP_SCIP {
 
     // ortools
     MPSolver solver;
-    MPSolverParameters parameters;
+ 
     MPObjective obj;
     MPConstraint[] ranges;
     ArrayList<MPVariable> x;
@@ -45,7 +45,7 @@ public class RMP_SCIP {
         // init
         Loader.loadNativeLibraries();
         solver = MPSolver.createSolver("GLOP");
-        parameters = new MPSolverParameters();
+
         x = new ArrayList<>();
         pool = new ArrayList<>();
         ranges = new MPConstraint[nDrivers + nPassengers];
@@ -69,8 +69,7 @@ public class RMP_SCIP {
         for (int j = 0; j < nPassengers; j++) {
             ranges[nDrivers + j] = solver.makeConstraint(0, 1, "rangeOnPassenger" + j);
         }
-//        solver.setTimeLimit(2000);
-        parameters.setIntegerParam(MPSolverParameters.IntegerParam.LP_ALGORITHM, 2);
+
     }
 
     public void set() {
