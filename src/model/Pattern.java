@@ -35,7 +35,6 @@ public class Pattern {
         this.driverId = driver.ID;
         this.passenger1Id = passenger1 == null ? -1 : passenger1.ID;
         this.passenger2Id = passenger2 == null ? -1 : passenger2.ID;
-        setAim();
     }
 
     public void setIdx(int driverIdx, int passenger1Idx, int passenger2Idx) {
@@ -54,49 +53,6 @@ public class Pattern {
     }
     public void setCur_time(long cur_time) {
         this.cur_time = cur_time;
-    }
-    public void setAim() {
-        if (passenger1 == null) {
-            Passenger passenger1 = driver.queue.getFirst();
-            double eta2 = Param.touringMap.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
-            if (eta2 > Param.MAX_ETA2 || (!Param.touringMap.inEllipsoid(passenger1, passenger2) && !Param.touringMap.allInEllipsoid(passenger1, passenger2))
-                    || Param.touringMap.calSimilarity(passenger1, passenger2) == 0) {
-                this.aim = 0;
-                return;
-            }
-            double cost = Param.touringMap.calSpatialDistance(driver.cur_coor, passenger1.origin_coor) +
-                    Param.touringMap.calSpatialDistance(passenger1.origin_coor, passenger2.origin_coor) +
-                    Param.touringMap.calSameTravel(passenger1, passenger2) +
-                    Param.touringMap.calSpatialDistance(passenger1.dest_coor, passenger2.dest_coor);
-            double income = passenger1.single_distance + passenger2.single_distance;
-            this.aim = income * 2 - cost;
-        }
-        else if (passenger2 == null) {
-            double eta1 = Param.touringMap.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
-            if (eta1 > Param.MAX_ETA) {
-                this.aim = 0;
-                return;
-            }
-            double cost = Param.calSpatialDistance(driver.cur_coor, passenger1.origin_coor) + 
-                    Param.touringMap.calSpatialDistance(passenger1.origin_coor, passenger1.dest_coor);
-            double income = passenger1.single_distance;
-            this.aim = income * 2 - cost;
-        }else {
-            double eta1 = Param.touringMap.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
-            double eta2 = Param.touringMap.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
-            if (eta1 > Param.MAX_ETA || eta2 > Param.MAX_ETA2
-                    || (!Param.touringMap.inEllipsoid(passenger1, passenger2) && !Param.touringMap.allInEllipsoid(passenger1, passenger2))
-                    || Param.touringMap.calSimilarity(passenger1, passenger2) == 0) {
-                this.aim = 0;
-                return;
-            }
-            double cost = Param.touringMap.calSpatialDistance(driver.cur_coor, passenger1.origin_coor) +
-                    Param.touringMap.calSpatialDistance(passenger1.origin_coor, passenger2.origin_coor) +
-                    Param.touringMap.calSameTravel(passenger1, passenger2) +
-                    Param.touringMap.calSpatialDistance(passenger1.dest_coor, passenger2.dest_coor);
-            double income = passenger1.single_distance + passenger2.single_distance;
-            this.aim = income * 2 - cost;
-        }
     }
     public String toString() {
         return "(" + driverId + ", " + passenger1Id + ", " + passenger2Id + ")";

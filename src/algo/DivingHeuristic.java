@@ -61,7 +61,7 @@ public class DivingHeuristic {
             fracIdx = fracPair.getValue()[1];
             obj = getObj();
         }
-        System.out.println(iter);
+        //System.out.println(iter);
         // recover diving
 //        rmp.recoverDiving(fixedIdx, lpSol.vals);
         // return sol

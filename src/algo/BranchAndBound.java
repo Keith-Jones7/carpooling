@@ -38,8 +38,7 @@ public class BranchAndBound {
 
     private void solve() {
 //        ArrayList<Pattern> pool = genInitPatterns();
-        //ArrayList<Pattern> pool = genAllPatterns();
-        ArrayList<Pattern> pool = genAllPatterns1();
+        ArrayList<Pattern> pool = genAllPatterns();
         boolean isSolveAll = true;
         boolean isSolveLP = false;
         cg.solve(pool, isSolveAll, isSolveLP);
@@ -58,15 +57,19 @@ public class BranchAndBound {
     }
 
     Solution genMIPSol() throws IloException {
-        ArrayList<Pattern> pool = genAllPatterns1();
+        long s = System.currentTimeMillis();
+        ArrayList<Pattern> pool = genAllPatterns();
         rmp.addColumns(pool);
+        Solution solution = null;
 //        rmp.removeInvalidRanges(pool);
         if (Param.LP_IP) {
             LPSol lpSol = rmp.solveLP();
-            return divingHeur.solve(lpSol, Integer.MAX_VALUE);
+            solution = divingHeur.solve(lpSol, Integer.MAX_VALUE);
         } else {
-            return rmp.solveIP();
+            solution = rmp.solveIP();
         }
+        System.out.println(System.currentTimeMillis() - s);
+        return solution;
     }
 
 //    public ArrayList<Pattern> genInitPatterns() {
@@ -119,7 +122,7 @@ public class BranchAndBound {
 
     // 生成所有pattern
     public ArrayList<Pattern> genAllPatterns() {
-
+        long s = System.currentTimeMillis();
         ArrayList<Pattern> pool = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {
             // 若司机尚未接客，则该司机可以接一个拼车方案或者只接一个乘客
@@ -138,7 +141,7 @@ public class BranchAndBound {
                         if (inst.match_flag >= 2) {
                             for (int j2 = 0; j2 < nPassengers; j2++) {
                                 if (j2 == j1) {
-                                    break;
+                                    continue;
                                 }
                                 double etaAim2 = inst.ppTimeMatrix[j1][j2];
                                 double sameAim = inst.ppValidMatrix[j1][j2];
@@ -172,44 +175,7 @@ public class BranchAndBound {
                 }
             }
         }
-
-        return pool;
-    }
-    public ArrayList<Pattern> genAllPatterns1() {
-        ArrayList<Pattern> pool = new ArrayList<>();
-        for (int i = 0; i < nDrivers; i++) {
-            Driver driver = inst.driverList.get(i);
-            Pattern pattern = null;
-            for (int j1 = 0; j1 < nPassengers; j1++) {
-                Passenger passenger1 = inst.passengerList.get(j1);
-                if (driver.queue.size() == 0) {
-                    pattern = new Pattern(driver, passenger1, null);
-                    pattern.setIdx(i, j1, -1);
-                    for (int j2 = j1 + 1; j2 < nPassengers && inst.match_flag == 2; j2++) {
-                        Passenger passenger2 = inst.passengerList.get(j2);
-                        Pattern pattern1 = new Pattern(driver, passenger1, passenger2);
-                        pattern1.setIdx(i, j1, j2);
-                        pattern1.setCur_time(inst.cur_time);
-                        Pattern pattern2 = new Pattern(driver, passenger2, passenger1);
-                        pattern2.setIdx(i, j2, j1);
-                        pattern2.setCur_time(inst.cur_time);
-                        if (pattern1.aim > pattern2.aim) {
-                            pool.add(pattern1);
-                        } else if (pattern2.aim > pattern1.aim) {
-                            pool.add(pattern2);
-                        }
-                    }
-                } else if (inst.match_flag >= 1){
-                    pattern = new Pattern(driver, null, passenger1);
-                    pattern.setIdx(i, -1, j1);
-                }
-            }
-            if (pattern != null && pattern.aim > 0) {
-                pattern.setCur_time(inst.cur_time);
-                pool.add(pattern);
-            }
-        }
-        System.out.println(pool.size());
+        System.out.println(pool.size() + " " + (System.currentTimeMillis() - s));
         return pool;
     }
     public void branch() {

@@ -52,6 +52,7 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
     @Override
     public double calTimeDistance(Coordinates o1, Coordinates o2) {
         double dis = calSpatialDistance(o1, o2);
+        Param.COUNT++;
         return dis / Param.SPEED;
     }
 
@@ -66,9 +67,10 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
     public boolean inEllipsoid(Passenger p1, Passenger p2) {
         double o1_o2 = calTimeDistance(p1.origin_coor, p2.origin_coor);
         double o2_d1 = calTimeDistance(p2.origin_coor, p1.dest_coor);
+        double o2_d2 = calTimeDistance(p2.origin_coor, p2.dest_coor);
         double d1_d2 = calTimeDistance(p1.dest_coor, p2.dest_coor);
-        return o1_o2 + o2_d1 + p1.past_time < p1.expected_arrive_time - p1.submit_time
-                && o2_d1 + d1_d2 < p2.expected_arrive_time - p2.submit_time;
+        return (o1_o2 + o2_d1 + p1.past_time < p1.expected_arrive_time - p1.submit_time
+                && o2_d1 + d1_d2 < p2.expected_arrive_time - p2.submit_time);
     }
 
     /**
@@ -105,11 +107,6 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
             return 0;
         }
         return similarity;
-    }
-    public double calSameTravel(Passenger p1, Passenger p2) {
-        double o2_d1 = calSpatialDistance(p2.origin_coor, p1.dest_coor);
-        double o2_d2 = calSpatialDistance(p2.origin_coor, p2.dest_coor);
-        return Math.min(o2_d1, o2_d2);
     }
 }
 

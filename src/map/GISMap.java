@@ -118,8 +118,10 @@ public class GISMap implements TouringMap<Coordinates, Passenger>{
             return 1;
         }
         double o1_o2 = calSpatialDistance(p1.origin_coor, p2.origin_coor);
+        double o2_d1 = calSpatialDistance(p2.origin_coor, p1.dest_coor);
+        double o2_d2 = calSpatialDistance(p2.origin_coor, p2.dest_coor);
         double d1_d2 = calSpatialDistance(p1.dest_coor, p2.dest_coor);
-        double same = calSameTravel(p1, p2);
+        double same = Math.min(o2_d1, o2_d2);
         return same / (o1_o2 + same + d1_d2);
     }
     @Override
@@ -128,11 +130,5 @@ public class GISMap implements TouringMap<Coordinates, Passenger>{
             return false;
         }
         return o1.lat == o2.lat && o1.lng == o2.lng;
-    }
-    @Override
-    public double calSameTravel(Passenger p1, Passenger p2) {
-        double o2_d1 = calSpatialDistance(p2.origin_coor, p1.dest_coor);
-        double o2_d2 = calSpatialDistance(p2.origin_coor, p2.dest_coor);
-        return Math.min(o2_d1, o2_d2);
     }
 }

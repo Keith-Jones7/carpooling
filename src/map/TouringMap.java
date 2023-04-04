@@ -50,10 +50,5 @@ public interface TouringMap<T, M> {
      */
     double calSimilarity(M o1, M o2);
 
-    /**
-     * 
-     */
-    double calSameTravel(M o1, M o2);
-
 }
 

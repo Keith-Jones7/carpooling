@@ -22,7 +22,7 @@ public class Param {
     public static double MIN_TOURING_SIMILARITY = 0.5;                      // 最小行程相似度
     public static final int MAX_TIME = 1200;                                    // 订单收集期
     public static final double LEAVING_COFF = 1;                              // 乘客根据预期到达时间决定的取消订单时间系数
-    public static int COUNT = 0;
+    public static long COUNT = 0;
     public static final double SPEED = 10;                                         // 车辆平均行驶速度,单位米每秒
 
     public static double LNG = 94403.94;                                              // 每经度距离, 单位米

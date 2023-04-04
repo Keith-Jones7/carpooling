@@ -44,7 +44,8 @@ public class RMP_SCIP {
     void formulate() {
         // init
         Loader.loadNativeLibraries();
-        solver = MPSolver.createSolver("GLOP");
+        String solver_id = Param.LP_IP ? "GLOP" : "SCIP";
+        solver = MPSolver.createSolver(solver_id);
 
         x = new ArrayList<>();
         pool = new ArrayList<>();
@@ -125,14 +126,16 @@ public class RMP_SCIP {
     }
 
     LPSol solveLP() {
-        solver.solve();
+        MPSolverParameters parameters = new MPSolverParameters();
+        parameters.setIntegerParam(MPSolverParameters.IntegerParam.PRESOLVE, 0);
+        solver.solve(parameters);
         return getLPSol();
     }
 
     // 求解整数规划
     Solution solveIP() {
         MPSolverParameters parameters = new MPSolverParameters();
-        parameters.setIntegerParam(MPSolverParameters.IntegerParam.LP_ALGORITHM, 11);
+        parameters.setIntegerParam(MPSolverParameters.IntegerParam.PRESOLVE, 0);
         // solve
         convertToIP();
         solver.solve(parameters);

@@ -33,9 +33,8 @@ public class Match {
     public double[][] dpValidMatrix;                      // 接乘一个顾客的司机到第二个顾客是否能拼车成功的计算，0: 无法拼车成 >0: 拼车成功后共同里程相似度
     public double[][] ppTimeMatrix;                       //
     public double[][] dpTimeMatrix;                       // 司机到顾客起点地时间
-    
-    public double[][] valid_matrix1;
-    public double[][][] valid_matrix2;
+    public double[][][] dppUtility;
+    public double[][] dpUtility;
     Solution solution;
     public Match(List<Driver> drivers, List<Passenger> passengers) {
         driverList = drivers;
@@ -59,8 +58,7 @@ public class Match {
                 }else if (flag == 1 && driver.queue.size() == 1){
                     Passenger passenger1 = driver.queue.peek();
                     double eta = Param.touringMap.calTimeDistance(passenger1.origin_coor, passenger.origin_coor);
-                    if ((Param.touringMap.inEllipsoid(passenger1, passenger) ||
-                            Param.touringMap.allInEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA2) {
+                    if ((Param.touringMap.inEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA2) {
                         valid_matrix[i][j] += 2;
                         double similarity = Param.touringMap.calSimilarity(passenger1, passenger);
                         if (similarity == 0) {
@@ -76,24 +74,32 @@ public class Match {
             i++;
         }
     }
-    public void calValid2(int flag) {
-        for (int i = 0; i < nPassengers; i++) {
-            Passenger passenger1 = passengerList.get(i);
-            for (int j = i + 1; j < nPassengers; j++) {
-                Passenger passenger2 = passengerList.get(j);
-                if ((Param.touringMap.inEllipsoid(passenger1, passenger2)
-                        || Param.touringMap.allInEllipsoid(passenger1, passenger2)
-                        || Param.touringMap.allInEllipsoid(passenger2, passenger1)
-                        && Param.touringMap.calTimeDistance(passenger1.cur_coor, passenger2.origin_coor) <= Param.MAX_ETA2)) {
-                    for (int k = 0; k < nDrivers; k++) {
-                        double eta1 = Param.touringMap.calTimeDistance(driverList.get(i).cur_coor, passenger1.origin_coor);
-                        double eta2 = Param.touringMap.calTimeDistance(driverList.get(i).cur_coor, passenger2.origin_coor);
-                        
-                    }
+    public void calValid2() {
+        for (int i = 0; i < nDrivers; i++) {
+            Driver driver = driverList.get(i);
+            for (int j = 0; j < nPassengers; j++) {
+                Coordinates coor = driver.cur_coor;
+                Passenger passenger = passengerList.get(j);
+                if (driver.queue.size() == 1) {
+                    coor = driver.queue.getFirst().origin_coor;
+                }
+                dpUtility[i][j] = 1 - Param.touringMap.calTimeDistance(coor, passenger.origin_coor) / Param.MAX_ETA;
+            }
+        }
+        for (int j1 = 0; j1 < nPassengers; j1++) {
+            Passenger p1 = passengerList.get(j1);
+            for (int j2 = 0; j2 < nPassengers; j2++) {
+                if (j2 == j1) {
+                    continue;
+                }
+                Passenger p2 = passengerList.get(j2);
+                if (ppValidMatrix[j1][j2] > 0) {
+                    
                 }
             }
         }
     }
+    
     void calPPValid() {
         long s = System.currentTimeMillis();
         for (int i = 0; i < nPassengers; i++) {
