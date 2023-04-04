@@ -6,6 +6,7 @@ import model.Solution;
 
 public class Main {
     public static void main(String[] args) throws Exception{
+        Param.setMapChoose();
         Solution solution = runSample(200, 4);
 //        runDefault(30);
     }
@@ -74,7 +75,6 @@ public class Main {
             Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
             System.out.println(System.currentTimeMillis() - time);
             solution.profit += cur_solution.profit;
-            cur_solution.checkSolution(2);
             batch.cur_time += time_interval;
             int result = 0;
             for (Pattern pattern : cur_solution.patterns) {

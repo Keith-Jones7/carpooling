@@ -49,5 +49,11 @@ public interface TouringMap<T, M> {
      * @return  相似度指标，1表示完全相同
      */
     double calSimilarity(M o1, M o2);
+
+    /**
+     * 
+     */
+    double calSameTravel(M o1, M o2);
+
 }
 

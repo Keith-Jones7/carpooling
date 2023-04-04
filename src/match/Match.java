@@ -33,7 +33,9 @@ public class Match {
     public double[][] dpValidMatrix;                      // 接乘一个顾客的司机到第二个顾客是否能拼车成功的计算，0: 无法拼车成 >0: 拼车成功后共同里程相似度
     public double[][] ppTimeMatrix;                       //
     public double[][] dpTimeMatrix;                       // 司机到顾客起点地时间
-    private static TouringMap<Coordinates, Passenger> map;
+    
+    public double[][] valid_matrix1;
+    public double[][][] valid_matrix2;
     Solution solution;
     public Match(List<Driver> drivers, List<Passenger> passengers) {
         driverList = drivers;
@@ -41,11 +43,6 @@ public class Match {
         //leave_count = removeInvalid(cur_time);
         this.nDrivers = driverList.size();
         this.nPassengers = passengerList.size();
-        if (Param.MAP_CHOOSE == 2) {
-            map = new GISMap();
-        }else{
-            map = new TestMap();
-        }
         solution = new Solution();
     }
 
@@ -55,21 +52,21 @@ public class Match {
             int j = 0;
             for (Passenger passenger : passengerList) {
                 if (driver.queue.size() == 0) {
-                    double eta = map.calTimeDistance(driver.cur_coor, passenger.origin_coor);
+                    double eta = Param.touringMap.calTimeDistance(driver.cur_coor, passenger.origin_coor);
                     if (eta <= Param.MAX_ETA) {
                         valid_matrix[i][j] = 1 - eta / Param.MAX_ETA;
                     }
                 }else if (flag == 1 && driver.queue.size() == 1){
                     Passenger passenger1 = driver.queue.peek();
-                    double eta = map.calTimeDistance(passenger1.origin_coor, passenger.origin_coor);
-                    if ((map.inEllipsoid(passenger1, passenger) ||
-                            map.allInEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA2) {
+                    double eta = Param.touringMap.calTimeDistance(passenger1.origin_coor, passenger.origin_coor);
+                    if ((Param.touringMap.inEllipsoid(passenger1, passenger) ||
+                            Param.touringMap.allInEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA2) {
                         valid_matrix[i][j] += 2;
-                        double similarity = map.calSimilarity(passenger1, passenger);
+                        double similarity = Param.touringMap.calSimilarity(passenger1, passenger);
                         if (similarity == 0) {
                             valid_matrix[i][j] = 0;
                         }else {
-                            valid_matrix[i][j] += map.calSimilarity(passenger1, passenger);
+                            valid_matrix[i][j] += Param.touringMap.calSimilarity(passenger1, passenger);
                             valid_matrix[i][j] += 1 - eta / Param.MAX_ETA2;
                         }
                     }
@@ -79,16 +76,33 @@ public class Match {
             i++;
         }
     }
-    
+    public void calValid2(int flag) {
+        for (int i = 0; i < nPassengers; i++) {
+            Passenger passenger1 = passengerList.get(i);
+            for (int j = i + 1; j < nPassengers; j++) {
+                Passenger passenger2 = passengerList.get(j);
+                if ((Param.touringMap.inEllipsoid(passenger1, passenger2)
+                        || Param.touringMap.allInEllipsoid(passenger1, passenger2)
+                        || Param.touringMap.allInEllipsoid(passenger2, passenger1)
+                        && Param.touringMap.calTimeDistance(passenger1.cur_coor, passenger2.origin_coor) <= Param.MAX_ETA2)) {
+                    for (int k = 0; k < nDrivers; k++) {
+                        double eta1 = Param.touringMap.calTimeDistance(driverList.get(i).cur_coor, passenger1.origin_coor);
+                        double eta2 = Param.touringMap.calTimeDistance(driverList.get(i).cur_coor, passenger2.origin_coor);
+                        
+                    }
+                }
+            }
+        }
+    }
     void calPPValid() {
         long s = System.currentTimeMillis();
         for (int i = 0; i < nPassengers; i++) {
             Passenger passenger1 = passengerList.get(i);
             for (int j = 0; j < nPassengers; j++) {
                 Passenger passenger2 = passengerList.get(j);
-                ppTimeMatrix[i][j] = map.calTimeDistance(passenger1.cur_coor, passenger2.origin_coor);
-                if (map.inEllipsoid(passenger1, passenger2) || map.allInEllipsoid(passenger1, passenger2)) {
-                    ppValidMatrix[i][j] = map.calSimilarity(passenger1, passenger2);
+                ppTimeMatrix[i][j] = Param.touringMap.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
+                if (Param.touringMap.inEllipsoid(passenger1, passenger2) || Param.touringMap.allInEllipsoid(passenger1, passenger2)) {
+                    ppValidMatrix[i][j] = Param.touringMap.calSimilarity(passenger1, passenger2);
                 }
             }
         }
@@ -100,13 +114,13 @@ public class Match {
             Driver driver = driverList.get(i);
             for (int j = 0; j < nPassengers; j++) {
                 Passenger passenger = passengerList.get(j);
-                dpTimeMatrix[i][j] = map.calTimeDistance(driver.cur_coor, passenger.origin_coor); // Todo: ?
+                dpTimeMatrix[i][j] = Param.touringMap.calTimeDistance(driver.cur_coor, passenger.origin_coor); // Todo: ?
                 // 只有当司机带了一个顾客时，才需要计算司机到顾客的里程相似度
                 if (driverList.get(i).queue.size() > 0) {
                     Passenger passenger0 = driverList.get(i).queue.getFirst();
-                    dpTimeMatrix[i][j] = map.calTimeDistance(passenger0.origin_coor, passenger.origin_coor);
-                    if (map.inEllipsoid(passenger0, passenger) || map.allInEllipsoid(passenger0, passenger)) {
-                        dpValidMatrix[i][j] = map.calSimilarity(passenger0, passenger);
+                    dpTimeMatrix[i][j] = Param.touringMap.calTimeDistance(passenger0.origin_coor, passenger.origin_coor);
+                    if (Param.touringMap.inEllipsoid(passenger0, passenger) || Param.touringMap.allInEllipsoid(passenger0, passenger)) {
+                        dpValidMatrix[i][j] = Param.touringMap.calSimilarity(passenger0, passenger);
                     }
                 }
             }
@@ -224,9 +238,9 @@ public class Match {
                     Passenger passenger1 = driver.queue.getFirst();
                     Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
                     Pattern pattern = new Pattern(driver, passenger1, passenger2);
-                    double eta1 = map.calTimeDistance(passenger1.origin_coor, driver.cur_coor);
-                    double eta2 = passenger2 == null ? Param.MAX_ETA2 : map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
-                    pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2), eta1, eta2);
+                    double eta1 = Param.touringMap.calTimeDistance(passenger1.origin_coor, driver.cur_coor);
+                    double eta2 = passenger2 == null ? Param.MAX_ETA2 : Param.touringMap.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
+                    pattern.setAim(passenger2 == null ? 0 : Param.touringMap.calSimilarity(passenger1, passenger2), eta1, eta2);
                     solution.patterns.add(pattern);
                     solution.profit += pattern.aim;
                 }
@@ -309,9 +323,9 @@ public class Match {
                     Passenger passenger1 = driver.queue.getFirst();
                     Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
                     Pattern pattern = new Pattern(driver, passenger1, passenger2);
-                    double eta1 = map.calTimeDistance(passenger1.origin_coor, driver.cur_coor);
-                    double eta2 = passenger2 == null ? Param.MAX_ETA2 : map.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
-                    pattern.setAim(passenger2 == null ? 0 : map.calSimilarity(passenger1, passenger2), eta1, eta2);
+                    double eta1 = Param.touringMap.calTimeDistance(passenger1.origin_coor, driver.cur_coor);
+                    double eta2 = passenger2 == null ? Param.MAX_ETA2 : Param.touringMap.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
+                    pattern.setAim(passenger2 == null ? 0 : Param.touringMap.calSimilarity(passenger1, passenger2), eta1, eta2);
                     solution.patterns.add(pattern);
                     solution.profit += pattern.aim;
                 }
@@ -386,7 +400,7 @@ public class Match {
 
             } else {
             // 接一个乘客
-                double etaAim = map.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
+                double etaAim = Param.touringMap.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
                 double sameAim = 0.0;
                 double aim = (sameAim > 0 ? (sameAim + 2) : 0) + 2 - etaAim/Param.MAX_ETA;
                 profit += aim;

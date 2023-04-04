@@ -16,8 +16,8 @@ public class Passenger {
     //时间戳，最小单位为秒
     public long past_time;
     public long expected_arrive_time;   //乘客预期到达时间
+    public double single_distance;
     public Driver cur_driver;
-    
     public int ID;
     public Passenger() {
 
@@ -28,7 +28,8 @@ public class Passenger {
         this.dest_coor = dest;
         this.cur_coor = new Coordinates(origin.lng, origin.lat);
         this.submit_time = submit;
-        this.expected_arrive_time = (long) (new TestMap().calTimeDistance(origin_coor, dest_coor) * Param.DETOUR_RATIO);
+        this.single_distance = Param.touringMap.calSpatialDistance(origin_coor, dest_coor);
+        this.expected_arrive_time = (long) (Param.touringMap.calTimeDistance(origin_coor, dest_coor) * Param.DETOUR_RATIO);
         this.ID = ID;
     }
     public void renew(long cur_time) {

@@ -72,31 +72,4 @@ public class Solution {
             System.out.println("导出文件错误！");
         }
     }
-    
-    public void checkSolution(int checkFlag) {
-        map = new GISMap();
-        if (checkFlag == 1) {
-            ArrayList<Pattern> removePatterns = new ArrayList<>();
-            for (Pattern pattern : patterns) {
-                if (!checkPattern(pattern)) {
-                    removePatterns.add(pattern);
-                }
-            }
-            patterns.removeAll(removePatterns);
-        }
-    }
-    
-    public boolean checkPattern(Pattern pattern) {
-        Driver driver = pattern.driver;
-        Passenger passenger1 = driver.queue.getFirst();
-        Passenger passenger2 = pattern.passenger2Id == -1 ? null : driver.queue.getLast();
-        double checkEta = map.calTimeDistance(driver.match_coor, passenger1.origin_coor);
-        double dist = map.calSpatialDistance(driver.match_coor, passenger1.origin_coor);
-        double eta = Param.calSpatialDistance(driver.match_coor, passenger1.origin_coor);
-        if (passenger2 == null) {
-            return checkEta < Param.MAX_ETA;
-        }else {
-            return checkEta < Param.MAX_ETA && (map.inEllipsoid(passenger1, passenger2) || map.allInEllipsoid(passenger1, passenger2));
-        }
-    }
 }

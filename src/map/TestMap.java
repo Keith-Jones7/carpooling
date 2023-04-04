@@ -23,7 +23,7 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
      * @return true: 重合, false: 不重合
      */
     @Override
-    public  boolean equals(Coordinates o1, Coordinates o2) {
+    public boolean equals(Coordinates o1, Coordinates o2) {
         if (o1 == null || o2 == null) {
             return false;
         }
@@ -83,7 +83,7 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
         double d2_d1 = calTimeDistance(p2.dest_coor, p1.dest_coor);
         return o1_o2 + o2_d2 + d2_d1 + p1.past_time < p1.expected_arrive_time - p1.submit_time;
     }
-
+    
     /**
      * 计算行程相似度
      * @param p1    乘客1
@@ -99,13 +99,17 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
         double o2_d1 = calSpatialDistance(p2.origin_coor, p1.dest_coor);
         double o2_d2 = calSpatialDistance(p2.origin_coor, p2.dest_coor);
         double d1_d2 = calSpatialDistance(p1.dest_coor, p2.dest_coor);
-          
         double same = Math.min(o2_d1, o2_d2);
         double similarity = same / (o1_o2 + same + d1_d2);
-        if (similarity < Param.MIN_TOURING_SIMILARITY) {// Todo: 行程相似度阈值设置
+        if (similarity < Param.MIN_TOURING_SIMILARITY) {
             return 0;
         }
         return similarity;
+    }
+    public double calSameTravel(Passenger p1, Passenger p2) {
+        double o2_d1 = calSpatialDistance(p2.origin_coor, p1.dest_coor);
+        double o2_d2 = calSpatialDistance(p2.origin_coor, p2.dest_coor);
+        return Math.min(o2_d1, o2_d2);
     }
 }
 

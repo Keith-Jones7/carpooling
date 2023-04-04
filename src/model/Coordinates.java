@@ -8,7 +8,7 @@ public class Coordinates {
         this.lng = lng;
         this.lat = lat;
     }
-    public String printCoor() {
+    public String toString() {
         return String.format("lng: %.6f, lat: %.6f", lng, lat);
     }
 }

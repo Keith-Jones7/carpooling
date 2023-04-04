@@ -1,5 +1,8 @@
 package common;
 
+import map.GISMap;
+import map.TestMap;
+import map.TouringMap;
 import model.Coordinates;
 import model.Passenger;
 
@@ -30,7 +33,15 @@ public class Param {
     public static Random RND;
     public static final double eps = 1e-3;
 
+    public static TouringMap<Coordinates, Passenger> touringMap;
 
+    public static void setMapChoose() {
+        if (Param.MAP_CHOOSE == 2) {
+            touringMap = new GISMap();
+        }else {
+            touringMap = new TestMap();
+        }
+    }
     /**
      * 将角度值转为弧度值
      * @param d 角度

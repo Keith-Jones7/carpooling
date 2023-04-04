@@ -131,9 +131,11 @@ public class RMP_SCIP {
 
     // 求解整数规划
     Solution solveIP() {
+        MPSolverParameters parameters = new MPSolverParameters();
+        parameters.setIntegerParam(MPSolverParameters.IntegerParam.LP_ALGORITHM, 11);
         // solve
         convertToIP();
-        solver.solve();
+        solver.solve(parameters);
         return getIPSol();
     }
 
