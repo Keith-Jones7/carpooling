@@ -5,6 +5,8 @@ import ilog.concert.IloException;
 import model.*;
 
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Comparator;
 
 public class BranchAndBound {
 
@@ -24,25 +26,38 @@ public class BranchAndBound {
         this.rmp = new RMP_SCIP(inst);
         this.pp = new PricingProblem(inst);
         this.divingHeur = new DivingHeuristic(inst, rmp, pp);
-//        this.cg = new ColumnGeneration(inst, rmp, pp);
+        this.cg = new ColumnGeneration(inst, rmp, pp);
         this.bestSol = new Solution();
     }
 
     public void run() {
-        try {
+        if (Param.USE_CG) {
+            bestSol = solve();
+        } else {
             bestSol = genMIPSol();
-        } catch (IloException e) {
-            throw new RuntimeException(e);
         }
+
     }
 
-    private void solve() {
+    private Solution solve() {
 //        ArrayList<Pattern> pool = genInitPatterns();
         //ArrayList<Pattern> pool = genAllPatterns();
-        ArrayList<Pattern> pool = genAllPatterns1();
-        boolean isSolveAll = true;
-        boolean isSolveLP = false;
-        cg.solve(pool, isSolveAll, isSolveLP);
+        ArrayList<Pattern> totalPool = genAllPatterns();
+        // CG求解LP
+        if (Param.LP_IP) {
+            ArrayList<Pattern> pool = genInitPatternsGreedy(totalPool);
+//            ArrayList<Pattern> pool = new ArrayList<>();
+            totalPool.removeAll(pool);
+            long s0 = System.currentTimeMillis();
+            LPSol lpSol = cg.solve(pool, totalPool);
+            double timeCost = Param.getTimecost(s0);
+            return divingHeur.solve(lpSol, Integer.MAX_VALUE);
+        }
+        // 求解IP
+        else {
+            rmp.addColumns(totalPool);
+            return rmp.solveIP();
+        }
     }
 
     public void updateUB() {
@@ -57,65 +72,69 @@ public class BranchAndBound {
 
     }
 
-    Solution genMIPSol() throws IloException {
-        ArrayList<Pattern> pool = genAllPatterns1();
+    Solution genMIPSol() {
+        ArrayList<Pattern> pool = genAllPatterns();
         rmp.addColumns(pool);
-//        rmp.removeInvalidRanges(pool);
         if (Param.LP_IP) {
+            long s0 = System.currentTimeMillis();
             LPSol lpSol = rmp.solveLP();
+            double timeCost = Param.getTimecost(s0);
             return divingHeur.solve(lpSol, Integer.MAX_VALUE);
         } else {
             return rmp.solveIP();
         }
     }
 
-//    public ArrayList<Pattern> genInitPatterns() {
-//        ArrayList<Pattern> pool = new ArrayList<>();
-//
-//        // greedy
-//        BitSet passengerBit = new BitSet(nPassengers);
-//        BitSet driverBit = new BitSet(nDrivers);
-//        boolean remainPattern = true;
-//        while (remainPattern) {
-//            remainPattern = false;
-//            double maxAim = -Double.MAX_VALUE;
-//            int driverId = -1;
-//            int passenger1Id = -1;
-//            int passenger2Id = -1;
-//            double sameTime = 0;
-//            double getTime = 0;
-//            // 遍历所有顾客对
-//            for (int i = 0; i < nPassengers; i++) {
-//                for (int j = 0; j < nPassengers; j++) {
-//                    // 当两个顾客尚未被服务，且满足拼车条件时
-//                    if (i != j && inst.ppValidMatrix[i][j] > 0 && !passengerBit.get(i) && !passengerBit.get(j)) {
-//                        for (int k = 0; k < nDrivers; k++) {
-//                            if (!driverBit.get(k)) {
-//                                double aim = Param.obj1Coef * inst.ppValidMatrix[i][j] - inst.dpTimeMatrix[k][i];
-//                                if (aim > maxAim) {
-//                                    maxAim = aim;
-//                                    driverId = k;
-//                                    passenger1Id = i;
-//                                    passenger2Id = j;
-//                                    remainPattern = true;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            if (remainPattern) {
-//                driverBit.set(driverId);
-//                passengerBit.set(passenger1Id);
-//                passengerBit.set(passenger2Id);
-//
-//                Pattern pattern = new Pattern(driverId, passenger1Id, passenger2Id);
-//                pattern.setTime(sameTime, getTime);
-//                pool.add(pattern);
-//            }
-//        }
-//        return pool;
-//    }
+    public ArrayList<Pattern> genInitPatternsGreedy(ArrayList<Pattern> totalPool) {
+        ArrayList<Pattern> pool = new ArrayList<>();
+
+        // greedy
+        BitSet passengerBit = new BitSet(nPassengers);
+        BitSet driverBit = new BitSet(nDrivers);
+        BitSet invalidPatternBit = new BitSet(totalPool.size());
+        boolean remainPattern = true;
+        while (remainPattern) {
+            remainPattern = false;
+            // 遍历totalPool，找到最大aim的pool
+            double maxAim = 0;
+            int maxAimIdx = -1;
+            for (int i = 0; i < totalPool.size(); i++) {
+                if (!invalidPatternBit.get(i)) {
+                    Pattern pattern = totalPool.get(i);
+                    int driverIdx = pattern.driverIdx;
+                    int passenger1Idx = pattern.passenger1Idx;
+                    int passenger2Idx = pattern.passenger2Idx;
+                    boolean driverAvailable = !driverBit.get(driverIdx);
+                    boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
+                    boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
+                    if (driverAvailable && passenger1Available && passenger2Available) {
+                        // 与最大aim比较
+                        if (pattern.aim > maxAim) {
+                            maxAim = pattern.aim;
+                            maxAimIdx = i;
+                        }
+                    } else {
+                        invalidPatternBit.set(i);
+                    }
+                }
+            }
+            // 找到一个可行最大aim的pattern后，将其放入pool中，并更新bit
+            if (maxAimIdx >= 0) {
+                remainPattern = true;
+                Pattern pattern = totalPool.get(maxAimIdx);
+                driverBit.set(pattern.driverIdx);
+                if (pattern.passenger1Idx >= 0) {
+                    passengerBit.set(pattern.passenger1Idx);
+                }
+                if (pattern.passenger2Idx >= 0) {
+                    passengerBit.set(pattern.passenger2Idx);
+                }
+                invalidPatternBit.set(maxAimIdx);
+                pool.add(pattern);
+            }
+        }
+        return pool;
+    }
 
     // 生成所有pattern
     public ArrayList<Pattern> genAllPatterns() {
@@ -172,7 +191,7 @@ public class BranchAndBound {
                 }
             }
         }
-
+//        pool.sort(Comparator.comparing(o -> -o.aim));
         return pool;
     }
     public ArrayList<Pattern> genAllPatterns1() {
@@ -209,7 +228,7 @@ public class BranchAndBound {
                 pool.add(pattern);
             }
         }
-        System.out.println(pool.size());
+//        System.out.println(pool.size());
         return pool;
     }
     public void branch() {

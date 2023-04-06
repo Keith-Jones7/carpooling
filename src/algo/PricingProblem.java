@@ -1,13 +1,12 @@
 package algo;
 
+import common.Param;
 import model.Driver;
 import model.Instance;
 import model.Passenger;
 import model.Pattern;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
+import java.util.*;
 
 public class PricingProblem {
     Instance inst;
@@ -16,7 +15,7 @@ public class PricingProblem {
     List<Driver> driverList;
     List<Passenger> passengerList;
 
-
+    ArrayList<Pattern> totalPatterns;
     double[] dualsOfRanges;
     BitSet fixedDrivers;
     BitSet fixedPassengers;
@@ -36,8 +35,8 @@ public class PricingProblem {
         this.patterns = new ArrayList<>();
     }
 
-    void set() {
-
+    void set(ArrayList<Pattern> totalPatterns) {
+        this.totalPatterns = totalPatterns;
     }
 
     void solve(double[] dualsOfRanges, BitSet fixedDrivers, BitSet fixedPassengers) {
@@ -54,9 +53,50 @@ public class PricingProblem {
 
     // 简单遍历
     void solveMethod1() {
-        for (int i = 0; i < nDrivers; i++) {
-
+        long s0 = System.currentTimeMillis();
+        int maxColNum = 100;
+        PriorityQueue<Pattern> patternPriorityQueue = new PriorityQueue<>(Comparator.comparing(o -> o.reducedCost));
+        for (Pattern pattern : totalPatterns) {
+            if (containFixedItem(pattern)) {
+                continue;
+            }
+            double reducedCost = computeReducedCost(pattern);
+            pattern.reducedCost = reducedCost;
+            // 判断检验数大于0
+            if (reducedCost > Param.EPS) {
+                // 判断是否加入优先级队列
+                if (patternPriorityQueue.size() < maxColNum) {
+                    patternPriorityQueue.add(pattern);
+                } else {
+                    if (reducedCost > patternPriorityQueue.peek().reducedCost) {
+                        patternPriorityQueue.poll();
+                        patternPriorityQueue.add(pattern);
+                    }
+                }
+                // 更新best pattern
+                if (reducedCost > maxCost + Param.EPS) {
+                    maxCost = reducedCost;
+                    patternWithMaxCost = pattern;
+                }
+            }
         }
+        patterns.addAll(patternPriorityQueue);
+        totalPatterns.removeAll(patterns);
+        double timeCost = Param.getTimecost(s0);
+//        Param.timeCost += timeCost;
+    }
+
+    boolean containFixedItem(Pattern pattern) {
+        if (fixedDrivers.get(pattern.driverIdx)) {
+            return true;
+        }
+        if (pattern.passenger1Idx >= 0 && fixedPassengers.get(pattern.passenger1Idx)) {
+            return true;
+        }
+        if (pattern.passenger2Idx >= 0 && fixedPassengers.get(pattern.passenger2Idx)) {
+            return true;
+        }
+        return false;
     }
 
     // 优化遍历
@@ -65,7 +105,14 @@ public class PricingProblem {
     }
 
     double computeReducedCost(Pattern pattern) {
-        return 0;
+        double reducedCost = pattern.aim - dualsOfRanges[pattern.driverIdx];
+        if (pattern.passenger1Idx >= 0) {
+            reducedCost -= dualsOfRanges[nDrivers + pattern.passenger1Idx];
+        }
+        if (pattern.passenger2Idx >= 0) {
+            reducedCost -= dualsOfRanges[nDrivers + pattern.passenger2Idx];
+        }
+        return reducedCost;
     }
 
     boolean findNewColumns() {

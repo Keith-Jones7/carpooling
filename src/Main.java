@@ -7,7 +7,7 @@ import model.Solution;
 public class Main {
     public static void main(String[] args) throws Exception{
         Param.setMapChoose();
-        Solution solution = runSample(200, 4);
+        Solution solution = runSample(600, 1);
 //        runDefault(30);
     }
     public static void runDefault(int time_interval) throws Exception{
@@ -73,7 +73,7 @@ public class Main {
             batch.matching = new Match(batch.driverList, batch.passengerList);
             long time = System.currentTimeMillis();
             Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
-            System.out.println(System.currentTimeMillis() - time);
+//            System.out.println(System.currentTimeMillis() - time);
             solution.profit += cur_solution.profit;
             batch.cur_time += time_interval;
             int result = 0;
@@ -100,6 +100,7 @@ public class Main {
                 batch.passengerList.size(), solution.leave_count, (double) match_sum / passenger_sum * 100);
         System.out.println();
         System.out.println(solution.profit);
+        System.out.println(Param.COUNT);
         return solution;
     }
 }

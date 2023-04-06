@@ -3,6 +3,7 @@ package algo;
 import ilog.concert.IloException;
 import model.Instance;
 import model.Pattern;
+import model.Solution;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -12,6 +13,7 @@ public class ColumnGeneration {
     Instance inst;
     int nDrivers;
     int nPassengers;
+
 
     RMP_SCIP rmp;
     PricingProblem pp;
@@ -23,35 +25,18 @@ public class ColumnGeneration {
         this.pp = pp;
     }
 
-    void solve(ArrayList<Pattern> pool, boolean isSolveAll, boolean isSolveLP) {
+    LPSol solve(ArrayList<Pattern> pool, ArrayList<Pattern> totalPool) {
             rmp.addColumns(pool);
-            if (isSolveAll) {
-                solveAll(isSolveLP);
-            } else {
-                solve();
-            }
+            return solve(totalPool);
     }
 
-    void solveAll(boolean isSolveLP) {
-            if (isSolveLP) {
-                rmp.solveLP();
-            } else {
-                rmp.solveIP();
-            }
+    LPSol solve(ArrayList<Pattern> totalPool) {
+        rmp.set();
+        pp.set(totalPool);
+        return cg();
     }
 
-    void solve() {
-        try {
-            rmp.set();
-            pp.set();
-            cg();
-        } catch (IloException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    void cg() throws IloException {
+    LPSol cg() {
         double[] dualsOfRanges;
         BitSet fixedDrivers;
         BitSet fixedPassengers;
@@ -70,7 +55,7 @@ public class ColumnGeneration {
             dualsOfRanges = rmp.getDualsOfRanges();
             pp.solve(dualsOfRanges, fixedDrivers, fixedPassengers);
         }
-
+        return rmp.getLPSol();
     }
 
     void end() {

@@ -6,7 +6,7 @@ import model.*;
 import java.util.*;
 
 enum DivingStrategy {
-    Fractional, Guided
+    Fractional, Guided, Aim
 }
 public class DivingHeuristic {
     Instance inst;
@@ -17,6 +17,7 @@ public class DivingHeuristic {
     LPSol fixedSol;
 
     RMP_SCIP rmp;
+    PricingProblem pp;
 
     // diving param
     int nlpMax = 1000;
@@ -28,6 +29,7 @@ public class DivingHeuristic {
         this.nDrivers = inst.nDrivers;
         this.nPassengers = inst.nPassengers;
         this.rmp = rmp;
+        this.pp = pp;
     }
 
     public Solution solve(LPSol lpSol, int ub) {
@@ -43,17 +45,22 @@ public class DivingHeuristic {
         int nlp = 0;
         int iter = 0;
         int nFracBegin = nFrac;
+        ColumnGeneration columnGeneration = new ColumnGeneration(inst, rmp, pp);
         // diving
         while (nFrac != 0 && obj < ub && ((nlp < nlpMax && iter < iterMax) || iter < iterMin || nFrac < nFracBegin - iter*0.5)) {
             iter++;
             // select and bound var
-            DivingStrategy divingStrategy = DivingStrategy.Fractional;
+            DivingStrategy divingStrategy = DivingStrategy.Aim;
             int boundVarIdx = selectDivingVar(fracIdx, divingStrategy);
             fracIdx.clear(boundVarIdx);
             fixedIdx.set(boundVarIdx);
             // solve modified LP; update nlp
             rmp.setDiving(fixedIdx, this.lpSol.vals);
-            this.lpSol = rmp.solveLP();
+            if (Param.USE_CG) {
+                this.lpSol = columnGeneration.cg();
+            } else {
+                this.lpSol = rmp.solveLP();
+            }
             // update fracIdx and nFrac
             fracPair = setFixedAndFracIdx();
             nFrac = fracPair.getKey();
@@ -61,7 +68,6 @@ public class DivingHeuristic {
             fracIdx = fracPair.getValue()[1];
             obj = getObj();
         }
-        System.out.println(iter);
         // recover diving
 //        rmp.recoverDiving(fixedIdx, lpSol.vals);
         // return sol
@@ -78,6 +84,8 @@ public class DivingHeuristic {
         switch (divingStrategy) {
             case Fractional :
                 return fractionalDiving(fracIdx);
+            case Aim:
+                return aimDiving(fracIdx);
             default:
                 return -1;
         }
@@ -95,6 +103,20 @@ public class DivingHeuristic {
             }
         }
         return minFracH;
+    }
+
+    public int aimDiving(BitSet fracIdx) {
+        int maxAimIdx = 0;
+        double maxAim = 1.0;
+        for (int h = fracIdx.nextSetBit(0); h >= 0; h = fracIdx.nextSetBit(h+1)) {
+            double value = lpSol.vals.get(h).getValue();
+            double aim = value * lpSol.vals.get(h).getKey().aim;
+            if (aim > maxAim) {
+                maxAim = aim;
+                maxAimIdx = h;
+            }
+        }
+        return maxAimIdx;
     }
     
     public Pair<Integer, BitSet[]> setFixedAndFracIdx() {

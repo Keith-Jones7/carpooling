@@ -28,6 +28,8 @@ public class Pattern {
     public IloNumVar colVar;
     public MPVariable var;
 
+    public double reducedCost;
+
     public Pattern(Driver driver, Passenger passenger1, Passenger passenger2) {
         this.driver = driver;
         this.passenger1 = passenger1;
@@ -99,6 +101,6 @@ public class Pattern {
         }
     }
     public String toString() {
-        return "(" + driverId + ", " + passenger1Id + ", " + passenger2Id + ")";
+        return "(" + driverId + ", " + passenger1Id + ", " + passenger2Id + ")" + ": " + aim;
     }
 }
