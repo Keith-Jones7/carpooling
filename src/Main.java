@@ -7,7 +7,7 @@ import model.Solution;
 public class Main {
     public static void main(String[] args) throws Exception{
         Param.setMapChoose();
-        Solution solution = runSample(600, 1);
+        Solution solution = runSample(200, 2);
 //        runDefault(30);
     }
     public static void runDefault(int time_interval) throws Exception{
@@ -99,8 +99,7 @@ public class Main {
                 passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size() - solution.leave_count, 
                 batch.passengerList.size(), solution.leave_count, (double) match_sum / passenger_sum * 100);
         System.out.println();
-        System.out.println(solution.profit);
-        System.out.println(Param.COUNT);
+        System.out.println(solution.profit);;
         return solution;
     }
 }

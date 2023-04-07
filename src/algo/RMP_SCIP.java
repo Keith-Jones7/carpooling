@@ -128,7 +128,7 @@ public class RMP_SCIP {
             pool.add(pattern);
             // add var
             String name = "x_" + pattern.driverIdx + "," + pattern.passenger1Idx + "," + pattern.passenger2Idx;
-            MPVariable var = solver.makeVar(0, 1, false, name);
+            MPVariable var = solver.makeVar(0, infinity, false, name);
             // set obj
             obj.setCoefficient(var, pattern.aim);
             // set range on driver
@@ -146,9 +146,9 @@ public class RMP_SCIP {
     }
 
     LPSol solveLP() {
-        MPSolverParameters parameters = new MPSolverParameters();
-        parameters.setIntegerParam(MPSolverParameters.IntegerParam.LP_ALGORITHM, 11);
-        solver.solve(parameters);
+//        MPSolverParameters parameters = new MPSolverParameters();
+//        parameters.setIntegerParam(MPSolverParameters.IntegerParam.LP_ALGORITHM, 10);
+        solver.solve();
         return getLPSol();
     }
 

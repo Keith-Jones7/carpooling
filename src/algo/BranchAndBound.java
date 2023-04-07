@@ -47,7 +47,7 @@ public class BranchAndBound {
         if (Param.LP_IP) {
             ArrayList<Pattern> pool = genInitPatternsGreedy(totalPool);
 //            ArrayList<Pattern> pool = new ArrayList<>();
-            totalPool.removeAll(pool);
+//            totalPool.removeAll(pool);
             long s0 = System.currentTimeMillis();
             LPSol lpSol = cg.solve(pool, totalPool);
             double timeCost = Param.getTimecost(s0);
@@ -192,6 +192,7 @@ public class BranchAndBound {
             }
         }
 //        pool.sort(Comparator.comparing(o -> -o.aim));
+        System.out.println(pool.size());
         return pool;
     }
     public ArrayList<Pattern> genAllPatterns1() {
