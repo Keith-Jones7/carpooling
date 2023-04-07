@@ -59,7 +59,7 @@ public class Match {
                 }else if (flag == 1 && driver.queue.size() == 1){
                     Passenger passenger1 = driver.queue.peek();
                     double eta = Param.touringMap.calTimeDistance(passenger1.origin_coor, passenger.origin_coor);
-                    if ((Param.touringMap.inEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA2) {
+                    if ((Param.touringMap.inEllipsoid(passenger1, passenger) || Param.touringMap.allInEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA2) {
                         valid_matrix[i][j] += 2;
                         double similarity = Param.touringMap.calSimilarity(passenger1, passenger);
                         if (similarity == 0) {
