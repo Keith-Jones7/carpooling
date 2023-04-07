@@ -7,7 +7,7 @@ import model.Solution;
 public class Main {
     public static void main(String[] args) throws Exception{
         Param.setMapChoose();
-        Solution solution = runSample(200, 4);
+        Solution solution = runSample(600, 1);
 //        runDefault(30);
     }
     public static void runDefault(int time_interval) throws Exception{
@@ -73,6 +73,7 @@ public class Main {
             batch.matching = new Match(batch.driverList, batch.passengerList);
             long time = System.currentTimeMillis();
             Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
+//            System.out.println(System.currentTimeMillis() - time);
             solution.profit += cur_solution.profit;
             batch.cur_time += time_interval;
             int result = 0;
@@ -90,7 +91,7 @@ public class Main {
                             "当前阶段剩余司机数为%d，剩余乘客数为%d，取消订单乘客数为%d，求解总消耗时长%d毫秒",
                     end / time_interval, waiting_driver_num, waiting_passenger_num, result,
                     batch.driverList.size(), batch.passengerList.size(), cur_solution.leave_count, end_time - start_time);
-            System.out.println(Param.COUNT);
+            System.out.println();
 
           }
         //solution.outputSolution(sample_index);
@@ -99,6 +100,7 @@ public class Main {
                 batch.passengerList.size(), solution.leave_count, (double) match_sum / passenger_sum * 100);
         System.out.println();
         System.out.println(solution.profit);
+        System.out.println(Param.COUNT);
         return solution;
     }
 }

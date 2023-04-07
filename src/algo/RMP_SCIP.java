@@ -2,6 +2,9 @@ package algo;
 
 import com.google.ortools.linearsolver.*;
 import common.Param;
+import ilog.concert.IloColumn;
+import ilog.concert.IloException;
+import ilog.concert.IloNumVarType;
 import javafx.util.Pair;
 import model.*;
 import com.google.ortools.Loader;
@@ -21,6 +24,7 @@ public class RMP_SCIP {
     MPObjective obj;
     MPConstraint[] ranges;
     ArrayList<MPVariable> x;
+    MPVariable[] artificialVars;
     ArrayList<Pattern> pool;
 
     // diving heuristic
@@ -29,7 +33,7 @@ public class RMP_SCIP {
 
     // final param
     private final int intMax = Integer.MAX_VALUE;
-    private final double infinity = Double.MAX_VALUE;
+    private final double infinity = 1e8;
     private final double bigM = 1e8;
 
     public RMP_SCIP (Instance inst) {
@@ -44,8 +48,8 @@ public class RMP_SCIP {
     void formulate() {
         // init
         Loader.loadNativeLibraries();
-        String solver_id = Param.LP_IP ? "GLOP" : "SCIP";
-        solver = MPSolver.createSolver(solver_id);
+        String solverName = Param.LP_IP ? "GLOP" : "SCIP";
+        solver = MPSolver.createSolver("GLOP");
 
         x = new ArrayList<>();
         pool = new ArrayList<>();
@@ -53,14 +57,6 @@ public class RMP_SCIP {
         // objective
         obj = solver.objective();
         obj.setMaximization();
-//        // add variables
-//        for (int p = 0; p < pool.size(); p++) {
-//            Pattern pattern = pool.get(p);
-//            String name = "x_" + pattern.driverIdx + "," + pattern.passenger1Idx + "," + pattern.passenger2Idx;
-//            MPVariable var = solver.makeIntVar(0, 1, name);
-//            pattern.var = var;
-//            x.add(var);
-//        }
         // constraints
         // (1): the driver constraint
         for (int i = 0; i < nDrivers; i++) {
@@ -71,6 +67,25 @@ public class RMP_SCIP {
             ranges[nDrivers + j] = solver.makeConstraint(0, 1, "rangeOnPassenger" + j);
         }
 
+        addArtificialVariable();
+    }
+
+    void addArtificialVariable() {
+        artificialVars = new MPVariable[nDrivers + nPassengers];
+        // artificial var added in the constraints(1)
+        for (int i = 0; i < nDrivers; i++) {
+            MPVariable var = solver.makeVar(0, infinity, false, "avOnDriver" + i);
+            obj.setCoefficient(var, -bigM);
+            ranges[i].setCoefficient(var, 1);
+            artificialVars[i] = var;
+        }
+        // artificial var added in the constraints(2)
+        for (int j = 0; j < nPassengers; j++) {
+            MPVariable var = solver.makeVar(0, infinity, false, "avOnPassenger" + j);
+            obj.setCoefficient(var, -bigM);
+            ranges[nDrivers + j].setCoefficient(var, 1);
+            artificialVars[nDrivers + j] = var;
+        }
     }
 
     public void set() {
@@ -105,6 +120,11 @@ public class RMP_SCIP {
 
     void addColumns(ArrayList<Pattern> patterns) {
         for (Pattern pattern : patterns) {
+            // 测试：不能在pool中加入重复pattern
+            if (pool.contains(pattern)) {
+                Param.COUNT++;
+                System.out.println("error: pattern " + pattern.toString() + "already in pool");
+            }
             pool.add(pattern);
             // add var
             String name = "x_" + pattern.driverIdx + "," + pattern.passenger1Idx + "," + pattern.passenger2Idx;
@@ -114,10 +134,10 @@ public class RMP_SCIP {
             // set range on driver
             ranges[pattern.driverIdx].setCoefficient(var, 1);
             // set range on two passengers
-            if (pattern.passenger1Id >= 0) {
+            if (pattern.passenger1Idx >= 0) {
                 ranges[nDrivers + pattern.passenger1Idx].setCoefficient(var, 1);
             }
-            if (pattern.passenger2Id >= 0) {
+            if (pattern.passenger2Idx >= 0) {
                 ranges[nDrivers + pattern.passenger2Idx].setCoefficient(var, 1);
             }
             pattern.var = var;
@@ -127,7 +147,7 @@ public class RMP_SCIP {
 
     LPSol solveLP() {
         MPSolverParameters parameters = new MPSolverParameters();
-        parameters.setIntegerParam(MPSolverParameters.IntegerParam.PRESOLVE, 0);
+        parameters.setIntegerParam(MPSolverParameters.IntegerParam.LP_ALGORITHM, 11);
         solver.solve(parameters);
         return getLPSol();
     }
@@ -135,7 +155,7 @@ public class RMP_SCIP {
     // 求解整数规划
     Solution solveIP() {
         MPSolverParameters parameters = new MPSolverParameters();
-        parameters.setIntegerParam(MPSolverParameters.IntegerParam.PRESOLVE, 0);
+        parameters.setIntegerParam(MPSolverParameters.IntegerParam.LP_ALGORITHM, 11);
         // solve
         convertToIP();
         solver.solve(parameters);
@@ -154,6 +174,25 @@ public class RMP_SCIP {
         for (MPVariable var : x) {
             var.setInteger(false);
         }
+    }
+
+    // model feasible only when all artificial vars are 0
+    boolean isModelFeasible() {
+        // check artificial on drivers
+        for (int i = 0; i < nDrivers; i++) {
+            double val = artificialVars[i].solutionValue();
+            if (!Param.equals(val * bigM, 0)) {
+                return false;
+            }
+        }
+        // check artificial on passengers
+        for (int j = 0; j < nPassengers; j++) {
+            double val = artificialVars[nDrivers + j].solutionValue();
+            if (!Param.equals(val * bigM, 0)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // 获取对偶变量
