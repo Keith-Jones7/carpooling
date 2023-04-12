@@ -15,7 +15,7 @@ import java.util.Random;
 public class Main {
     public static void main(String[] args) throws Exception{
         Param.setMapChoose();
-        for (Param.MAX_TIME = 60; Param.MAX_TIME < 90; Param.MAX_TIME += 30) {
+        for (Param.MAX_TIME = 600; Param.MAX_TIME < 601; Param.MAX_TIME += 30) {
             testSpeed(2);
         }
 
@@ -127,6 +127,7 @@ public class Main {
         int waiting_driver_num = batch.driverList.size();
         int waiting_passenger_num = batch.passengerList.size();
         batch.matching = new Match(batch.driverList, batch.passengerList);
+
         Solution solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
 //            System.out.println(System.currentTimeMillis() - time);
         long end_time = System.currentTimeMillis();

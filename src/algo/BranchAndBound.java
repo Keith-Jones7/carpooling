@@ -210,8 +210,8 @@ public class BranchAndBound {
                 }
             }
         }
-//        pool.sort(Comparator.comparing(o -> -o.aim));
-        Param.timeCostOnGenPatterns += Param.getTimecost(s0);
+//        pool.sort(Comparator.comparing(o -> o.passenger1Id));
+//        Param.timeCostOnGenPatterns += Param.getTimecost(s0);
 //        System.out.println(pool.size());
         return pool;
     }
