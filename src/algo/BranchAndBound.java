@@ -42,15 +42,21 @@ public class BranchAndBound {
     private Solution solve() {
 //        ArrayList<Pattern> pool = genInitPatterns();
         //ArrayList<Pattern> pool = genAllPatterns();
+        long s0 = System.currentTimeMillis();
         ArrayList<Pattern> totalPool = genAllPatterns();
+        double timeCost0 = Param.getTimecost(s0);
         // CG求解LP
         if (Param.LP_IP) {
+            long s1 = System.currentTimeMillis();
             ArrayList<Pattern> pool = genInitPatternsGreedy(totalPool);
+            double timeCost1 = Param.getTimecost(s1);
 //            ArrayList<Pattern> pool = new ArrayList<>();
-//            totalPool.removeAll(pool);
-            long s0 = System.currentTimeMillis();
-            LPSol lpSol = cg.solve(pool, totalPool);
-            double timeCost = Param.getTimecost(s0);
+            totalPool.removeAll(pool);
+//            totalPool.clear();
+            long s2 = System.currentTimeMillis();
+            LPSol lpSol = cg.solve(pool, pool);
+//            lpSol.vals.sort(Comparator.comparing(o -> o.getKey().driverId));
+            double timeCost2 = Param.getTimecost(s2);
             return divingHeur.solve(lpSol, Integer.MAX_VALUE);
         }
         // 求解IP
@@ -138,7 +144,7 @@ public class BranchAndBound {
 
     // 生成所有pattern
     public ArrayList<Pattern> genAllPatterns() {
-
+        long s0 = System.currentTimeMillis();
         ArrayList<Pattern> pool = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {
             // 若司机尚未接客，则该司机可以接一个拼车方案或者只接一个乘客
@@ -157,10 +163,23 @@ public class BranchAndBound {
                         if (inst.match_flag >= 2) {
                             for (int j2 = 0; j2 < nPassengers; j2++) {
                                 if (j2 == j1) {
-                                    continue;
+                                    break;
                                 }
-                                double etaAim2 = inst.ppTimeMatrix[j1][j2];
-                                double sameAim = inst.ppValidMatrix[j1][j2];
+                                double etaAim2 = Double.MAX_VALUE;
+                                double sameAim = 0;
+                                double sameAim12 = inst.ppValidMatrix[j1][j2];
+                                double sameAim21 = inst.ppValidMatrix[j2][j1];
+
+                                if ((sameAim12 > 0 && sameAim21 == 0) || (sameAim12 > 0 && sameAim21 > 0 && sameAim12 <= sameAim21)) {
+                                    // 以12为准
+                                    sameAim = sameAim12;
+                                    etaAim2 = inst.ppTimeMatrix[j1][j2];
+                                }
+                                else if ((sameAim12 == 0 && sameAim21 > 0) || (sameAim21 > 0 && sameAim12 > sameAim21)) {
+                                    // 以21为准
+                                    sameAim = sameAim21;
+                                    etaAim2 = inst.ppTimeMatrix[j2][j1];
+                                }
                                 if (etaAim2 <= Param.MAX_ETA2 && sameAim > 0) {
                                     // 生成一个司机带两个乘客的拼车方案
                                     Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), inst.passengerList.get(j2));
@@ -192,6 +211,8 @@ public class BranchAndBound {
             }
         }
 //        pool.sort(Comparator.comparing(o -> -o.aim));
+        Param.timeCostOnGenPatterns += Param.getTimecost(s0);
+//        System.out.println(pool.size());
         return pool;
     }
 

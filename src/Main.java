@@ -110,7 +110,8 @@ public class Main {
                 passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size() - solution.leave_count, 
                 batch.passengerList.size(), solution.leave_count, (double) match_sum / passenger_sum * 100);
         System.out.println();
-        System.out.println(solution.profit);;
+        System.out.println(solution.profit);
+        System.out.print(Param.timeCostOnGenPatterns);
         return solution;
     }
     public static void testSpeed(int sample_index) throws Exception {

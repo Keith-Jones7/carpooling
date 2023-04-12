@@ -81,9 +81,40 @@ public class PricingProblem {
             }
         }
         patterns.addAll(patternPriorityQueue);
-        //totalPatterns.removeAll(patterns);
+        totalPatterns.removeAll(patterns);
         double timeCost = Param.getTimecost(s0);
-//        Param.timeCost += timeCost;
+    }
+
+    // 优化遍历
+    void solveMethod2() {
+        int maxColNum = 100;
+        PriorityQueue<Pattern> patternPriorityQueue = new PriorityQueue<>(Comparator.comparing(o -> o.reducedCost));
+        for (Pattern pattern : totalPatterns) {
+            if (containFixedItem(pattern)) {
+                continue;
+            }
+            double reducedCost = computeReducedCost(pattern);
+            pattern.reducedCost = reducedCost;
+            // 判断检验数大于0
+            if (reducedCost > maxCost + Param.EPS) {
+                // 判断是否加入优先级队列
+                if (patternPriorityQueue.size() < maxColNum) {
+                    patternPriorityQueue.add(pattern);
+                } else {
+                    if (reducedCost > patternPriorityQueue.peek().reducedCost) {
+                        patternPriorityQueue.poll();
+                        patternPriorityQueue.add(pattern);
+                    }
+                }
+                // 更新best pattern
+                if (reducedCost > maxCost + Param.EPS) {
+                    maxCost = reducedCost;
+                    patternWithMaxCost = pattern;
+                }
+            }
+        }
+        patterns.addAll(patternPriorityQueue);
+        totalPatterns.removeAll(patterns);
     }
 
     boolean containFixedItem(Pattern pattern) {
@@ -99,10 +130,7 @@ public class PricingProblem {
         return false;
     }
 
-    // 优化遍历
-    void solveMethod2() {
 
-    }
 
     double computeReducedCost(Pattern pattern) {
         double reducedCost = pattern.aim - dualsOfRanges[pattern.driverIdx];

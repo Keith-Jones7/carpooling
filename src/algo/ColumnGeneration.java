@@ -1,5 +1,6 @@
 package algo;
 
+import common.Param;
 import ilog.concert.IloException;
 import model.Instance;
 import model.Pattern;
@@ -41,7 +42,9 @@ public class ColumnGeneration {
         BitSet fixedDrivers;
         BitSet fixedPassengers;
         double obj;
+        long s0 = System.currentTimeMillis();
         rmp.solveLP();
+        double timeCost = Param.getTimecost(s0);
         obj = rmp.getObjVal();
         dualsOfRanges = rmp.getDualsOfRanges();
         fixedDrivers = rmp.fixedDrivers;
@@ -50,7 +53,9 @@ public class ColumnGeneration {
         pp.solve(dualsOfRanges, fixedDrivers, fixedPassengers);
         while (pp.findNewColumns()) {
             rmp.addColumns(pp.patterns);
+            s0 = System.currentTimeMillis();
             rmp.solveLP();
+            timeCost = Param.getTimecost(s0);
             obj = rmp.getObjVal();
             dualsOfRanges = rmp.getDualsOfRanges();
             pp.solve(dualsOfRanges, fixedDrivers, fixedPassengers);

@@ -276,7 +276,7 @@ public class Match {
 
     public Solution match_zkj() throws Exception {
         IloCplex model = new IloCplex();
-        double precision = 1e-5;
+        double precision = Param.EPS;
         model.setParam(IloCplex.Param.Simplex.Tolerances.Optimality, precision);
         model.setParam(IloCplex.Param.MIP.Tolerances.MIPGap, precision);
         model.setOut(null);

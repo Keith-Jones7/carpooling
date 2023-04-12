@@ -1,9 +1,11 @@
 package algo;
 
+import common.Param;
+
 import java.util.Arrays;
 
 public class KMAlgorithm {
-    private static final double ZERO_THRESHOLD = 1e-9;
+    private static final double ZERO_THRESHOLD = Param.EPS;
 
     private final int m;
     private final int n;
