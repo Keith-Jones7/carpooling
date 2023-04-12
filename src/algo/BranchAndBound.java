@@ -52,7 +52,7 @@ public class BranchAndBound {
         double timeCost0 = Param.getTimecost(s0);
         // CG求解LP
         long s1 = System.currentTimeMillis();
-        ArrayList<Pattern> pool = genInitPatternsGreedy(poolPQ, pools);
+        ArrayList<Pattern> pool = genInitPatternsGreedyKM(poolPQ);
         double timeCost1 = Param.getTimecost(s1);
 //            ArrayList<Pattern> pool = new ArrayList<>();
         totalPool.removeAll(pool);
@@ -219,7 +219,7 @@ public class BranchAndBound {
         return pool;
     }
 
-    public ArrayList<Pattern> genInitPatternsGreedy(PriorityQueue<Pattern> poolPQ, ArrayList<ArrayList<Pattern>> pools) {
+    public ArrayList<Pattern> genInitPatternsGreedy(PriorityQueue<Pattern> poolPQ) {
         ArrayList<Pattern> pool = new ArrayList<>();
 
         // greedy
@@ -244,6 +244,66 @@ public class BranchAndBound {
                 }
             }
             poolPQ.poll();
+        }
+        return pool;
+    }
+
+    public ArrayList<Pattern> genInitPatternsGreedyKM(PriorityQueue<Pattern> poolPQ) {
+        ArrayList<Pattern> pool = new ArrayList<>();
+
+        // greedy
+        BitSet passengerBit = new BitSet(nPassengers);
+        BitSet driverBit = new BitSet(nDrivers);
+        // 每次将拼车方案拿出来，直到遇到非拼车方案
+        while (poolPQ.size() > 0) {
+            Pattern pattern = poolPQ.peek();
+            if (pattern.passenger2Id == -1) {
+                break;
+            }
+            int driverIdx = pattern.driverIdx;
+            int passenger1Idx = pattern.passenger1Idx;
+            int passenger2Idx = pattern.passenger2Idx;
+            boolean driverAvailable = !driverBit.get(driverIdx);
+            boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
+            boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
+            if (driverAvailable && passenger1Available && passenger2Available) {
+                pool.add(pattern);
+                driverBit.set(pattern.driverIdx);
+                if (pattern.passenger1Idx >= 0) {
+                    passengerBit.set(pattern.passenger1Idx);
+                }
+                if (pattern.passenger2Idx >= 0) {
+                    passengerBit.set(pattern.passenger2Idx);
+                }
+            }
+            poolPQ.poll();
+        }
+        // 将剩下的非拼车方案用KM求解
+        // 构建weight矩阵
+        double[][] weight = new double[nDrivers][nPassengers];
+        ArrayList<Pattern> singlePool = new ArrayList<>();
+        // Todo: 可优化
+        while (poolPQ.size() > 0) {
+            Pattern pattern = poolPQ.peek();
+            assert pattern.passenger2Id == -1;
+            int driverIdx = pattern.driverIdx;
+            int passenger1Idx = pattern.passenger1Idx;
+            boolean driverAvailable = !driverBit.get(driverIdx);
+            boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
+            if (driverAvailable && passenger1Available) {
+                weight[driverIdx][passenger1Idx] = pattern.aim;
+                singlePool.add(pattern);
+            }
+            poolPQ.poll();
+        }
+        KMAlgorithm kmAlgo = new KMAlgorithm(weight);
+        int[][] matchMatrix = kmAlgo.getMatch();
+        for (Pattern pattern : singlePool) {
+            int driverIdx = pattern.driverIdx;
+            int passenger1Idx = pattern.passenger1Idx;
+            if (matchMatrix[driverIdx][passenger1Idx] == 1) {
+                pool.add(pattern);
+            }
         }
         return pool;
     }
