@@ -1,13 +1,25 @@
+import com.google.ortools.Loader;
+import com.google.ortools.linearsolver.MPConstraint;
+import com.google.ortools.linearsolver.MPObjective;
+import com.google.ortools.linearsolver.MPSolver;
+import com.google.ortools.linearsolver.MPVariable;
 import common.Param;
 import match.Batch;
 import match.Match;
 import model.Pattern;
 import model.Solution;
 
+import java.util.Arrays;
+import java.util.Random;
+
 public class Main {
     public static void main(String[] args) throws Exception{
         Param.setMapChoose();
-        Solution solution = runSample(200, 2);
+        for (Param.MAX_TIME = 30; Param.MAX_TIME < 600; Param.MAX_TIME += 30) {
+            testSpeed(2);
+        }
+
+//        test();
 //        runDefault(30);
     }
     public static void runDefault(int time_interval) throws Exception{
@@ -71,7 +83,6 @@ public class Main {
             int waiting_driver_num = batch.driverList.size();
             int waiting_passenger_num = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            long time = System.currentTimeMillis();
             Solution cur_solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
 //            System.out.println(System.currentTimeMillis() - time);
             solution.profit += cur_solution.profit;
@@ -101,5 +112,69 @@ public class Main {
         System.out.println();
         System.out.println(solution.profit);;
         return solution;
+    }
+    public static void testSpeed(int sample_index) throws Exception {
+        Batch batch = new Batch();
+        long start_time = System.currentTimeMillis();
+        int start = 0, end = Param.MAX_TIME;
+        String file_name_driver = "test/sample/drs" + sample_index + "/d/drivers_t" + start + ".txt";
+        batch.updateDrivers(file_name_driver);
+        for (int i = start; i < end; i++) {
+            String file_name_passenger = "test/sample/drs" + sample_index + "/p/passengers_t" + i + ".txt";
+            batch.updatePassenger(file_name_passenger, sample_index);
+        }
+        int waiting_driver_num = batch.driverList.size();
+        int waiting_passenger_num = batch.passengerList.size();
+        batch.matching = new Match(batch.driverList, batch.passengerList);
+        Solution solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
+//            System.out.println(System.currentTimeMillis() - time);
+        long end_time = System.currentTimeMillis();
+        long diff = end_time - start_time;
+        System.out.printf("%d\t%d\t\t%.6f\t%d%n", waiting_driver_num, waiting_passenger_num, solution.profit, diff);
+
+    }
+    public static void test() {
+        Loader.loadNativeLibraries();
+        MPSolver solver = MPSolver.createSolver("GLOP");
+        int[][] costMatrix = {
+                {0, 3, 2, 5},
+                {3, 0, 1, 4},
+                {2, 1, 0, 7},
+                {5, 4, 7, 0}
+        };
+        int len = costMatrix.length;
+        MPVariable[][] variables = new MPVariable[len][len];
+        for (int i = 0; i < len; i++) {
+            for (int j = 0; j < len; j++) {
+                variables[i][j] = solver.makeVar(0, 1, false, i + "," + j);
+            }
+        }
+        MPObjective obj = solver.objective();
+        obj.setMaximization();
+        for (int i = 0; i < len; i++) {
+            MPConstraint constraint1 = solver.makeConstraint(0, 1);
+            MPConstraint constraint2 = solver.makeConstraint(0 ,1);
+            for (int j = 0; j < len; j++) {
+                constraint1.setCoefficient(variables[i][j], 1);
+                constraint2.setCoefficient(variables[j][i], 1);
+                obj.setCoefficient(variables[i][j], costMatrix[i][j]);
+            }
+        }
+        for (int i = 0; i < len; i++) {
+            MPConstraint constraint = solver.makeConstraint(0, 0);
+            for (int j = i + 1; j < len; j++) {
+                constraint.setCoefficient(variables[i][j], 1);
+                constraint.setCoefficient(variables[j][i], -1);
+            }
+        }
+        solver.solve();
+        double[][] result = new double[len][len];
+        for (int i = 0; i < len; i++) {
+            for (int j = 0; j < len; j++) {
+                result[i][j] = variables[i][j].solutionValue();
+            }
+        }
+        System.out.println(Arrays.deepToString(result));
+        System.out.println(obj.value());
     }
 }

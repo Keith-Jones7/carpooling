@@ -69,8 +69,8 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
         double o2_d1 = calTimeDistance(p2.origin_coor, p1.dest_coor);
         double o2_d2 = calTimeDistance(p2.origin_coor, p2.dest_coor);
         double d1_d2 = calTimeDistance(p1.dest_coor, p2.dest_coor);
-        return (o1_o2 + o2_d1 + p1.past_time < p1.expected_arrive_time - p1.submit_time
-                && o2_d1 + d1_d2 < p2.expected_arrive_time - p2.submit_time);
+        return ((o1_o2 + o2_d1 + p1.past_time) < (p1.expected_arrive_time - p1.submit_time))
+                && ((o2_d1 + d1_d2) < (p2.expected_arrive_time - p2.submit_time));
     }
 
     /**
@@ -83,14 +83,14 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
         double o1_o2 = calTimeDistance(p1.origin_coor, p2.origin_coor);
         double o2_d2 = calTimeDistance(p2.origin_coor, p2.dest_coor);
         double d2_d1 = calTimeDistance(p2.dest_coor, p1.dest_coor);
-        return o1_o2 + o2_d2 + d2_d1 + p1.past_time < p1.expected_arrive_time - p1.submit_time;
+        return (o1_o2 + o2_d2 + d2_d1 + p1.past_time) < (p1.expected_arrive_time - p1.submit_time);
     }
     
     /**
      * 计算行程相似度
      * @param p1    乘客1
      * @param p2    乘客2
-     * @return 返回相同里程与总里程之比
+     * @return 返回相同里程，总里程
      */
     @Override
     public double calSimilarity(Passenger p1, Passenger p2) {

@@ -128,7 +128,7 @@ public class RMP_SCIP {
             pool.add(pattern);
             // add var
             String name = "x_" + pattern.driverIdx + "," + pattern.passenger1Idx + "," + pattern.passenger2Idx;
-            MPVariable var = solver.makeVar(0, infinity, false, name);
+            MPVariable var = solver.makeVar(0, infinity, !Param.LP_IP, name);
             // set obj
             obj.setCoefficient(var, pattern.aim);
             // set range on driver

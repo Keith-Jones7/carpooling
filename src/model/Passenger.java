@@ -18,6 +18,8 @@ public class Passenger {
     public long expected_arrive_time;   //乘客预期到达时间
     public double single_distance;
     public Driver cur_driver;
+    public int pre;
+    public int next;
     public int ID;
     public Passenger() {
 
@@ -31,6 +33,8 @@ public class Passenger {
         this.single_distance = Param.touringMap.calSpatialDistance(origin_coor, dest_coor);
         this.expected_arrive_time = (long) (Param.touringMap.calTimeDistance(origin_coor, dest_coor) * Param.DETOUR_RATIO);
         this.ID = ID;
+        this.pre = -1;
+        this.next = -1;
     }
     public void renew(long cur_time) {
         if (cur_driver != null) {

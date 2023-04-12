@@ -192,7 +192,6 @@ public class BranchAndBound {
             }
         }
 //        pool.sort(Comparator.comparing(o -> -o.aim));
-        System.out.println(pool.size());
         return pool;
     }
 
