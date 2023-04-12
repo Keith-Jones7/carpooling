@@ -17,12 +17,14 @@ public class ColumnGeneration {
 
 
     RMP_SCIP rmp;
+    RestrictMasterProblem rmpCplex;
     PricingProblem pp;
-    public ColumnGeneration(Instance inst, RMP_SCIP rmp, PricingProblem pp) {
+    public ColumnGeneration(Instance inst, RMP_SCIP rmp, RestrictMasterProblem rmpCplex, PricingProblem pp) {
         this.inst = inst;
         this.nDrivers = inst.driverList.size();
         this.nPassengers = inst.passengerList.size();
         this.rmp = rmp;
+        this.rmpCplex = rmpCplex;
         this.pp = pp;
     }
 

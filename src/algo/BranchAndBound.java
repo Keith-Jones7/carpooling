@@ -17,6 +17,7 @@ public class BranchAndBound {
     public Solution bestSol;
 
     public RMP_SCIP rmp;
+    public RestrictMasterProblem rmpCplex;
     public PricingProblem pp;
     public DivingHeuristic divingHeur;
     public ColumnGeneration cg;
@@ -25,9 +26,10 @@ public class BranchAndBound {
         this.nDrivers = inst.nDrivers;
         this.nPassengers = inst.nPassengers;
         this.rmp = new RMP_SCIP(inst);
+        this.rmpCplex = new RestrictMasterProblem(inst);
         this.pp = new PricingProblem(inst);
-        this.divingHeur = new DivingHeuristic(inst, rmp, pp);
-        this.cg = new ColumnGeneration(inst, rmp, pp);
+        this.divingHeur = new DivingHeuristic(inst, rmp, rmpCplex, pp);
+        this.cg = new ColumnGeneration(inst, rmp, rmpCplex, pp);
         this.bestSol = new Solution();
     }
 
@@ -49,24 +51,17 @@ public class BranchAndBound {
         ArrayList<Pattern> totalPool = genAllPatterns(poolPQ, pools);
         double timeCost0 = Param.getTimecost(s0);
         // CG求解LP
-        if (Param.LP_IP) {
-            long s1 = System.currentTimeMillis();
-            ArrayList<Pattern> pool = genInitPatternsGreedy(poolPQ, pools);
-            double timeCost1 = Param.getTimecost(s1);
+        long s1 = System.currentTimeMillis();
+        ArrayList<Pattern> pool = genInitPatternsGreedy(poolPQ, pools);
+        double timeCost1 = Param.getTimecost(s1);
 //            ArrayList<Pattern> pool = new ArrayList<>();
-            totalPool.removeAll(pool);
+        totalPool.removeAll(pool);
 //            totalPool.clear();
-            long s2 = System.currentTimeMillis();
-            LPSol lpSol = cg.solve(pool, totalPool);
+        long s2 = System.currentTimeMillis();
+        LPSol lpSol = cg.solve(pool, pool);
 //            lpSol.vals.sort(Comparator.comparing(o -> o.getKey().driverId));
-            double timeCost2 = Param.getTimecost(s2);
-            return divingHeur.solve(lpSol, Integer.MAX_VALUE);
-        }
-        // 求解IP
-        else {
-            rmp.addColumns(totalPool);
-            return rmp.solveIP();
-        }
+        double timeCost2 = Param.getTimecost(s2);
+        return divingHeur.solve(lpSol, Integer.MAX_VALUE);
     }
 
     public void updateUB() {
@@ -83,14 +78,19 @@ public class BranchAndBound {
 
     Solution genMIPSol() {
         ArrayList<Pattern> pool = genAllPatterns();
-        rmp.addColumns(pool);
         if (Param.LP_IP) {
             long s0 = System.currentTimeMillis();
+            rmp.addColumns(pool);
             LPSol lpSol = rmp.solveLP();
             double timeCost = Param.getTimecost(s0);
             return divingHeur.solve(lpSol, Integer.MAX_VALUE);
         } else {
-            return rmp.solveIP();
+            try {
+                rmpCplex.addColumns(pool);
+                return rmpCplex.solveIP();
+            } catch (IloException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

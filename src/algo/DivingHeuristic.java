@@ -17,6 +17,7 @@ public class DivingHeuristic {
     LPSol fixedSol;
 
     RMP_SCIP rmp;
+    RestrictMasterProblem rmpCplex;
     PricingProblem pp;
 
     // diving param
@@ -24,11 +25,12 @@ public class DivingHeuristic {
     int iterMax = 100;
     int iterMin = 10;
 
-    public DivingHeuristic(Instance inst, RMP_SCIP rmp, PricingProblem pp) {
+    public DivingHeuristic(Instance inst, RMP_SCIP rmp, RestrictMasterProblem rmpCplex, PricingProblem pp) {
         this.inst = inst;
         this.nDrivers = inst.nDrivers;
         this.nPassengers = inst.nPassengers;
         this.rmp = rmp;
+        this.rmpCplex = rmpCplex;
         this.pp = pp;
     }
 
@@ -45,7 +47,7 @@ public class DivingHeuristic {
         int nlp = 0;
         int iter = 0;
         int nFracBegin = nFrac;
-        ColumnGeneration columnGeneration = new ColumnGeneration(inst, rmp, pp);
+        ColumnGeneration columnGeneration = new ColumnGeneration(inst, rmp, rmpCplex, pp);
         // diving
         while (nFrac != 0 && obj < ub && ((nlp < nlpMax && iter < iterMax) || iter < iterMin || nFrac < nFracBegin - iter*0.5)) {
             iter++;
