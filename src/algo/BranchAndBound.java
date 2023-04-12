@@ -191,7 +191,7 @@ public class BranchAndBound {
                 }
             }
         }
-//        pool.sort(Comparator.comparing(o -> -o.aim));
+        pool.sort(Comparator.comparing(o -> -o.aim));
         return pool;
     }
 
