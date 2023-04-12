@@ -103,9 +103,9 @@ public class Match {
                              Param.touringMap.allInEllipsoid(passenger2, passenger1)) {
                          same2 = Param.touringMap.calSimilarity(passenger2, passenger1);
                      }
-                     if (same1 > same2 && same2 > 0) {
+                     if (same2 > 0 && (same1 > same2 || same1 == 0)) {
                          pp_valid_matrix[jj][j] = (1 - eta2 / Param.MAX_ETA2 + same2 + 2);
-                     }else if (same2 > same1 && same1 > 0) {
+                     }else if (same1 > 0 && (same2 > same1 || same2 == 0)) {
                          pp_valid_matrix[j][jj] = (1 - eta2 / Param.MAX_ETA2 + same1 + 2);
                      }
                  }
