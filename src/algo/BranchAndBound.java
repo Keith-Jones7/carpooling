@@ -4,6 +4,7 @@ import common.Param;
 import ilog.concert.IloException;
 import model.*;
 
+import javax.xml.soap.SAAJMetaFactory;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -47,8 +48,8 @@ public class BranchAndBound {
         //ArrayList<Pattern> pool = genAllPatterns();
         long s0 = System.currentTimeMillis();
         PriorityQueue<Pattern> poolPQ = new PriorityQueue<>(Comparator.comparing(o -> -o.aim));
-        ArrayList<ArrayList<Pattern>> pools = new ArrayList<>();
-        ArrayList<Pattern> totalPool = genAllPatterns(poolPQ, pools);
+        ArrayList<Pattern> carPool = new ArrayList<>();
+        ArrayList<Pattern> totalPool = genAllPatterns(poolPQ, carPool);
         double timeCost0 = Param.getTimecost(s0);
         // CG求解LP
         long s1 = System.currentTimeMillis();
@@ -58,10 +59,34 @@ public class BranchAndBound {
         totalPool.removeAll(pool);
 //            totalPool.clear();
         long s2 = System.currentTimeMillis();
-        LPSol lpSol = cg.solve(pool, pool);
+        LPSol lpSol = cg.solve(pool, totalPool);
 //            lpSol.vals.sort(Comparator.comparing(o -> o.getKey().driverId));
         double timeCost2 = Param.getTimecost(s2);
         return divingHeur.solve(lpSol, Integer.MAX_VALUE);
+    }
+
+    private Solution solveNew() {
+//        ArrayList<Pattern> pool = genInitPatterns();
+        //ArrayList<Pattern> pool = genAllPatterns();
+        long s0 = System.currentTimeMillis();
+        PriorityQueue<Pattern> poolPQ = new PriorityQueue<>(Comparator.comparing(o -> -o.aim));
+        ArrayList<Pattern> totalCarPool = new ArrayList<>();
+        ArrayList<Pattern> totalPool = genAllPatterns(poolPQ, totalCarPool);
+        double timeCost0 = Param.getTimecost(s0);
+        // CG求解LP
+        long s1 = System.currentTimeMillis();
+        ArrayList<Pattern> pool = genInitCarPoolPatterns(poolPQ);
+        double timeCost1 = Param.getTimecost(s1);
+//            ArrayList<Pattern> pool = new ArrayList<>();
+        totalCarPool.removeAll(pool);
+//            totalPool.clear();
+        long s2 = System.currentTimeMillis();
+        LPSol lpSol = cg.solve(pool, totalCarPool);
+//            lpSol.vals.sort(Comparator.comparing(o -> o.getKey().driverId));
+        double timeCost2 = Param.getTimecost(s2);
+        Solution carPoolSol = divingHeur.solve(lpSol, Integer.MAX_VALUE);
+        Solution sol = genFinalSol(carPoolSol, totalPool);
+        return sol;
     }
 
     public void updateUB() {
@@ -309,11 +334,10 @@ public class BranchAndBound {
     }
 
 
-    public ArrayList<Pattern> genAllPatterns(PriorityQueue<Pattern> poolPQ, ArrayList<ArrayList<Pattern>> pools) {
+    public ArrayList<Pattern> genAllPatterns(PriorityQueue<Pattern> poolPQ, ArrayList<Pattern> carPool) {
         long s0 = System.currentTimeMillis();
         ArrayList<Pattern> pool = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {
-            ArrayList<Pattern> poolDriver = new ArrayList<>();
             // 若司机尚未接客，则该司机可以接一个拼车方案或者只接一个乘客
             if (inst.driverList.get(i).queue.size() == 0) {
                 // 先遍历第一个乘客，如果满足eta约束，则直接生成pattern放入pool中
@@ -327,7 +351,6 @@ public class BranchAndBound {
                         pattern1.setCur_time(inst.cur_time);
                         pool.add(pattern1);
                         poolPQ.add(pattern1);
-                        poolDriver.add(pattern1);
                         // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
                         if (inst.match_flag >= 2) {
                             for (int j2 = 0; j2 < nPassengers; j2++) {
@@ -357,7 +380,7 @@ public class BranchAndBound {
                                     pattern2.setCur_time(inst.cur_time);
                                     pool.add(pattern2);
                                     poolPQ.add(pattern2);
-                                    poolDriver.add(pattern2);
+                                    carPool.add(pattern2);
                                 }
                             }
                         }
@@ -377,17 +400,98 @@ public class BranchAndBound {
                             pattern2.setCur_time(inst.cur_time);
                             pool.add(pattern2);
                             poolPQ.add(pattern2);
-                            poolDriver.add(pattern2);
                         }
                     }
                 }
             }
-            pools.add(poolDriver);
         }
 //        pool.sort(Comparator.comparing(o -> o.driverId));
         Param.timeCostOnGenPatterns += Param.getTimecost(s0);
 //        System.out.println(pool.size());
         return pool;
+    }
+
+    public ArrayList<Pattern> genInitCarPoolPatterns(PriorityQueue<Pattern> poolPQ) {
+        ArrayList<Pattern> carPool = new ArrayList<>();
+
+        // greedy
+        BitSet passengerBit = new BitSet(nPassengers);
+        BitSet driverBit = new BitSet(nDrivers);
+        // 每次将拼车方案拿出来，直到遇到非拼车方案
+        while (poolPQ.size() > 0) {
+            Pattern pattern = poolPQ.peek();
+            if (pattern.passenger2Id == -1) {
+                break;
+            }
+            int driverIdx = pattern.driverIdx;
+            int passenger1Idx = pattern.passenger1Idx;
+            int passenger2Idx = pattern.passenger2Idx;
+            boolean driverAvailable = !driverBit.get(driverIdx);
+            boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
+            boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
+            if (driverAvailable && passenger1Available && passenger2Available) {
+                carPool.add(pattern);
+                driverBit.set(pattern.driverIdx);
+                if (pattern.passenger1Idx >= 0) {
+                    passengerBit.set(pattern.passenger1Idx);
+                }
+                if (pattern.passenger2Idx >= 0) {
+                    passengerBit.set(pattern.passenger2Idx);
+                }
+            }
+            poolPQ.poll();
+        }
+        return carPool;
+    }
+
+    public Solution genFinalSol(Solution carPoolSol, ArrayList<Pattern> totalPool) {
+        ArrayList<Pattern> patterns = new ArrayList<>();
+        double profit = 0;
+        // greedy
+        BitSet passengerBit = new BitSet(nPassengers);
+        BitSet driverBit = new BitSet(nDrivers);
+        // 先将所有拼车方案导入最终解，并更新bit
+        for (Pattern pattern : carPoolSol.patterns) {
+            patterns.add(pattern);
+            profit += pattern.aim;
+            driverBit.set(pattern.driverIdx);
+            if (pattern.passenger1Idx >= 0) {
+                passengerBit.set(pattern.passenger1Idx);
+            }
+            if (pattern.passenger2Idx >= 0) {
+                passengerBit.set(pattern.passenger2Idx);
+            }
+        }
+        //
+        // 将剩下的非拼车方案用KM求解
+        // 构建weight矩阵
+        double[][] weight = new double[nDrivers][nPassengers];
+        ArrayList<Pattern> singlePool = new ArrayList<>();
+        // Todo: 可优化
+        for (Pattern pattern : totalPool) {
+            assert pattern.passenger2Id == -1;
+            int driverIdx = pattern.driverIdx;
+            int passenger1Idx = pattern.passenger1Idx;
+            int passenger2Idx = pattern.passenger2Idx;
+            boolean driverAvailable = !driverBit.get(driverIdx);
+            boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
+            boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
+            if (driverAvailable && passenger1Available && passenger2Available) {
+                weight[driverIdx][passenger1Idx] = pattern.aim;
+                singlePool.add(pattern);
+            }
+        }
+        KMAlgorithm kmAlgo = new KMAlgorithm(weight);
+        int[][] matchMatrix = kmAlgo.getMatch();
+        for (Pattern pattern : singlePool) {
+            int driverIdx = pattern.driverIdx;
+            int passenger1Idx = pattern.passenger1Idx;
+            if (matchMatrix[driverIdx][passenger1Idx] == 1) {
+                patterns.add(pattern);
+                profit += pattern.aim;
+            }
+        }
+        return new Solution(patterns, profit);
     }
 
     public void branch() {
