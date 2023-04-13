@@ -15,7 +15,9 @@ import java.util.Random;
 public class Main {
     public static void main(String[] args) throws Exception{
         Param.setMapChoose();
-        for (Param.MAX_TIME = 600; Param.MAX_TIME < 601; Param.MAX_TIME += 30) {
+        Param.MAX_TIME = 600;
+        for (; Param.MAX_TIME < 601; Param.MAX_TIME += 30) {
+            Param.COUNT = 0;
             testSpeed(2);
         }
 
@@ -130,9 +132,8 @@ public class Main {
 
         Solution solution = batch.matching.match(batch.cur_time, Param.MATCH_ALGO, Param.MATCH_MODEL);
 //            System.out.println(System.currentTimeMillis() - time);
-        long end_time = System.currentTimeMillis();
-        long diff = end_time - start_time;
-        System.out.printf("%d\t%d\t\t%.6f\t%d%n", waiting_driver_num, waiting_passenger_num, solution.profit, diff);
+        double time_cost = Param.getTimecost(start_time);
+        System.out.printf("%d\t%d  \t%.6f   \t%.3f   \t%d%n", waiting_driver_num, waiting_passenger_num, solution.profit, time_cost, batch.passengerList.size());
 
     }
     public static void test() {

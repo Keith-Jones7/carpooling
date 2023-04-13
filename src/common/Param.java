@@ -21,6 +21,7 @@ public class Param {
     public static final long MAX_ETA2 = 120;                                      // 接第二个乘客最大eta
     public static double DETOUR_RATIO = 1.4;                             // 最大绕行比
     public static double MIN_TOURING_SIMILARITY = 0.4;                      // 最小行程相似度
+    public static int samePlus = 2;
     public static int MAX_TIME = 1200;                                    // 订单收集期
     public static final double LEAVING_COFF = 1;                              // 乘客根据预期到达时间决定的取消订单时间系数
     public static int COUNT = 0;

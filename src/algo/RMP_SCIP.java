@@ -122,7 +122,6 @@ public class RMP_SCIP {
         for (Pattern pattern : patterns) {
             // 测试：不能在pool中加入重复pattern
             if (pool.contains(pattern)) {
-                Param.COUNT++;
                 System.out.println("error: pattern " + pattern.toString() + "already in pool");
             }
             pool.add(pattern);

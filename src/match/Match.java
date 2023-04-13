@@ -77,7 +77,7 @@ public class Match {
                     if ((Param.touringMap.inEllipsoid(passenger1, passenger) || Param.touringMap.allInEllipsoid(passenger1, passenger)) && eta < Param.MAX_ETA2) {
                         double similarity = Param.touringMap.calSimilarity(passenger1, passenger);
                         if (similarity > 0) {
-                            valid_matrix[i][j] += 2;
+                            valid_matrix[i][j] += Param.samePlus;
                             valid_matrix[i][j] += Param.touringMap.calSimilarity(passenger1, passenger);
                             valid_matrix[i][j] += 1 - eta / Param.MAX_ETA2;
                         }
@@ -104,9 +104,9 @@ public class Match {
                          same2 = Param.touringMap.calSimilarity(passenger2, passenger1);
                      }
                      if (same2 > 0 && (same1 >= same2 || same1 == 0)) {
-                         pp_valid_matrix[jj][j] = (1 - eta2 / Param.MAX_ETA2 + same2 + 2);
+                         pp_valid_matrix[jj][j] = (1 - eta2 / Param.MAX_ETA2 + same2 + Param.samePlus);
                      }else if (same1 > 0 && (same2 > same1 || same2 == 0)) {
-                         pp_valid_matrix[j][jj] = (1 - eta2 / Param.MAX_ETA2 + same1 + 2);
+                         pp_valid_matrix[j][jj] = (1 - eta2 / Param.MAX_ETA2 + same1 + Param.samePlus);
                      }
                  }
             }
@@ -397,11 +397,11 @@ public class Match {
         for (int i = 0; i < nDrivers; i++) {
             size[i] = driverList.get(i).queue.size();
         }
-        long s = System.currentTimeMillis();
         calValid(match_flag);
-        double timeCost = Param.getTimecost(s);
+        long s = System.currentTimeMillis();
         KMAlgorithm km = new KMAlgorithm(valid_matrix);
         match_matrix = km.getMatch();
+        double timeCost = Param.getTimecost(s);
         for (int i = 0; i < nDrivers; i++) {
             for (int j = 0; j < nPassengers; j++) {
                 if (match_matrix[i][j] == 1) {

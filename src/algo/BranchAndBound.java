@@ -37,6 +37,7 @@ public class BranchAndBound {
     public void run() {
         if (Param.USE_CG) {
             bestSol = solve();
+//            bestSol = solveNew();
         } else {
             bestSol = genMIPSol();
         }
@@ -77,15 +78,21 @@ public class BranchAndBound {
         long s1 = System.currentTimeMillis();
         ArrayList<Pattern> pool = genInitCarPoolPatterns(poolPQ);
         double timeCost1 = Param.getTimecost(s1);
+
 //            ArrayList<Pattern> pool = new ArrayList<>();
         totalCarPool.removeAll(pool);
+
 //            totalPool.clear();
         long s2 = System.currentTimeMillis();
         LPSol lpSol = cg.solve(pool, totalCarPool);
 //            lpSol.vals.sort(Comparator.comparing(o -> o.getKey().driverId));
         double timeCost2 = Param.getTimecost(s2);
+
         Solution carPoolSol = divingHeur.solve(lpSol, Integer.MAX_VALUE);
+
+        long s3 = System.currentTimeMillis();
         Solution sol = genFinalSol(carPoolSol, totalPool);
+        double timeCost3 = Param.getTimecost(s3);
         return sol;
     }
 
@@ -303,6 +310,7 @@ public class BranchAndBound {
             }
             poolPQ.poll();
         }
+        long s = System.currentTimeMillis();
         // 将剩下的非拼车方案用KM求解
         // 构建weight矩阵
         double[][] weight = new double[nDrivers][nPassengers];
@@ -321,8 +329,10 @@ public class BranchAndBound {
             }
             poolPQ.poll();
         }
-        KMAlgorithm kmAlgo = new KMAlgorithm(weight);
+        long s1 = System.currentTimeMillis();
+        KMAlgorithm kmAlgo = new KMAlgorithm(weight); 
         int[][] matchMatrix = kmAlgo.getMatch();
+        double time1 = Param.getTimecost(s1);
         for (Pattern pattern : singlePool) {
             int driverIdx = pattern.driverIdx;
             int passenger1Idx = pattern.passenger1Idx;
@@ -330,6 +340,7 @@ public class BranchAndBound {
                 pool.add(pattern);
             }
         }
+        double time = Param.getTimecost(s);
         return pool;
     }
 
@@ -467,6 +478,7 @@ public class BranchAndBound {
         // 构建weight矩阵
         double[][] weight = new double[nDrivers][nPassengers];
         ArrayList<Pattern> singlePool = new ArrayList<>();
+        int count = 0, maxCount = 1;
         // Todo: 可优化
         for (Pattern pattern : totalPool) {
             assert pattern.passenger2Id == -1;
@@ -476,13 +488,16 @@ public class BranchAndBound {
             boolean driverAvailable = !driverBit.get(driverIdx);
             boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
             boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
-            if (driverAvailable && passenger1Available && passenger2Available) {
+            if (driverAvailable && passenger1Available && passenger2Available && count++ < maxCount) {
                 weight[driverIdx][passenger1Idx] = pattern.aim;
                 singlePool.add(pattern);
             }
         }
+        
+        long s = System.currentTimeMillis();
         KMAlgorithm kmAlgo = new KMAlgorithm(weight);
         int[][] matchMatrix = kmAlgo.getMatch();
+        double timeCost = Param.getTimecost(s);
         for (Pattern pattern : singlePool) {
             int driverIdx = pattern.driverIdx;
             int passenger1Idx = pattern.passenger1Idx;

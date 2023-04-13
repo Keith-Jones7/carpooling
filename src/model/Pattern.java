@@ -50,7 +50,7 @@ public class Pattern {
         this.sameAim = sameAim;
         this.etaAim1 = etaAim1;
         this.etaAim2 = etaAim2;
-        this.aim = (sameAim > 0 ? sameAim + 2 : 0) + 1 - etaAim1/Param.MAX_ETA + 1 - etaAim2 / Param.MAX_ETA2;
+        this.aim = (sameAim > 0 ? sameAim + Param.samePlus : 0) + 1 - etaAim1/Param.MAX_ETA + 1 - etaAim2 / Param.MAX_ETA2;
         //this.aim = (sameAim > 0 ? sameAim + 2 : 0);
     }
     public void setCur_time(long cur_time) {

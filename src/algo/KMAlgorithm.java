@@ -2,6 +2,7 @@ package algo;
 
 import common.Param;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class KMAlgorithm {
@@ -9,70 +10,85 @@ public class KMAlgorithm {
 
     private final int m;
     private final int n;
-    private final double[][] weight;
+    private final ArrayList<ArrayList<Edge>> graph;
     private final double[] lx;
     private final double[] ly;
     private final int[] match;
     private final boolean[] vx;
     private final boolean[] vy;
     private final double[] slack;
-    boolean isTranspose = false;
+    private final boolean transpose;
 
     public KMAlgorithm(double[][] weight) {
         if (weight.length > weight[0].length) {
-            isTranspose = true;
-            this.m = weight[0].length;
-            this.n = weight.length;
-            this.weight = transpose(weight);
-        }else {
-            this.m = weight.length;
-            this.n = weight[0].length;
-            this.weight = weight;
+            transpose = true;
+            int rowNum = weight[0].length;
+            int colNum = weight.length;
+            double[][] weightT = new double[rowNum][colNum];
+            for (int i = 0; i < rowNum; i++) {
+                for (int j = 0; j < colNum; j++) {
+                    weightT[i][j] = weight[j][i];
+                }
+            }
+            weight = weightT;
+        } else {
+            transpose = false;
         }
+        this.m = weight.length;
+        this.n = weight[0].length;
+        this.graph = new ArrayList<>(m);
         this.lx = new double[m];
         this.ly = new double[n];
         this.match = new int[n];
         this.vx = new boolean[m];
         this.vy = new boolean[n];
         this.slack = new double[n];
+
+        // 将矩阵转为邻接表表示
+        for (int i = 0; i < m; i++) {
+            ArrayList<Edge> edges = new ArrayList<>();
+            for (int j = 0; j < n; j++) {
+                if (weight[i][j] > 0) {
+                    edges.add(new Edge(j, weight[i][j]));
+                }
+            }
+            graph.add(edges);
+        }
+    }
+    private boolean checkLxChange(double[] lxOld, double[] lx) {
+        for (int i = 0; i < lx.length; i++) {
+            if(Math.abs(lxOld[i] - lx[i]) > ZERO_THRESHOLD) {
+                return true;
+            }
+        }
+        return false;
+    }
+    private static class Edge {
+        int v;
+        double w;
+
+        public Edge(int v, double w) {
+            this.v = v;
+            this.w = w;
+        }
     }
 
-    public double[][] transpose(double[][] weight) {
-        int row = weight.length, col = weight[0].length;
-        double[][] matrix = new double[col][row];
-        for (int i = 0; i < row; i++) {
-            for (int j = 0; j < col; j++) {
-                matrix[j][i] = weight[i][j];
-            }
-        }
-        return matrix;
-    }
-    
-    public int[][] transpose(int[][] match) {
-        int row = match.length, col = match[0].length;
-        int[][] matrix = new int[col][row];
-        for (int i = 0; i < row; i++) {
-            for (int j = 0; j < col; j++) {
-                matrix[j][i] = match[i][j];
-            }
-        }
-        return matrix;
-    }
     // 初始化权重矩阵
     private void initializeLXLY() {
         for (int i = 0; i < m; i++) {
             lx[i] = Double.NEGATIVE_INFINITY;
-            for (int j = 0; j < n; j++) {
-                lx[i] = Math.max(lx[i], weight[i][j]);
+            for (Edge edge : graph.get(i)) {
+                lx[i] = Math.max(lx[i], edge.w);
             }
         }
     }
 
     private boolean dfs(int u) {
         vx[u] = true;
-        for (int v = 0; v < n; v++) {
+        for (Edge edge : graph.get(u)) {
+            int v = edge.v;
             if (vy[v]) continue;
-            double t = lx[u] + ly[v] - weight[u][v];
+            double t = lx[u] + ly[v] - edge.w;
             if (Math.abs(t) < ZERO_THRESHOLD) {
                 vy[v] = true;
                 if (match[v] == -1 || dfs(match[v])) {
@@ -92,7 +108,8 @@ public class KMAlgorithm {
 
         for (int u = 0; u < m; u++) {
             Arrays.fill(slack, Double.POSITIVE_INFINITY);
-            while (true) {
+            boolean lxChanged = true;
+            while (lxChanged) {
                 Arrays.fill(vx, false);
                 Arrays.fill(vy, false);
                 if (dfs(u)) break;
@@ -103,26 +120,31 @@ public class KMAlgorithm {
                         delta = Math.min(delta, slack[v]);
                     }
                 }
-                for (int i = 0; i < m; i++) {
+                double[] oldLx = Arrays.copyOf(lx, m);
+                for (int i = 0; i < m;
+                     i++) {
                     if (vx[i]) lx[i] -= delta;
                 }
                 for (int j = 0; j < n; j++) {
                     if (vy[j]) ly[j] += delta;
                     else slack[j] -= delta;
                 }
+                lxChanged = checkLxChange(oldLx, lx);
             }
         }
-
-        int[][] result = new int[m][n];
-        for (int i = 0; i < n; i++) {
-            if (match[i] >= 0 && weight[match[i]][i] > 0) {
-                result[match[i]][i] = 1;
-            }
-        }
-        if (isTranspose) {
-            return transpose(result);
+        int[][] result;
+        if (transpose) {
+            result = new int[n][m];
         }else {
-            return result;
+            result = new int[m][n];
         }
+        for (int j = 0; j < n; j++) {
+            final int finalJ = j;
+            if (match[j] >= 0 && graph.get(match[j]).stream().anyMatch(edge -> edge.v == finalJ)) {
+                result[transpose ? j : match[j]][transpose ? match[j] : j] = 1;
+            }
+        }
+        return result;
     }
+
 }
