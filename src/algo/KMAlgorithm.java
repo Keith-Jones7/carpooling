@@ -2,8 +2,7 @@ package algo;
 
 import common.Param;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 public class KMAlgorithm {
     private static final double ZERO_THRESHOLD = Param.EPS;
@@ -43,12 +42,20 @@ public class KMAlgorithm {
         this.vx = new boolean[m];
         this.vy = new boolean[n];
         this.slack = new double[n];
-
+        boolean[] flag = new boolean[m];
         // 将矩阵转为邻接表表示
         for (int i = 0; i < m; i++) {
-            ArrayList<Edge> edges = new ArrayList<>();
             for (int j = 0; j < n; j++) {
                 if (weight[i][j] > 0) {
+                    flag[i] = true;
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < m; i++) {
+            ArrayList<Edge> edges = new ArrayList<>();
+            if (flag[i]) {
+                for (int j = 0; j < n; j++){
                     edges.add(new Edge(j, weight[i][j]));
                 }
             }
@@ -140,7 +147,8 @@ public class KMAlgorithm {
         }
         for (int j = 0; j < n; j++) {
             final int finalJ = j;
-            if (match[j] >= 0 && graph.get(match[j]).stream().anyMatch(edge -> edge.v == finalJ)) {
+            if (match[j] >= 0 && graph.get(match[j]).stream().anyMatch(edge -> edge.v == finalJ) &&
+                    graph.get(match[j]).stream().anyMatch(edge -> edge.w > 0)) {
                 result[transpose ? j : match[j]][transpose ? match[j] : j] = 1;
             }
         }

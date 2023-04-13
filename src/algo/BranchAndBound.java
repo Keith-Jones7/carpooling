@@ -36,8 +36,8 @@ public class BranchAndBound {
 
     public void run() {
         if (Param.USE_CG) {
-            bestSol = solve();
-//            bestSol = solveNew();
+//            bestSol = solve();
+            bestSol = solveNew();
         } else {
             bestSol = genMIPSol();
         }
@@ -478,7 +478,6 @@ public class BranchAndBound {
         // 构建weight矩阵
         double[][] weight = new double[nDrivers][nPassengers];
         ArrayList<Pattern> singlePool = new ArrayList<>();
-        int count = 0, maxCount = 1;
         // Todo: 可优化
         for (Pattern pattern : totalPool) {
             assert pattern.passenger2Id == -1;
@@ -488,7 +487,7 @@ public class BranchAndBound {
             boolean driverAvailable = !driverBit.get(driverIdx);
             boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
             boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
-            if (driverAvailable && passenger1Available && passenger2Available && count++ < maxCount) {
+            if (driverAvailable && passenger1Available && passenger2Available) {
                 weight[driverIdx][passenger1Idx] = pattern.aim;
                 singlePool.add(pattern);
             }
