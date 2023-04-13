@@ -5,10 +5,7 @@ import ilog.concert.IloException;
 import model.*;
 
 import javax.xml.soap.SAAJMetaFactory;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class BranchAndBound {
 
@@ -37,7 +34,7 @@ public class BranchAndBound {
     public void run() {
         if (Param.USE_CG) {
 //            bestSol = solve();
-            bestSol = solveNew();
+            bestSol = solve();
         } else {
             bestSol = genMIPSol();
         }
@@ -60,7 +57,7 @@ public class BranchAndBound {
         totalPool.removeAll(pool);
 //            totalPool.clear();
         long s2 = System.currentTimeMillis();
-        LPSol lpSol = cg.solve(pool, totalPool);
+        LPSol lpSol = cg.solve(pool, pool);
 //            lpSol.vals.sort(Comparator.comparing(o -> o.getKey().driverId));
         double timeCost2 = Param.getTimecost(s2);
         return divingHeur.solve(lpSol, Integer.MAX_VALUE);
@@ -69,30 +66,29 @@ public class BranchAndBound {
     private Solution solveNew() {
 //        ArrayList<Pattern> pool = genInitPatterns();
         //ArrayList<Pattern> pool = genAllPatterns();
+        // 生成所有pattern
         long s0 = System.currentTimeMillis();
         PriorityQueue<Pattern> poolPQ = new PriorityQueue<>(Comparator.comparing(o -> -o.aim));
         ArrayList<Pattern> totalCarPool = new ArrayList<>();
         ArrayList<Pattern> totalPool = genAllPatterns(poolPQ, totalCarPool);
         double timeCost0 = Param.getTimecost(s0);
-        // CG求解LP
+        // 生成初始pattern
         long s1 = System.currentTimeMillis();
         ArrayList<Pattern> pool = genInitCarPoolPatterns(poolPQ);
         double timeCost1 = Param.getTimecost(s1);
-
-//            ArrayList<Pattern> pool = new ArrayList<>();
-        totalCarPool.removeAll(pool);
-
-//            totalPool.clear();
+//        totalCarPool.removeAll(pool);
+        // cg求解松弛解
         long s2 = System.currentTimeMillis();
-        LPSol lpSol = cg.solve(pool, totalCarPool);
-//            lpSol.vals.sort(Comparator.comparing(o -> o.getKey().driverId));
+        LPSol lpSol = cg.solve(pool, pool);
         double timeCost2 = Param.getTimecost(s2);
-
-        Solution carPoolSol = divingHeur.solve(lpSol, Integer.MAX_VALUE);
-
+        // 潜水器启发式求解整数解
         long s3 = System.currentTimeMillis();
-        Solution sol = genFinalSol(carPoolSol, totalPool);
+        Solution carPoolSol = divingHeur.solve(lpSol, Integer.MAX_VALUE);
         double timeCost3 = Param.getTimecost(s3);
+        // km求解剩余整数解
+        long s4 = System.currentTimeMillis();
+        Solution sol = genFinalSol(carPoolSol, totalPool);
+        double timeCost4 = Param.getTimecost(s4);
         return sol;
     }
 
@@ -330,7 +326,7 @@ public class BranchAndBound {
             poolPQ.poll();
         }
         long s1 = System.currentTimeMillis();
-        KMAlgorithm kmAlgo = new KMAlgorithm(weight); 
+        KMAlgorithm kmAlgo = new KMAlgorithm(weight);
         int[][] matchMatrix = kmAlgo.getMatch();
         double time1 = Param.getTimecost(s1);
         for (Pattern pattern : singlePool) {
@@ -346,7 +342,8 @@ public class BranchAndBound {
 
 
     public ArrayList<Pattern> genAllPatterns(PriorityQueue<Pattern> poolPQ, ArrayList<Pattern> carPool) {
-        long s0 = System.currentTimeMillis();
+        long s = System.currentTimeMillis();
+        double timeCost0 = 0;
         ArrayList<Pattern> pool = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {
             // 若司机尚未接客，则该司机可以接一个拼车方案或者只接一个乘客
@@ -355,6 +352,7 @@ public class BranchAndBound {
                 for (int j1 = 0; j1 < nPassengers; j1++) {
                     double etaAim1 = inst.dpTimeMatrix[i][j1];
                     if (etaAim1 <= Param.MAX_ETA) {
+
                         // 生成一个司机只带一个顾客的方案
                         Pattern pattern1 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), null);
                         pattern1.setAim(0.0, etaAim1, Param.MAX_ETA2);
@@ -362,6 +360,7 @@ public class BranchAndBound {
                         pattern1.setCur_time(inst.cur_time);
                         pool.add(pattern1);
                         poolPQ.add(pattern1);
+
                         // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
                         if (inst.match_flag >= 2) {
                             for (int j2 = 0; j2 < nPassengers; j2++) {
@@ -416,9 +415,7 @@ public class BranchAndBound {
                 }
             }
         }
-//        pool.sort(Comparator.comparing(o -> o.driverId));
-        Param.timeCostOnGenPatterns += Param.getTimecost(s0);
-//        System.out.println(pool.size());
+        double timeCost = Param.getTimecost(s);
         return pool;
     }
 
@@ -456,6 +453,7 @@ public class BranchAndBound {
     }
 
     public Solution genFinalSol(Solution carPoolSol, ArrayList<Pattern> totalPool) {
+        long s = System.currentTimeMillis();
         ArrayList<Pattern> patterns = new ArrayList<>();
         double profit = 0;
         // greedy
@@ -493,10 +491,10 @@ public class BranchAndBound {
             }
         }
         
-        long s = System.currentTimeMillis();
+
         KMAlgorithm kmAlgo = new KMAlgorithm(weight);
         int[][] matchMatrix = kmAlgo.getMatch();
-        double timeCost = Param.getTimecost(s);
+
         for (Pattern pattern : singlePool) {
             int driverIdx = pattern.driverIdx;
             int passenger1Idx = pattern.passenger1Idx;
@@ -505,6 +503,7 @@ public class BranchAndBound {
                 profit += pattern.aim;
             }
         }
+        double timeCost = Param.getTimecost(s);
         return new Solution(patterns, profit);
     }
 
