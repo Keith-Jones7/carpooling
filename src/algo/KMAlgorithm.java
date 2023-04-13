@@ -2,10 +2,11 @@ package algo;
 
 import common.Param;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class KMAlgorithm {
-    private static final double ZERO_THRESHOLD = Param.EPS;
+    private static final double ZERO_THRESHOLD = 1e-10;
 
     private final int m;
     private final int n;
@@ -147,12 +148,10 @@ public class KMAlgorithm {
         }
         for (int j = 0; j < n; j++) {
             final int finalJ = j;
-            if (match[j] >= 0 && graph.get(match[j]).stream().anyMatch(edge -> edge.v == finalJ) &&
-                    graph.get(match[j]).stream().anyMatch(edge -> edge.w > 0)) {
+            if (match[j] >= 0 && graph.get(match[j]).stream().anyMatch(edge -> edge.v == finalJ && edge.w > 0)) {
                 result[transpose ? j : match[j]][transpose ? match[j] : j] = 1;
             }
         }
         return result;
     }
-
 }
