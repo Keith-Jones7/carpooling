@@ -205,7 +205,7 @@ public class BranchAndBound {
                                     sameAim = sameAim12;
                                     etaAim1 = inst.dpTimeMatrix[i][j1];
                                     etaAim2 = inst.ppTimeMatrix[j1][j2];
-                                    if (etaAim2 <= Param.MAX_ETA2) {
+                                    if (etaAim1 <= Param.MAX_ETA && etaAim2 <= Param.MAX_ETA2) {
                                         // 生成一个司机带两个乘客的拼车方案
                                         Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), inst.passengerList.get(j2));
                                         pattern2.setAim(sameAim, etaAim1, etaAim2);
@@ -220,7 +220,7 @@ public class BranchAndBound {
                                     sameAim = sameAim21;
                                     etaAim1 = inst.dpTimeMatrix[i][j2];
                                     etaAim2 = inst.ppTimeMatrix[j2][j1];
-                                    if (etaAim2 <= Param.MAX_ETA2) {
+                                    if (etaAim1 <= Param.MAX_ETA && etaAim2 <= Param.MAX_ETA2) {
                                         // 生成一个司机带两个乘客的拼车方案
                                         Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j2), inst.passengerList.get(j1));
                                         pattern2.setAim(sameAim, etaAim1, etaAim2);
@@ -384,7 +384,7 @@ public class BranchAndBound {
                                     sameAim = sameAim12;
                                     etaAim1 = inst.dpTimeMatrix[i][j1];
                                     etaAim2 = inst.ppTimeMatrix[j1][j2];
-                                    if (etaAim2 <= Param.MAX_ETA2) {
+                                    if (etaAim1 <= Param.MAX_ETA && etaAim2 <= Param.MAX_ETA2) {
                                         // 生成一个司机带两个乘客的拼车方案
                                         Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), inst.passengerList.get(j2));
                                         pattern2.setAim(sameAim, etaAim1, etaAim2);
@@ -399,7 +399,7 @@ public class BranchAndBound {
                                     sameAim = sameAim21;
                                     etaAim1 = inst.dpTimeMatrix[i][j2];
                                     etaAim2 = inst.ppTimeMatrix[j2][j1];
-                                    if (etaAim2 <= Param.MAX_ETA2) {
+                                    if (etaAim1 <= Param.MAX_ETA && etaAim2 <= Param.MAX_ETA2) {
                                         // 生成一个司机带两个乘客的拼车方案
                                         Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j2), inst.passengerList.get(j1));
                                         pattern2.setAim(sameAim, etaAim1, etaAim2);
