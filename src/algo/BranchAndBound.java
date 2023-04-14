@@ -33,8 +33,8 @@ public class BranchAndBound {
 
     public void run() {
         if (Param.USE_CG) {
-//            bestSol = solve();
-            bestSol = solveNew();
+            bestSol = solve();
+//            bestSol = solveNew();
         } else {
             bestSol = genMIPSol();
         }
@@ -105,6 +105,8 @@ public class BranchAndBound {
     }
 
     Solution genMIPSol() {
+        PriorityQueue<Pattern> poolPQ = new PriorityQueue<>(Comparator.comparing(o -> -o.aim));
+        ArrayList<Pattern> carPool = new ArrayList<>();
         ArrayList<Pattern> pool = genAllPatterns();
         if (Param.LP_IP) {
             long s0 = System.currentTimeMillis();
@@ -192,23 +194,22 @@ public class BranchAndBound {
                         pool.add(pattern1);
                         // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
                         if (inst.match_flag >= 2) {
-                            for (int j2 = 0; j2 < nPassengers; j2++) {
-                                if (j2 == j1) {
-                                    break;
-                                }
+                            for (int j2 = j1 + 1; j2 < nPassengers; j2++) {
                                 double etaAim2 = Double.MAX_VALUE;
                                 double sameAim = 0;
                                 double sameAim12 = inst.ppValidMatrix[j1][j2];
                                 double sameAim21 = inst.ppValidMatrix[j2][j1];
 
-                                if ((sameAim12 > 0 && sameAim21 == 0) || (sameAim12 > 0 && sameAim21 > 0 && sameAim12 <= sameAim21)) {
+                                if (sameAim12 > 0 && (sameAim12 < sameAim21 || sameAim21 == 0)) {
                                     // 以12为准
                                     sameAim = sameAim12;
+                                    etaAim1 = inst.dpTimeMatrix[i][j1];
                                     etaAim2 = inst.ppTimeMatrix[j1][j2];
                                 }
-                                else if ((sameAim12 == 0 && sameAim21 > 0) || (sameAim21 > 0 && sameAim12 > sameAim21)) {
+                                else if ((sameAim21 > 0) && (sameAim21 <= sameAim12 || sameAim12 == 0)) {
                                     // 以21为准
                                     sameAim = sameAim21;
+                                    etaAim1 = inst.dpTimeMatrix[i][j2];
                                     etaAim2 = inst.ppTimeMatrix[j2][j1];
                                 }
                                 if (etaAim2 <= Param.MAX_ETA2 && sameAim > 0) {
@@ -369,14 +370,16 @@ public class BranchAndBound {
                                 double sameAim12 = inst.ppValidMatrix[j1][j2];
                                 double sameAim21 = inst.ppValidMatrix[j2][j1];
 
-                                if (sameAim12 > 0 && (sameAim12 <= sameAim21 || sameAim21 == 0)) {
+                                if (sameAim12 > 0 && (sameAim12 < sameAim21 || sameAim21 == 0)) {
                                     // 以12为准
                                     sameAim = sameAim12;
+                                    etaAim1 = inst.dpTimeMatrix[i][j1];
                                     etaAim2 = inst.ppTimeMatrix[j1][j2];
                                 }
-                                else if ((sameAim21 > 0) && (sameAim21 < sameAim12 || sameAim12 == 0)) {
+                                else if ((sameAim21 > 0) && (sameAim21 <= sameAim12 || sameAim12 == 0)) {
                                     // 以21为准
                                     sameAim = sameAim21;
+                                    etaAim1 = inst.dpTimeMatrix[i][j2];
                                     etaAim2 = inst.ppTimeMatrix[j2][j1];
                                 }
                                 if (etaAim2 <= Param.MAX_ETA2 && sameAim > 0) {
@@ -386,8 +389,6 @@ public class BranchAndBound {
                                     pattern2.setIdx(i, j1, j2);
                                     pattern2.setCur_time(inst.cur_time);
                                     pool.add(pattern2);
-                                    poolPQ.add(pattern2);
-                                    carPool.add(pattern2);
                                 }
                             }
                         }
