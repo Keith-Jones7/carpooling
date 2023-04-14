@@ -25,6 +25,8 @@ public class DivingHeuristic {
     int iterMax = 100;
     int iterMin = 10;
 
+    int boundStep = 10;
+
     public DivingHeuristic(Instance inst, RMP_SCIP rmp, RestrictMasterProblem rmpCplex, PricingProblem pp) {
         this.inst = inst;
         this.nDrivers = inst.nDrivers;
@@ -53,9 +55,11 @@ public class DivingHeuristic {
             iter++;
             // select and bound var
             DivingStrategy divingStrategy = DivingStrategy.Aim;
-            int boundVarIdx = selectDivingVar(fracIdx, divingStrategy);
-            fracIdx.clear(boundVarIdx);
-            fixedIdx.set(boundVarIdx);
+            ArrayList<Integer> boundVarsIdx = selectDivingVar(fracIdx, divingStrategy);
+            for (Integer boundVarIdx : boundVarsIdx) {
+                fracIdx.clear(boundVarIdx);
+                fixedIdx.set(boundVarIdx);
+            }
             // solve modified LP; update nlp
             rmp.setDiving(fixedIdx, this.lpSol.vals);
             if (Param.USE_CG) {
@@ -82,43 +86,70 @@ public class DivingHeuristic {
 
 
     // 挑选潜水策略
-    public int selectDivingVar(BitSet fracIdx, DivingStrategy divingStrategy) {
+    public ArrayList<Integer> selectDivingVar(BitSet fracIdx, DivingStrategy divingStrategy) {
         switch (divingStrategy) {
             case Fractional :
                 return fractionalDiving(fracIdx);
             case Aim:
                 return aimDiving(fracIdx);
             default:
-                return -1;
+                return new ArrayList<>();
         }
     }
 
     // 分数潜水启发式
-    public int fractionalDiving(BitSet fracIdx) {
+    public ArrayList<Integer> fractionalDiving(BitSet fracIdx) {
         int minFracH = 0;
         double minFrac = 1.0;
-        for (int h = fracIdx.nextSetBit(0); h >= 0; h = fracIdx.nextSetBit(h+1)) {
+        for (int h = fracIdx.nextSetBit(0); h >= 0; h = fracIdx.nextSetBit(h + 1)) {
             double value = lpSol.vals.get(h).getValue();
             if (Math.abs(value - 1.0) < minFrac) {
                 minFrac = Math.abs(value - 1.0);
                 minFracH = h;
             }
         }
-        return minFracH;
+        return null;
     }
 
-    public int aimDiving(BitSet fracIdx) {
-        int maxAimIdx = 0;
-        double maxAim = 1.0;
-        for (int h = fracIdx.nextSetBit(0); h >= 0; h = fracIdx.nextSetBit(h+1)) {
-            double value = lpSol.vals.get(h).getValue();
-            double aim = value * lpSol.vals.get(h).getKey().aim;
-            if (aim > maxAim) {
-                maxAim = aim;
-                maxAimIdx = h;
+    public ArrayList<Integer> aimDiving(BitSet fracIdx) {
+        ArrayList<Integer> boundVarsIdx = new ArrayList<>();
+        BitSet driverBit = new BitSet(nDrivers);
+        BitSet passengerBit = new BitSet(nPassengers);
+        boolean find = true;
+        while (boundVarsIdx.size() < boundStep && find) {
+            find = false;
+            int maxAimIdx = -1;
+            double maxAim = 0.0;
+            for (int h = fracIdx.nextSetBit(0); h >= 0; h = fracIdx.nextSetBit(h + 1)) {
+                double value = lpSol.vals.get(h).getValue();
+                Pattern pattern = lpSol.vals.get(h).getKey();
+                double aim = value * pattern.aim;
+                int driverIdx = pattern.driverIdx;
+                int passenger1Idx = pattern.passenger1Idx;
+                int passenger2Idx = pattern.passenger2Idx;
+                boolean driverAvailable = !driverBit.get(driverIdx);
+                boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
+                boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
+                if (aim > maxAim && driverAvailable && passenger1Available && passenger2Available) {
+                    maxAim = aim;
+                    maxAimIdx = h;
+                    find = true;
+                }
+            }
+            if (maxAimIdx >= 0) {
+                boundVarsIdx.add(maxAimIdx);
+                // update bit
+                Pattern pattern = lpSol.vals.get(maxAimIdx).getKey();
+                driverBit.set(pattern.driverIdx);
+                if (pattern.passenger1Idx > 0) {
+                    passengerBit.set(pattern.passenger1Idx);
+                }
+                if (pattern.passenger2Idx > 0) {
+                    passengerBit.set(pattern.passenger2Idx);
+                }
             }
         }
-        return maxAimIdx;
+        return boundVarsIdx;
     }
     
     public Pair<Integer, BitSet[]> setFixedAndFracIdx() {

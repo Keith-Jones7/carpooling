@@ -7,6 +7,7 @@ import model.Coordinates;
 import model.Passenger;
 
 import java.text.SimpleDateFormat;
+import java.util.BitSet;
 import java.util.Date;
 import java.util.Random;
 
@@ -152,5 +153,13 @@ public class Param {
 
     public static int ceilToInt(double d) {
         return (int) Math.ceil(d - EPS);
+    }
+
+    public static boolean[] convertBitToArray(BitSet bit) {
+        boolean[] res = new boolean[bit.size()];
+        for (int i = bit.nextSetBit(0); i >= 0; i = bit.nextSetBit(i + 1)) {
+            res[i] = true;
+        }
+        return res;
     }
 }
