@@ -1,3 +1,4 @@
+import algo.BlossomAlgorithm;
 import com.google.ortools.Loader;
 import com.google.ortools.linearsolver.MPConstraint;
 import com.google.ortools.linearsolver.MPObjective;
@@ -15,7 +16,7 @@ import java.util.Random;
 public class Main {
     public static void main(String[] args) throws Exception{
         Param.setMapChoose();
-        Param.MAX_TIME = 600;
+        Param.MAX_TIME = 30;
         for (; Param.MAX_TIME < 601; Param.MAX_TIME += 30) {
             Param.COUNT = 0;
             testSpeed(2);
@@ -137,47 +138,13 @@ public class Main {
 
     }
     public static void test() {
-        Loader.loadNativeLibraries();
-        MPSolver solver = MPSolver.createSolver("GLOP");
-        int[][] costMatrix = {
-                {0, 3, 2, 5},
-                {3, 0, 1, 4},
-                {2, 1, 0, 7},
-                {5, 4, 7, 0}
+        double[][] costMatrix = {
+                {0, 12, 11},
+                {12, 0, 3},
+                {11, 3, 0}
         };
-        int len = costMatrix.length;
-        MPVariable[][] variables = new MPVariable[len][len];
-        for (int i = 0; i < len; i++) {
-            for (int j = 0; j < len; j++) {
-                variables[i][j] = solver.makeVar(0, 1, false, i + "," + j);
-            }
-        }
-        MPObjective obj = solver.objective();
-        obj.setMaximization();
-        for (int i = 0; i < len; i++) {
-            MPConstraint constraint1 = solver.makeConstraint(0, 1);
-            MPConstraint constraint2 = solver.makeConstraint(0 ,1);
-            for (int j = 0; j < len; j++) {
-                constraint1.setCoefficient(variables[i][j], 1);
-                constraint2.setCoefficient(variables[j][i], 1);
-                obj.setCoefficient(variables[i][j], costMatrix[i][j]);
-            }
-        }
-        for (int i = 0; i < len; i++) {
-            MPConstraint constraint = solver.makeConstraint(0, 0);
-            for (int j = i + 1; j < len; j++) {
-                constraint.setCoefficient(variables[i][j], 1);
-                constraint.setCoefficient(variables[j][i], -1);
-            }
-        }
-        solver.solve();
-        double[][] result = new double[len][len];
-        for (int i = 0; i < len; i++) {
-            for (int j = 0; j < len; j++) {
-                result[i][j] = variables[i][j].solutionValue();
-            }
-        }
+        BlossomAlgorithm blossomAlgorithm = new BlossomAlgorithm(costMatrix);
+        int[][] result = blossomAlgorithm.generateResultMatrix();
         System.out.println(Arrays.deepToString(result));
-        System.out.println(obj.value());
     }
 }

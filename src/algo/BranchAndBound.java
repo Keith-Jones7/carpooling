@@ -364,21 +364,18 @@ public class BranchAndBound {
                         poolPQ.add(pattern1);
                         // 遍历第二个乘客，如果满足绕行约束和eta约束，则生成拼车pattern放入pool中
                         if (inst.match_flag >= 2) {
-                            for (int j2 = 0; j2 < nPassengers; j2++) {
-                                if (j2 == j1) {
-                                    break;
-                                }
+                            for (int j2 = j1 + 1; j2 < nPassengers; j2++) {
                                 double etaAim2 = Double.MAX_VALUE;
                                 double sameAim = 0;
                                 double sameAim12 = inst.ppValidMatrix[j1][j2];
                                 double sameAim21 = inst.ppValidMatrix[j2][j1];
 
-                                if ((sameAim12 > 0 && sameAim21 == 0) || (sameAim12 > 0 && sameAim21 > 0 && sameAim12 <= sameAim21)) {
+                                if (sameAim12 > 0 && (sameAim12 <= sameAim21 || sameAim21 == 0)) {
                                     // 以12为准
                                     sameAim = sameAim12;
                                     etaAim2 = inst.ppTimeMatrix[j1][j2];
                                 }
-                                else if ((sameAim12 == 0 && sameAim21 > 0) || (sameAim21 > 0 && sameAim12 > sameAim21)) {
+                                else if ((sameAim21 > 0) && (sameAim21 < sameAim12 || sameAim12 == 0)) {
                                     // 以21为准
                                     sameAim = sameAim21;
                                     etaAim2 = inst.ppTimeMatrix[j2][j1];

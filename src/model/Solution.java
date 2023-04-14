@@ -21,7 +21,6 @@ public class Solution {
         this.patterns = patterns;
         this.profit = profit;
     }
-
     public void outputSolution(int sample_index) {
         String file_name = String.format("test/output/drs%d/solution.csv",sample_index);
         File outputFile = new File(file_name);
