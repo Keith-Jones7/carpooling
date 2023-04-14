@@ -33,7 +33,7 @@ public class Batch {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 String[] strs = line.split(" ");
-                int ID = Integer.parseInt(strs[0]);
+                int ID = Integer.parseInt(strs[0]) - 1;
                 double lng = Double.parseDouble(strs[1]);
                 double lat = Double.parseDouble(strs[2]);
                 if (driverMap.containsKey(ID)) {
