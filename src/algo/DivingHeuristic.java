@@ -25,7 +25,7 @@ public class DivingHeuristic {
     int iterMax = 100;
     int iterMin = 10;
 
-    int boundStep = 50;
+    int boundStep = 10;
 
     public DivingHeuristic(Instance inst, RMP_SCIP rmp, RestrictMasterProblem rmpCplex, PricingProblem pp) {
         this.inst = inst;

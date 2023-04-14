@@ -34,7 +34,7 @@ public class BranchAndBound {
     public void run() {
         if (Param.USE_CG) {
 //            bestSol = solve();
-            bestSol = solve();
+            bestSol = solveNew();
         } else {
             bestSol = genMIPSol();
         }
@@ -54,10 +54,10 @@ public class BranchAndBound {
         ArrayList<Pattern> pool = genInitPatternsGreedyKM(poolPQ);
         double timeCost1 = Param.getTimecost(s1);
 //            ArrayList<Pattern> pool = new ArrayList<>();
-        totalPool.removeAll(pool);
+//        totalPool.removeAll(pool);
 //            totalPool.clear();
         long s2 = System.currentTimeMillis();
-        LPSol lpSol = cg.solve(pool, pool);
+        LPSol lpSol = cg.solve(totalPool, totalPool);
 //            lpSol.vals.sort(Comparator.comparing(o -> o.getKey().driverId));
         double timeCost2 = Param.getTimecost(s2);
         return divingHeur.solve(lpSol, Integer.MAX_VALUE);
@@ -79,7 +79,7 @@ public class BranchAndBound {
 //        totalCarPool.removeAll(pool);
         // cg求解松弛解
         long s2 = System.currentTimeMillis();
-        LPSol lpSol = cg.solve(pool, pool);
+        LPSol lpSol = cg.solve(totalCarPool, totalCarPool);
         double timeCost2 = Param.getTimecost(s2);
         // 潜水器启发式求解整数解
         long s3 = System.currentTimeMillis();
@@ -486,7 +486,12 @@ public class BranchAndBound {
             boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
             boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
             if (driverAvailable && passenger1Available && passenger2Available) {
-                weight[driverIdx][passenger1Idx] = pattern.aim;
+                if (passenger1Idx >= 0) {
+                    weight[driverIdx][passenger1Idx] = pattern.aim;
+                } else {
+                    weight[driverIdx][passenger2Idx] = pattern.aim;
+                }
+
                 singlePool.add(pattern);
             }
         }
@@ -498,10 +503,19 @@ public class BranchAndBound {
         for (Pattern pattern : singlePool) {
             int driverIdx = pattern.driverIdx;
             int passenger1Idx = pattern.passenger1Idx;
-            if (matchMatrix[driverIdx][passenger1Idx] == 1) {
-                patterns.add(pattern);
-                profit += pattern.aim;
+            int passenger2Idx = pattern.passenger2Idx;
+            if (passenger1Idx >= 0) {
+                if (matchMatrix[driverIdx][passenger1Idx] == 1) {
+                    patterns.add(pattern);
+                    profit += pattern.aim;
+                }
+            } else {
+                if (matchMatrix[driverIdx][passenger2Idx] == 1) {
+                    patterns.add(pattern);
+                    profit += pattern.aim;
+                }
             }
+
         }
         double timeCost = Param.getTimecost(s);
         return new Solution(patterns, profit);
