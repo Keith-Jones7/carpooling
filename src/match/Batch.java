@@ -65,7 +65,8 @@ public class Batch {
                 double lng2 = Double.parseDouble(strs[2]);
                 double lat2 = Double.parseDouble(strs[3]);
                 passengerList.add(new Passenger(new Coordinates(lng1, lat1),
-                        new Coordinates(lng2, lat2), sample_index, p_index++));
+                        new Coordinates(lng2, lat2), sample_index, p_index));
+                p_index++;
                 
             }
         }catch (Exception e) {

@@ -21,6 +21,34 @@ public class Solution {
         this.patterns = patterns;
         this.profit = profit;
     }
+    public void checkSolution() {
+        for (Pattern pattern : this.patterns) {
+            Driver driver = pattern.driver;
+            if (driver.queue.size() == 1) {
+                Passenger p1 = driver.queue.getFirst();
+                if (Param.touringMap.calTimeDistance(driver.cur_coor, p1.origin_coor) > Param.MAX_ETA) {
+                    System.out.println("Error1");
+                }
+            }else if (driver.queue.size() == 2) {
+                Passenger p1 = driver.queue.getFirst();
+                Passenger p2 = driver.queue.getLast();
+                if (Param.touringMap.calTimeDistance(driver.cur_coor, p1.origin_coor) > Param.MAX_ETA) {
+                    System.out.println("Error2");
+                }
+                if (Param.touringMap.calTimeDistance(p1.origin_coor, p2.origin_coor) > Param.MAX_ETA2) {
+                    System.out.println("Error3");
+                }
+                if (!Param.touringMap.inEllipsoid(p1, p2) && !Param.touringMap.allInEllipsoid(p1, p2)) {
+                    System.out.println("Error4");
+                }
+                if (Param.touringMap.calSimilarity(p1, p2) < Param.MIN_TOURING_SIMILARITY) {
+                    System.out.println("Error5");
+                }
+            }else {
+                System.out.println("Error6");
+            }
+        }
+    }
     public void outputSolution(int sample_index) {
         String file_name = String.format("test/output/drs%d/solution.csv",sample_index);
         File outputFile = new File(file_name);

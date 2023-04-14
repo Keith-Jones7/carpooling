@@ -16,8 +16,8 @@ import java.util.Random;
 public class Main {
     public static void main(String[] args) throws Exception{
         Param.setMapChoose();
-        Param.MAX_TIME = 30;
-        for (; Param.MAX_TIME < 601; Param.MAX_TIME += 30) {
+        Param.MAX_TIME = 150;
+        for (; Param.MAX_TIME < 151; Param.MAX_TIME += 30) {
             Param.COUNT = 0;
             testSpeed(2);
         }
