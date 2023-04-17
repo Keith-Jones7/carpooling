@@ -230,7 +230,7 @@ public class Match {
         if (algo_flag == 4) {
             solution = match_cplex();
         }
-//        remove(solution, cur_time);
+        remove(solution, cur_time);
         return solution;
     }
 
@@ -331,7 +331,7 @@ public class Match {
                 pattern.driver.saveMatch_coor();
             }
         }
-        sol.checkSolution();
+//        sol.checkSolution();
         return sol;
     }
     public Solution match_cplex() throws Exception{

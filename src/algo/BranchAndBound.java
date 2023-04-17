@@ -33,8 +33,8 @@ public class BranchAndBound {
 
     public void run() {
         if (Param.USE_CG) {
-//            bestSol = solve();
-            bestSol = solveNew();
+            bestSol = solve();
+//            bestSol = solveNew();
         } else {
             bestSol = genMIPSol();
         }
@@ -57,7 +57,7 @@ public class BranchAndBound {
 //        totalPool.removeAll(pool);
 //            totalPool.clear();
         long s2 = System.currentTimeMillis();
-        LPSol lpSol = cg.solve(pool, pool);
+        LPSol lpSol = cg.solve(totalPool, totalPool);
 //            lpSol.vals.sort(Comparator.comparing(o -> o.getKey().driverId));
         double timeCost2 = Param.getTimecost(s2);
         return divingHeur.solve(lpSol, Integer.MAX_VALUE);
@@ -79,7 +79,7 @@ public class BranchAndBound {
 //        totalCarPool.removeAll(pool);
         // cg求解松弛解
         long s2 = System.currentTimeMillis();
-        LPSol lpSol = cg.solve(totalCarPool, totalCarPool);
+        LPSol lpSol = cg.solve(pool, pool);
         double timeCost2 = Param.getTimecost(s2);
         // 潜水器启发式求解整数解
         long s3 = System.currentTimeMillis();
@@ -418,34 +418,38 @@ public class BranchAndBound {
                     if (sameAim12 > 0 && (sameAim12 < sameAim21 || sameAim21 == 0)) {
                         // 以12为准
                         for (int i = 0; i < nDrivers; i++) {
-                            double etaAim1 = inst.dpTimeMatrix[i][j1];
-                            double etaAim2 = inst.ppTimeMatrix[j1][j2];
-                            if (etaAim1 <= Param.MAX_ETA && etaAim2 <= Param.MAX_ETA2) {
-                                // 生成一个司机带两个乘客的拼车方案
-                                Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), inst.passengerList.get(j2));
-                                pattern2.setAim(sameAim12, etaAim1, etaAim2);
-                                pattern2.setIdx(i, j1, j2);
-                                pattern2.setCur_time(inst.cur_time);
-                                pool.add(pattern2);
-                                poolPQ.add(pattern2);
-                                carPool.add(pattern2);
+                            if (inst.driverList.get(i).queue.size() == 0) {
+                                double etaAim1 = inst.dpTimeMatrix[i][j1];
+                                double etaAim2 = inst.ppTimeMatrix[j1][j2];
+                                if (etaAim1 <= Param.MAX_ETA && etaAim2 <= Param.MAX_ETA2) {
+                                    // 生成一个司机带两个乘客的拼车方案
+                                    Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j1), inst.passengerList.get(j2));
+                                    pattern2.setAim(sameAim12, etaAim1, etaAim2);
+                                    pattern2.setIdx(i, j1, j2);
+                                    pattern2.setCur_time(inst.cur_time);
+                                    pool.add(pattern2);
+                                    poolPQ.add(pattern2);
+                                    carPool.add(pattern2);
+                                }
                             }
                         }
                     }
                     else if ((sameAim21 > 0) && (sameAim21 <= sameAim12 || sameAim12 == 0)) {
                         // 以21为准
                         for (int i = 0; i < nDrivers; i++) {
-                            double etaAim1 = inst.dpTimeMatrix[i][j2];
-                            double etaAim2 = inst.ppTimeMatrix[j2][j1];
-                            if (etaAim1 <= Param.MAX_ETA && etaAim2 <= Param.MAX_ETA2) {
-                                // 生成一个司机带两个乘客的拼车方案
-                                Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j2), inst.passengerList.get(j1));
-                                pattern2.setAim(sameAim21, etaAim1, etaAim2);
-                                pattern2.setIdx(i, j2, j1);
-                                pattern2.setCur_time(inst.cur_time);
-                                pool.add(pattern2);
-                                poolPQ.add(pattern2);
-                                carPool.add(pattern2);
+                            if (inst.driverList.get(i).queue.size() == 0) {
+                                double etaAim1 = inst.dpTimeMatrix[i][j2];
+                                double etaAim2 = inst.ppTimeMatrix[j2][j1];
+                                if (etaAim1 <= Param.MAX_ETA && etaAim2 <= Param.MAX_ETA2) {
+                                    // 生成一个司机带两个乘客的拼车方案
+                                    Pattern pattern2 = new Pattern(inst.driverList.get(i), inst.passengerList.get(j2), inst.passengerList.get(j1));
+                                    pattern2.setAim(sameAim21, etaAim1, etaAim2);
+                                    pattern2.setIdx(i, j2, j1);
+                                    pattern2.setCur_time(inst.cur_time);
+                                    pool.add(pattern2);
+                                    poolPQ.add(pattern2);
+                                    carPool.add(pattern2);
+                                }
                             }
                         }
                     }

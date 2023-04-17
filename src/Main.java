@@ -16,14 +16,15 @@ import java.util.Random;
 public class Main {
     public static void main(String[] args) throws Exception{
         Param.setMapChoose();
-        Param.MAX_TIME = 150;
-        for (; Param.MAX_TIME < 151; Param.MAX_TIME += 30) {
-            Param.COUNT = 0;
-            testSpeed(2);
-        }
+//        Param.MAX_TIME = 30;
+//        for (; Param.MAX_TIME < 601; Param.MAX_TIME += 30) {
+//            Param.COUNT = 0;
+//            testSpeed(2);
+//        }
 
 //        test();
 //        runDefault(30);
+        runSample(30, 2);
     }
     public static void runDefault(int time_interval) throws Exception{
         Batch batch = new Batch();
