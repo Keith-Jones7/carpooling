@@ -48,9 +48,6 @@ public class Match {
 
     public void calValid(int flag) {//flag == 1 考虑拼车，其他：不考虑
         valid_matrix = new double[nDrivers][nPassengers];
-        if (flag == 2) {
-            calMatch();
-        }
         for (int i = 0; i < nDrivers; i++) {
             Driver driver = driverList.get(i);
             for (int j = 0; j < nPassengers; j++) {
@@ -92,7 +89,7 @@ public class Match {
             if (driver.queue.size() == 1) {
                 for (int j = 0; j < nPassengers; j++) {
                     Passenger passenger = passengerList.get(j);
-                    if (passenger.cur_driver != null || passenger.pre != -1 || passenger.next != -1) {
+                    if (passenger.cur_driver != null || (passenger.pre == -1 && passenger.next == -1)) {
                         continue;
                     }
                     Passenger passenger1 = driver.queue.getFirst();
@@ -109,7 +106,7 @@ public class Match {
             }
         }
     }
-    public void calMatch() {
+    public int calMatch() {
         pp_valid_matrix = new double[nPassengers][nPassengers];
         for (int j = 0; j < nPassengers; j++) {
             Passenger passenger1 = passengerList.get(j);
@@ -167,6 +164,7 @@ public class Match {
             }
         }
         solver.solve();
+        int cnt = 0;
         for (int j = 0; j < nPassengers; j++) {
             for (int jj = 0; jj < nPassengers; jj++) {
                 if (pp_valid_matrix[j][jj] > 0 && (int)variables[j][jj].solutionValue() == 1) {
@@ -174,9 +172,11 @@ public class Match {
                     Passenger passenger2 = passengerList.get(jj);
                     passenger1.next = jj;
                     passenger2.pre = j;
+                    cnt++;
                 }
             }
         }
+        return cnt;
     }
     void calPPValid() {
         long s = System.currentTimeMillis();
@@ -230,6 +230,7 @@ public class Match {
         if (algo_flag == 4) {
             solution = match_cplex();
         }
+//        solution.checkSolution();
         remove(solution, cur_time);
         return solution;
     }
@@ -240,44 +241,35 @@ public class Match {
         for (int i = 0; i < nDrivers; i++) {
             size[i] = driverList.get(i).queue.size();
         }
-        calValidSeeker();
-        KMAlgorithm km = new KMAlgorithm(valid_matrix);
-        match_matrix = km.getMatch();
-        for (int i = 0; i < nDrivers; i++) {
-            for (int j = 0; j < nPassengers; j++) {
-                if (match_matrix[i][j] == 1) {
-                    Driver driver = driverList.get(i);
-                    Passenger passenger = passengerList.get(j);
-                    driver.queue.add(passenger);
-                    passenger.cur_driver = driver;
+        KMAlgorithm km;
+        if (match_flag == 2) {
+            calMatch();
+            calValid(match_flag);
+            km = new KMAlgorithm(valid_matrix);
+            match_matrix = km.getMatch();
+            for (int i = 0; i < nDrivers; i++) {
+                for (int j = 0; j < nPassengers; j++) {
+                    if (match_matrix[i][j] == 1) {
+                        Driver driver = driverList.get(i);
+                        Passenger passenger = passengerList.get(j);
+                        driver.queue.add(passenger);
+                        passenger.cur_driver = driver;
+                        if (passenger.next != -1) {
+                            Passenger passenger2 = passengerList.get(passenger.next);
+                            driver.queue.add(passenger2);
+                            passenger2.cur_driver = driver;
+                        }
+                    }
+                }
+            }
+            for (Passenger passenger : passengerList) {
+                if (passenger.cur_driver == null) {
+                    passenger.next = -1;
+                    passenger.pre = -1;
                 }
             }
         }
         calValid(match_flag);
-        km = new KMAlgorithm(valid_matrix);
-        match_matrix = km.getMatch();
-        for (int i = 0; i < nDrivers; i++) {
-            for (int j = 0; j < nPassengers; j++) {
-                if (match_matrix[i][j] == 1) {
-                    Driver driver = driverList.get(i);
-                    Passenger passenger = passengerList.get(j);
-                    driver.queue.add(passenger);
-                    passenger.cur_driver = driver;
-                    if (passenger.next != -1) {
-                        Passenger passenger2 = passengerList.get(passenger.next);
-                        driver.queue.add(passenger2);
-                        passenger2.cur_driver = driver;
-                    }
-                }
-            }
-        }
-        for (Passenger passenger : passengerList) {
-            if (passenger.cur_driver == null) {
-                passenger.next = -1;
-                passenger.pre = -1;
-            }
-        }
-        calValid(match_flag - 1);
         km = new KMAlgorithm(valid_matrix);
         match_matrix = km.getMatch();
         for (int i = 0; i < nDrivers; i++) {
@@ -301,7 +293,7 @@ public class Match {
                 Passenger passenger1 = driver.queue.getFirst();
                 Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
                 Pattern pattern = new Pattern(driver, passenger1, passenger2);
-                double eta1 = Param.touringMap.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
+                double eta1 = size[i] == 1 ? Param.MAX_ETA : Param.touringMap.calTimeDistance(driver.cur_coor, passenger1.origin_coor);
                 double eta2 = passenger2 == null ? Param.MAX_ETA2 : Param.touringMap.calTimeDistance(passenger1.origin_coor, passenger2.origin_coor);
                 pattern.setAim(passenger2 == null ? 0 : Param.touringMap.calSimilarity(passenger1, passenger2), eta1, eta2);
                 solution.patterns.add(pattern);
@@ -331,7 +323,7 @@ public class Match {
                 pattern.driver.saveMatch_coor();
             }
         }
-//        sol.checkSolution();
+        sol.checkSolution();
         return sol;
     }
     public Solution match_cplex() throws Exception{

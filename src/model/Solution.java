@@ -44,7 +44,7 @@ public class Solution {
                 if (Param.touringMap.calSimilarity(p1, p2) < Param.MIN_TOURING_SIMILARITY) {
                     System.out.println("Error5");
                 }
-            }else {
+            }else if (driver.queue.size() > 2){
                 System.out.println("Error6");
             }
         }
