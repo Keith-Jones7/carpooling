@@ -10,34 +10,35 @@ import java.util.Arrays;
 public class Main {
     public static void main(String[] args) throws Exception {
         Param.setMapChoose();
-        long s = System.currentTimeMillis();
-        runSample(30, 2);
-        System.out.println("total cost time : " + Param.getTimecost(s));
+        int timeInterval = 1;
+        for (; timeInterval < 60; timeInterval++) {
+            runSample(timeInterval, 2);
+        }
     }
 
-    public static void runDefault(int time_interval) throws Exception {
+    public static void runDefault(int timeInterval) throws Exception {
         Batch batch = new Batch();
         int passengerSum = 0, matchSum = 0;
         int start, end = 0;
         while (end < Param.MAX_TIME) {
-            long start_time = System.currentTimeMillis();
+            long startTime = System.currentTimeMillis();
             start = end;
-            end += time_interval;
-            String file_name_driver = "test/test/d/drivers_t" + start + ".txt";
-            batch.updateDrivers(file_name_driver);
+            end += timeInterval;
+            String fileNameDriver = "test/test/d/drivers_t" + start + ".txt";
+            batch.updateDrivers(fileNameDriver);
             int size1 = batch.passengerList.size();
             for (int i = start; i < end; i++) {
-                String file_name_passenger = "test/test/p/passengers_t" + i + ".txt";
-                batch.updatePassenger(file_name_passenger, i);
+                String fileNamePassenger = "test/test/p/passengers_t" + i + ".txt";
+                batch.updatePassenger(fileNamePassenger, i);
             }
             int size2 = batch.passengerList.size();
-            int waiting_driver_num = batch.driverList.size();
-            int waiting_passenger_num = batch.passengerList.size();
+            int waitingDriverNum = batch.driverList.size();
+            int waitingPassengerNum = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            Solution cur_solution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
-            batch.curTime += time_interval;
+            Solution curSolution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
+            batch.curTime += timeInterval;
             int result = 0;
-            for (Pattern pattern : cur_solution.patterns) {
+            for (Pattern pattern : curSolution.patterns) {
                 if (pattern.passenger2Id != -1) {
                     result++;
                 }
@@ -47,8 +48,8 @@ public class Main {
             long end_time = System.currentTimeMillis();
             System.out.printf("第%d个阶段，待匹配司机数为%d，待匹配乘客数为%d，匹配成功对数为%d，" +
                             "当前阶段剩余司机数为%d，剩余乘客数为%d，求解总消耗时长%d毫秒",
-                    end / time_interval, waiting_driver_num, waiting_passenger_num, result,
-                    batch.driverList.size(), batch.passengerList.size(), end_time - start_time);
+                    end / timeInterval, waitingDriverNum, waitingPassengerNum, result,
+                    batch.driverList.size(), batch.passengerList.size(), end_time - startTime);
             System.out.println();
         }
         System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，拼车成功率为%.2f%%",
@@ -57,75 +58,75 @@ public class Main {
 
     }
 
-    public static Solution runSample(int time_interval, int sample_index) throws Exception {
+    public static Solution runSample(int timeInterval, int sampleIndex) throws Exception {
         Batch batch = new Batch();
         Solution solution = new Solution();
-        int passenger_sum = 0, match_sum = 0;
+        int passengerSum = 0, matchSum = 0;
         int start, end = 0;
         while (end < Param.MAX_TIME) {
             long start_time = System.currentTimeMillis();
             start = end;
-            end += time_interval;
-            String file_name_driver = "test/sample/drs" + sample_index + "/d/drivers_t" + start + ".txt";
-            batch.updateDrivers(file_name_driver);
+            end += timeInterval;
+            String fileNameDriver = "test/sample/drs" + sampleIndex + "/d/drivers_t" + start + ".txt";
+            batch.updateDrivers(fileNameDriver);
             int size1 = batch.passengerList.size();
             for (int i = start; i < end; i++) {
-                String file_name_passenger = "test/sample/drs" + sample_index + "/p/passengers_t" + i + ".txt";
-                batch.updatePassenger(file_name_passenger, sample_index);
+                String fileNamePassenger = "test/sample/drs" + sampleIndex + "/p/passengers_t" + i + ".txt";
+                batch.updatePassenger(fileNamePassenger, sampleIndex);
             }
             int size2 = batch.passengerList.size();
-            int waiting_driver_num = batch.driverList.size();
-            int waiting_passenger_num = batch.passengerList.size();
+            int waitingDriverNum = batch.driverList.size();
+            int waitingPassengerNum = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
-            Solution cur_solution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
+            Solution curSolution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
 //            System.out.println(System.currentTimeMillis() - time);
-            solution.profit += cur_solution.profit;
-            batch.curTime += time_interval;
+            solution.profit += curSolution.profit;
+            batch.curTime += timeInterval;
             int result = 0;
-            for (Pattern pattern : cur_solution.patterns) {
+            for (Pattern pattern : curSolution.patterns) {
                 if (pattern.passenger2Id != -1) {
                     solution.patterns.add(pattern);
                     result++;
                 }
             }
-            solution.leave_count += cur_solution.leave_count;
-            passenger_sum += size2 - size1;
-            match_sum += result * 2;
+            solution.leaveCount += curSolution.leaveCount;
+            passengerSum += size2 - size1;
+            matchSum += result * 2;
             long end_time = System.currentTimeMillis();
-            System.out.printf("第%d个阶段，待匹配司机数为%d，待匹配乘客数为%d，匹配成功对数为%d，" +
-                            "当前阶段剩余司机数为%d，剩余乘客数为%d，取消订单乘客数为%d，求解总消耗时长%d毫秒",
-                    end / time_interval, waiting_driver_num, waiting_passenger_num, result,
-                    batch.driverList.size(), batch.passengerList.size(), cur_solution.leave_count, end_time - start_time);
-            System.out.println();
+//            System.out.printf("第%d个阶段，待匹配司机数为%d，待匹配乘客数为%d，匹配成功对数为%d，" +
+//                            "当前阶段剩余司机数为%d，剩余乘客数为%d，取消订单乘客数为%d，求解总消耗时长%d毫秒",
+//                    end / timeInterval, waitingDriverNum, waitingPassengerNum, result,
+//                    batch.driverList.size(), batch.passengerList.size(), curSolution.leaveCount, end_time - start_time);
+//            System.out.println();
 
         }
         //solution.outputSolution(sample_index);
-        System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，取消订单乘客数为%d，拼车成功率为%.2f%%",
-                passenger_sum, match_sum, passenger_sum - match_sum - batch.passengerList.size() - solution.leave_count,
-                batch.passengerList.size(), solution.leave_count, (double) match_sum / passenger_sum * 100);
-        System.out.println();
+//        System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，取消订单乘客数为%d，拼车成功率为%.2f%%",
+//                passengerSum, matchSum, passengerSum - matchSum - batch.passengerList.size() - solution.leaveCount,
+//                batch.passengerList.size(), solution.leaveCount, (double) matchSum / passengerSum * 100);
+//        System.out.println();
         System.out.println(solution.profit);
         return solution;
     }
 
-    public static void testSpeed(int sample_index) throws Exception {
+    public static void testSpeed(int sampleIndex) throws Exception {
         Batch batch = new Batch();
-        long start_time = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         int start = 0, end = Param.MAX_TIME;
-        String file_name_driver = "test/sample/drs" + sample_index + "/d/drivers_t" + start + ".txt";
-        batch.updateDrivers(file_name_driver);
+        String fileNameDriver = "test/sample/drs" + sampleIndex + "/d/drivers_t" + start + ".txt";
+        batch.updateDrivers(fileNameDriver);
         for (int i = start; i < end; i++) {
-            String file_name_passenger = "test/sample/drs" + sample_index + "/p/passengers_t" + i + ".txt";
-            batch.updatePassenger(file_name_passenger, sample_index);
+            String fileNamePassenger = "test/sample/drs" + sampleIndex + "/p/passengers_t" + i + ".txt";
+            batch.updatePassenger(fileNamePassenger, sampleIndex);
         }
-        int waiting_driver_num = batch.driverList.size();
-        int waiting_passenger_num = batch.passengerList.size();
+        int waitingDriverNum = batch.driverList.size();
+        int waitingPassengerNum = batch.passengerList.size();
         batch.matching = new Match(batch.driverList, batch.passengerList);
 
         Solution solution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
 //            System.out.println(System.currentTimeMillis() - time);
-        double time_cost = Param.getTimecost(start_time);
-        System.out.printf("%d\t%d  \t%.6f   \t%.3f   \t%d%n", waiting_driver_num, waiting_passenger_num, solution.profit, time_cost, batch.passengerList.size());
+        double time_cost = Param.getTimecost(startTime);
+        System.out.printf("%d\t%d  \t%.6f   \t%.3f   \t%d%n", waitingDriverNum, waitingPassengerNum, solution.profit, time_cost, batch.passengerList.size());
 
     }
 

@@ -235,6 +235,9 @@ public class Match {
 
     public Solution match_zkj(int match_flag) throws Exception {
         Solution solution = new Solution();
+        if (nPassengers == 0) {
+            return solution;
+        }
         int[] size = new int[nDrivers];
         for (int i = 0; i < nDrivers; i++) {
             size[i] = driverList.get(i).queue.size();
@@ -298,7 +301,6 @@ public class Match {
                 solution.profit += pattern.aim;
             }
         }
-        solution.checkSolution();
         return solution;
     }
 
@@ -321,7 +323,6 @@ public class Match {
                 pattern.driver.saveMatchCoor();
             }
         }
-        sol.checkSolution();
         return sol;
     }
 

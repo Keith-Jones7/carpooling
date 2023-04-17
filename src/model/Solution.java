@@ -10,12 +10,12 @@ import java.util.ArrayList;
 public class Solution {
     private static TouringMap<Coordinates, Passenger> map;
     public double profit;
-    public int leave_count;
+    public int leaveCount;
     public ArrayList<Pattern> patterns;
 
     public Solution() {
         this.patterns = new ArrayList<>();
-        leave_count = 0;
+        leaveCount = 0;
     }
 
     public Solution(ArrayList<Pattern> patterns, double profit) {
@@ -46,7 +46,7 @@ public class Solution {
                 if (Param.touringMap.calSimilarity(p1, p2) < Param.MIN_TOURING_SIMILARITY) {
                     System.out.println("Error5");
                 }
-            } else if (driver.queue.size() > 2) {
+            } else {
                 System.out.println("Error6");
             }
         }
