@@ -24,7 +24,6 @@ public class PricingProblem {
     double maxCost;
 
 
-
     public PricingProblem(Instance inst) {
         this.inst = inst;
         this.nDrivers = inst.nDrivers;
@@ -129,7 +128,6 @@ public class PricingProblem {
         }
         return false;
     }
-
 
 
     double computeReducedCost(Pattern pattern) {

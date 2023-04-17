@@ -56,29 +56,21 @@ public class KMAlgorithm {
         for (int i = 0; i < m; i++) {
             ArrayList<Edge> edges = new ArrayList<>();
             if (flag[i]) {
-                for (int j = 0; j < n; j++){
+                for (int j = 0; j < n; j++) {
                     edges.add(new Edge(j, weight[i][j]));
                 }
             }
             graph.add(edges);
         }
     }
+
     private boolean checkLxChange(double[] lxOld, double[] lx) {
         for (int i = 0; i < lx.length; i++) {
-            if(Math.abs(lxOld[i] - lx[i]) > ZERO_THRESHOLD) {
+            if (Math.abs(lxOld[i] - lx[i]) > ZERO_THRESHOLD) {
                 return true;
             }
         }
         return false;
-    }
-    private static class Edge {
-        int v;
-        double w;
-
-        public Edge(int v, double w) {
-            this.v = v;
-            this.w = w;
-        }
     }
 
     // 初始化权重矩阵
@@ -143,7 +135,7 @@ public class KMAlgorithm {
         int[][] result;
         if (transpose) {
             result = new int[n][m];
-        }else {
+        } else {
             result = new int[m][n];
         }
         for (int j = 0; j < n; j++) {
@@ -153,5 +145,15 @@ public class KMAlgorithm {
             }
         }
         return result;
+    }
+
+    private static class Edge {
+        int v;
+        double w;
+
+        public Edge(int v, double w) {
+            this.v = v;
+            this.w = w;
+        }
     }
 }

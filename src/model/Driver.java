@@ -2,26 +2,28 @@ package model;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+
 public class Driver {
 
     public Deque<Passenger> queue;
-    public Coordinates cur_coor;
-    public Coordinates match_coor;
-    long cur_time;
-    
+    public Coordinates curCoor;
+    public Coordinates matchCoor;
     public int ID;
-    public Driver(double lng, double lat, long cur_time, int ID) {
-        this.cur_coor = new Coordinates(lng, lat);
+    long curTime;
+
+    public Driver(double lng, double lat, long curTime, int ID) {
+        this.curCoor = new Coordinates(lng, lat);
         queue = new ArrayDeque<>();
-        this.cur_time = cur_time;
+        this.curTime = curTime;
         this.ID = ID;
     }
-    public void renew(double lng, double lat, long cur_time) {
-        this.cur_coor = new Coordinates(lng, lat);
-        this.cur_time = cur_time;
+
+    public void renew(double lng, double lat, long curTime) {
+        this.curCoor = new Coordinates(lng, lat);
+        this.curTime = curTime;
     }
 
-    public void saveMatch_coor() {
-        this.match_coor = cur_coor;
+    public void saveMatchCoor() {
+        this.matchCoor = curCoor;
     }
 }

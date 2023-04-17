@@ -4,8 +4,10 @@ import common.Param;
 import ilog.concert.IloException;
 import model.*;
 
-import javax.xml.soap.SAAJMetaFactory;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 public class BranchAndBound {
 
@@ -19,6 +21,7 @@ public class BranchAndBound {
     public PricingProblem pp;
     public DivingHeuristic divingHeur;
     public ColumnGeneration cg;
+
     public BranchAndBound(Instance inst) {
         this.inst = inst;
         this.nDrivers = inst.nDrivers;
@@ -344,7 +347,7 @@ public class BranchAndBound {
                 singlePool.add(pattern);
             }
         }
-        
+
 
         KMAlgorithm kmAlgo = new KMAlgorithm(weight);
         int[][] matchMatrix = kmAlgo.getMatch();
@@ -392,7 +395,7 @@ public class BranchAndBound {
                     }
                 }
                 // 一个乘客上载人车
-                else if (driver.queue.size() == 1 && inst.match_flag >= 1){
+                else if (driver.queue.size() == 1 && inst.match_flag >= 1) {
                     double etaAim2 = inst.dpTimeMatrix[i][j];
                     double sameAim = inst.dpValidMatrix[i][j];
                     if (etaAim2 <= Param.MAX_ETA2 && sameAim > 0) {
@@ -433,8 +436,7 @@ public class BranchAndBound {
                                 }
                             }
                         }
-                    }
-                    else if ((sameAim21 > 0) && (sameAim21 <= sameAim12 || sameAim12 == 0)) {
+                    } else if ((sameAim21 > 0) && (sameAim21 <= sameAim12 || sameAim12 == 0)) {
                         // 以21为准
                         for (int i = 0; i < nDrivers; i++) {
                             if (inst.driverList.get(i).queue.size() == 0) {

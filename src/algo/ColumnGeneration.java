@@ -1,10 +1,8 @@
 package algo;
 
 import common.Param;
-import ilog.concert.IloException;
 import model.Instance;
 import model.Pattern;
-import model.Solution;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -19,6 +17,7 @@ public class ColumnGeneration {
     RMP_SCIP rmp;
     RestrictMasterProblem rmpCplex;
     PricingProblem pp;
+
     public ColumnGeneration(Instance inst, RMP_SCIP rmp, RestrictMasterProblem rmpCplex, PricingProblem pp) {
         this.inst = inst;
         this.nDrivers = inst.driverList.size();
@@ -29,8 +28,8 @@ public class ColumnGeneration {
     }
 
     LPSol solve(ArrayList<Pattern> pool, ArrayList<Pattern> totalPool) {
-            rmp.addColumns(pool);
-            return solve(totalPool);
+        rmp.addColumns(pool);
+        return solve(totalPool);
     }
 
     LPSol solve(ArrayList<Pattern> totalPool) {

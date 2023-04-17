@@ -2,12 +2,17 @@ package algo;
 
 import common.Param;
 import javafx.util.Pair;
-import model.*;
-import java.util.*;
+import model.Instance;
+import model.Pattern;
+import model.Solution;
+
+import java.util.ArrayList;
+import java.util.BitSet;
 
 enum DivingStrategy {
     Fractional, Guided, Aim
 }
+
 public class DivingHeuristic {
     Instance inst;
     int nDrivers;
@@ -51,7 +56,7 @@ public class DivingHeuristic {
         int nFracBegin = nFrac;
         ColumnGeneration columnGeneration = new ColumnGeneration(inst, rmp, rmpCplex, pp);
         // diving
-        while (nFrac != 0 && obj < ub && ((nlp < nlpMax && iter < iterMax) || iter < iterMin || nFrac < nFracBegin - iter*0.5)) {
+        while (nFrac != 0 && obj < ub && ((nlp < nlpMax && iter < iterMax) || iter < iterMin || nFrac < nFracBegin - iter * 0.5)) {
             iter++;
             // select and bound var
             DivingStrategy divingStrategy = DivingStrategy.Aim;
@@ -88,7 +93,7 @@ public class DivingHeuristic {
     // 挑选潜水策略
     public ArrayList<Integer> selectDivingVar(BitSet fracIdx, DivingStrategy divingStrategy) {
         switch (divingStrategy) {
-            case Fractional :
+            case Fractional:
                 return fractionalDiving(fracIdx);
             case Aim:
                 return aimDiving(fracIdx);
@@ -151,7 +156,7 @@ public class DivingHeuristic {
         }
         return boundVarsIdx;
     }
-    
+
     public Pair<Integer, BitSet[]> setFixedAndFracIdx() {
         int nFrac = 0;
         ArrayList<Pair<Pattern, Double>> pairs = lpSol.vals;

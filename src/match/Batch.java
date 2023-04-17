@@ -10,14 +10,13 @@ import java.io.FileReader;
 import java.util.*;
 
 public class Batch {
-    public long cur_time = 0;       //当前batch的时刻
+    public long curTime = 0;       //当前batch的时刻
     public Match matching;
-    int p_index = 0;
-
     public List<Driver> driverList; //司机列表
     public List<Passenger> passengerList;//乘客列表
+    int pIndex = 0;
     Map<Integer, Driver> driverMap; //司机ID存储
-    
+
     public Batch() {
         driverList = new ArrayList<>();
         passengerList = new ArrayList<>();
@@ -38,14 +37,14 @@ public class Batch {
                 double lat = Double.parseDouble(strs[2]);
                 if (driverMap.containsKey(ID)) {
                     Driver driver = driverMap.get(ID);
-                    driver.renew(lng, lat, cur_time);
-                }else {
-                    Driver driver = new Driver(lng, lat, cur_time, ID);
+                    driver.renew(lng, lat, curTime);
+                } else {
+                    Driver driver = new Driver(lng, lat, curTime, ID);
                     driverMap.put(ID, driver);
                     driverList.add(driver);
                 }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("读取司机信息错误！");
             e.printStackTrace();
         }
@@ -65,19 +64,18 @@ public class Batch {
                 double lng2 = Double.parseDouble(strs[2]);
                 double lat2 = Double.parseDouble(strs[3]);
                 passengerList.add(new Passenger(new Coordinates(lng1, lat1),
-                        new Coordinates(lng2, lat2), sample_index, p_index));
-                p_index++;
-                
+                        new Coordinates(lng2, lat2), sample_index, pIndex));
+                pIndex++;
+
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("读取乘客信息错误！");
             e.printStackTrace();
         }
     }
-    
+
     /**
-     * 
-     * @param num   随机生成的司机数目
+     * @param num 随机生成的司机数目
      */
     public void generateDrivers(int num) {
         Random random = new Random(1);
@@ -86,9 +84,9 @@ public class Batch {
             double lat = random.nextDouble() * Param.GAP + 31.9;
             if (driverMap.containsKey(i)) {
                 Driver driver = driverMap.get(i);
-                driver.renew(lng, lat, cur_time);
-            }else {
-                Driver driver = new Driver(lng, lat, cur_time, i);
+                driver.renew(lng, lat, curTime);
+            } else {
+                Driver driver = new Driver(lng, lat, curTime, i);
                 driverList.add(driver);
                 driverMap.put(i, driver);
             }
@@ -96,8 +94,7 @@ public class Batch {
     }
 
     /**
-     * 
-     * @param num   随机生成的乘客数目
+     * @param num 随机生成的乘客数目
      */
     public void generatePassengers(int num) {
         Random random = new Random(1);
@@ -107,7 +104,7 @@ public class Batch {
             double lng2 = random.nextDouble() * Param.GAP + 118.3;
             double lat2 = random.nextDouble() * Param.GAP + 31.4;
             passengerList.add(new Passenger(new Coordinates(lng1, lat1),
-                    new Coordinates(lng2, lat2), cur_time, p_index++));
+                    new Coordinates(lng2, lat2), curTime, pIndex++));
         }
     }
 }

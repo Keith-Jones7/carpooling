@@ -1,42 +1,40 @@
 package algo;
 
-import com.google.ortools.linearsolver.*;
-import common.Param;
-import ilog.concert.IloColumn;
-import ilog.concert.IloException;
-import ilog.concert.IloNumVarType;
-import javafx.util.Pair;
-import model.*;
 import com.google.ortools.Loader;
+import com.google.ortools.linearsolver.MPConstraint;
+import com.google.ortools.linearsolver.MPObjective;
+import com.google.ortools.linearsolver.MPSolver;
+import com.google.ortools.linearsolver.MPVariable;
+import common.Param;
+import javafx.util.Pair;
+import model.Instance;
+import model.Pattern;
+import model.Solution;
 
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
 
 public class RMP_SCIP {
+    // final param
+    private final int intMax = Integer.MAX_VALUE;
+    private final double infinity = 1e8;
+    private final double bigM = 1e8;
     // instance
     Instance inst;
     int nPassengers;
     int nDrivers;
-
     // ortools
     MPSolver solver;
- 
     MPObjective obj;
     MPConstraint[] ranges;
     ArrayList<MPVariable> x;
     MPVariable[] artificialVars;
     ArrayList<Pattern> pool;
-
     // diving heuristic
     BitSet fixedDrivers;
     BitSet fixedPassengers;
 
-    // final param
-    private final int intMax = Integer.MAX_VALUE;
-    private final double infinity = 1e8;
-    private final double bigM = 1e8;
-
-    public RMP_SCIP (Instance inst) {
+    public RMP_SCIP(Instance inst) {
         this.inst = inst;
         this.nPassengers = inst.nPassengers;
         this.nDrivers = inst.nDrivers;
@@ -93,25 +91,25 @@ public class RMP_SCIP {
     }
 
     public void setDiving(BitSet fixedIdx, ArrayList<Pair<Pattern, Double>> vals) {
-            for (int h = fixedIdx.nextSetBit(0); h >= 0; h = fixedIdx.nextSetBit(h+1)) {
-                Pair<Pattern, Double> val = vals.get(h);
-                MPVariable var = val.getKey().var;
-                var.setBounds(1.0, 1.0 + Param.EPS);
-                // fix drivers and passengers
-                fixedDrivers.set(val.getKey().driverIdx);
-                if (val.getKey().passenger1Idx >= 0) {
-                    fixedPassengers.set(val.getKey().passenger1Idx);
-                }
-                if (val.getKey().passenger2Idx >= 0) {
-                    fixedPassengers.set(val.getKey().passenger2Idx);
-                }
+        for (int h = fixedIdx.nextSetBit(0); h >= 0; h = fixedIdx.nextSetBit(h + 1)) {
+            Pair<Pattern, Double> val = vals.get(h);
+            MPVariable var = val.getKey().var;
+            var.setBounds(1.0, 1.0 + Param.EPS);
+            // fix drivers and passengers
+            fixedDrivers.set(val.getKey().driverIdx);
+            if (val.getKey().passenger1Idx >= 0) {
+                fixedPassengers.set(val.getKey().passenger1Idx);
             }
+            if (val.getKey().passenger2Idx >= 0) {
+                fixedPassengers.set(val.getKey().passenger2Idx);
+            }
+        }
     }
 
     public void recoverDiving(BitSet fixedIdx, ArrayList<Pair<Pattern, Double>> vals) {
         fixedDrivers = new BitSet(nDrivers);
         fixedPassengers = new BitSet(nPassengers);
-        for (int h = fixedIdx.nextSetBit(0); h >= 0; h = fixedIdx.nextSetBit(h+1)) {
+        for (int h = fixedIdx.nextSetBit(0); h >= 0; h = fixedIdx.nextSetBit(h + 1)) {
             Pair<Pattern, Double> val = vals.get(h);
             MPVariable var = val.getKey().var;
             var.setBounds(0, infinity);

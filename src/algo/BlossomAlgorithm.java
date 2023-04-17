@@ -1,7 +1,10 @@
 package algo;
+
 import common.Param;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class BlossomAlgorithm {
     int n;
     ArrayList<Integer>[] graph;
@@ -19,7 +22,7 @@ public class BlossomAlgorithm {
         used = new boolean[n];
         blossom = new boolean[n];
     }
-    
+
     double[][] copyMatrix(double[][] costMatrix) {
         int len = costMatrix.length;
         double[][] copy = new double[len][len];
@@ -31,6 +34,7 @@ public class BlossomAlgorithm {
         }
         return copy;
     }
+
     ArrayList<Integer>[] createGraph(double[][] costMatrix) {
         ArrayList<Integer>[] graph = new ArrayList[n];
         for (int i = 0; i < n; i++) {
@@ -127,6 +131,7 @@ public class BlossomAlgorithm {
             }
         }
     }
+
     public int[][] generateResultMatrix() {
         getMaximalMatching();
         int[][] resultMatrix = new int[n][n];

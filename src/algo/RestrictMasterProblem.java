@@ -4,33 +4,32 @@ import common.Param;
 import ilog.concert.*;
 import ilog.cplex.IloCplex;
 import javafx.util.Pair;
-import model.*;
+import model.Instance;
+import model.Pattern;
+import model.Solution;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 
 public class RestrictMasterProblem {
+    // final param
+    private final int IloIntMax = Integer.MAX_VALUE;
+    private final double IloInfinity = Double.MAX_VALUE;
+    private final double bigM = 1e8;
     // instance
     Instance inst;
     int nPassengers;
     int nDrivers;
-
     // cplex
     IloCplex cplex;
     IloObjective obj;
     IloRange[] ranges;
     ArrayList<IloNumVar> x;
-    ArrayList<IloConversion> x_conv;
+    ArrayList<IloConversion> xConv;
     IloNumVar[] artificialVars;
     ArrayList<Pattern> pool;
-
     // diving heuristic
     BitSet fixedItems;
-
-    // final param
-    private final int IloIntMax = Integer.MAX_VALUE;
-    private final double IloInfinity = Double.MAX_VALUE;
-    private final double bigM = 1e8;
 
     public RestrictMasterProblem(Instance inst) {
         this.inst = inst;
@@ -47,7 +46,7 @@ public class RestrictMasterProblem {
     void formulate() throws IloException {
         cplex = new IloCplex();
         x = new ArrayList<>();
-        x_conv = new ArrayList<>();
+        xConv = new ArrayList<>();
         pool = new ArrayList<>();
         ranges = new IloRange[nDrivers + nPassengers];
         // objective
@@ -172,7 +171,7 @@ public class RestrictMasterProblem {
             for (IloNumVar iloNumVar : x) {
                 IloConversion conv = cplex.conversion(iloNumVar, IloNumVarType.Int);
                 cplex.add(conv);
-                x_conv.add(conv);
+                xConv.add(conv);
             }
         } catch (IloException e) {
             throw new RuntimeException(e);
@@ -182,10 +181,10 @@ public class RestrictMasterProblem {
     // 转变为整数规划
     private void convertToLP() {
         try {
-            for (IloConversion iloConversion : x_conv) {
+            for (IloConversion iloConversion : xConv) {
                 cplex.remove(iloConversion);
             }
-            x_conv.clear();
+            xConv.clear();
         } catch (IloException e) {
             throw new RuntimeException(e);
         }

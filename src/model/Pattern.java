@@ -3,7 +3,6 @@ package model;
 import com.google.ortools.linearsolver.MPVariable;
 import common.Param;
 import ilog.concert.IloNumVar;
-import map.GISMap;
 
 public class Pattern {
     public long cur_time;
@@ -11,12 +10,12 @@ public class Pattern {
     public double aim;
     public double sameAim;
     public double etaAim1;
-    
+
     public double etaAim2;
     public Driver driver;
-    
+
     public Passenger passenger1;
-    
+
     public Passenger passenger2;
     public int driverId;
     public int passenger1Id;
@@ -50,12 +49,14 @@ public class Pattern {
         this.sameAim = sameAim;
         this.etaAim1 = etaAim1;
         this.etaAim2 = etaAim2;
-        this.aim = (sameAim > 0 ? sameAim + Param.samePlus : 0) + 1 - etaAim1/Param.MAX_ETA + 1 - etaAim2 / Param.MAX_ETA2;
+        this.aim = (sameAim > 0 ? sameAim + Param.samePlus : 0) + 1 - etaAim1 / Param.MAX_ETA + 1 - etaAim2 / Param.MAX_ETA2;
         //this.aim = (sameAim > 0 ? sameAim + 2 : 0);
     }
+
     public void setCur_time(long cur_time) {
         this.cur_time = cur_time;
     }
+
     public String toString() {
         return "(" + driverId + ", " + passenger1Id + ", " + passenger2Id + ")" + ": " + aim;
     }
