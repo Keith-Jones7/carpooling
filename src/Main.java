@@ -10,8 +10,8 @@ import java.util.Arrays;
 public class Main {
     public static void main(String[] args) throws Exception {
         Param.setMapChoose();
-        int timeInterval = 1;
-        for (; timeInterval < 60; timeInterval++) {
+        int timeInterval = 5;
+        for (; timeInterval < 61; timeInterval += 5) {
             runSample(timeInterval, 2);
         }
     }
@@ -105,7 +105,8 @@ public class Main {
 //                passengerSum, matchSum, passengerSum - matchSum - batch.passengerList.size() - solution.leaveCount,
 //                batch.passengerList.size(), solution.leaveCount, (double) matchSum / passengerSum * 100);
 //        System.out.println();
-        System.out.println(solution.profit);
+        System.out.printf("%.2f  \t%d  \t  %d  \t  %d  \t%.2f   \t%.2f%n", solution.profit, matchSum, passengerSum - matchSum - batch.passengerList.size(), 
+                batch.passengerList.size(), solution.getAvgEta(), solution.getAvgSame());
         return solution;
     }
 

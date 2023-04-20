@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 
 public class Solution {
-    private static TouringMap<Coordinates, Passenger> map;
     public double profit;
     public int leaveCount;
     public ArrayList<Pattern> patterns;
@@ -22,19 +21,48 @@ public class Solution {
         this.patterns = patterns;
         this.profit = profit;
     }
-
+    public double getAvgEta() {
+        double sum = 0;
+        int cnt = 0;
+        for (Pattern pattern : patterns) {
+            Driver driver = pattern.driver;
+            Passenger passenger1 = driver.queue.getFirst();
+            Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
+            sum += Param.touringMap.calTimeDistance(driver.matchCoor, passenger1.originCoor);
+            cnt++;
+            if (passenger2 != null) {
+                sum += Param.touringMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor);
+                cnt++;
+            }
+        }
+        return sum / cnt;
+    }
+    public double getAvgSame() {
+        double sum = 0;
+        int cnt = 0;
+        for (Pattern pattern : patterns) {
+            if (pattern.driver.queue.size() == 2) {
+                Driver driver = pattern.driver;
+                Passenger passenger1 = driver.queue.getFirst();
+                Passenger passenger2 = driver.queue.getLast();
+                sum += Param.touringMap.calSimilarity(passenger1, passenger2);
+                cnt++;
+            }
+        }
+        return sum / cnt;
+    }
     public void checkSolution() {
         for (Pattern pattern : this.patterns) {
             Driver driver = pattern.driver;
             if (driver.queue.size() == 1) {
                 Passenger p1 = driver.queue.getFirst();
-                if (Param.touringMap.calTimeDistance(driver.curCoor, p1.originCoor) > Param.MAX_ETA) {
+                if (Param.touringMap.calTimeDistance(driver.matchCoor, p1.originCoor) > Param.MAX_ETA) {
                     System.out.println("Error1");
                 }
             } else if (driver.queue.size() == 2) {
                 Passenger p1 = driver.queue.getFirst();
                 Passenger p2 = driver.queue.getLast();
-                if (Param.touringMap.calTimeDistance(driver.curCoor, p1.originCoor) > Param.MAX_ETA) {
+                if (Param.touringMap.calTimeDistance(driver.matchCoor, p1.originCoor) > Param.MAX_ETA) {
                     System.out.println("Error2");
                 }
                 if (Param.touringMap.calTimeDistance(p1.originCoor, p2.originCoor) > Param.MAX_ETA2) {

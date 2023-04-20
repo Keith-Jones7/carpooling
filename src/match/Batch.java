@@ -68,9 +68,8 @@ public class Batch {
                 pIndex++;
 
             }
-        } catch (Exception e) {
-            System.out.println("读取乘客信息错误！");
-            e.printStackTrace();
+        } catch (Exception ignored) {
+            
         }
     }
 

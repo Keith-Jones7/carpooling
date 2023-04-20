@@ -228,7 +228,7 @@ public class Match {
         if (algo_flag == 4) {
             solution = match_cplex();
         }
-//        solution.checkSolution();
+        solution.checkSolution();
         remove(solution, cur_time);
         return solution;
     }
@@ -244,6 +244,7 @@ public class Match {
         }
         KMAlgorithm km;
         if (match_flag == 2) {
+            calMatch();
             calMatch();
             calValid(match_flag);
             km = new KMAlgorithm(validMatrix);
@@ -299,6 +300,9 @@ public class Match {
                 pattern.setAim(passenger2 == null ? 0 : Param.touringMap.calSimilarity(passenger1, passenger2), eta1, eta2);
                 solution.patterns.add(pattern);
                 solution.profit += pattern.aim;
+                if (driver.matchCoor == null) {
+                    driver.saveMatchCoor();
+                }
             }
         }
         return solution;
