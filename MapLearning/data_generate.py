@@ -14,7 +14,7 @@ import pandas as pd
 import numpy as np
 import math
 date = '2023-03-07_pm'
-file_name = 'D:\\1.T3 Work\\Code\\Python\\MapLearning\\input\sample_ds_' + date + '.csv'
+file_name = 'input/sample_ds_' + date + '.csv'
 LNG = 94403.94
 LAT = 111319.49
 data = pd.read_csv(file_name)
@@ -64,6 +64,6 @@ for sub_data in data.iterrows():
     results.append(get_linear_dist(sub_data['dest_lat'], sub_data['dest_lng'], sub_data['origin_lat'], sub_data['origin_lng']))
     
 data['dist'] = results
-data.to_csv("D:/1.T3 Work/Code/Python/MapLearning/output/train3.csv", index=False)
+data.to_csv("output/train_data.csv", index=False)
 # 现在 "results" 包含multiply_by_two函数的已计算值的列表 [2, 4, 6, 8, 10]
 

@@ -25,14 +25,14 @@ class ODDataset(Dataset):
 
         return x, y
 
-loadings = pd.read_csv("D:/1.T3 Work/Code/Python/MapLearning/output/train3.csv")
+loadings = pd.read_csv("MapLearning/output/train.csv")
 data = np.array(loadings[['origin_lat', 'origin_lng', 'dest_lat', 'dest_lng']])
 data_mean = np.mean(data, axis=0)  # 计算每个数据点（经度、纬度）的均值
 data_std = np.std(data, axis=0)  # 计算每个数据点（经度、纬度）的标准差
 data = (data - data_mean) / data_std  # 输入OD经纬度数据
 labels = np.array(loadings['dist'])  # 输入空间距离标签
 dataset = ODDataset(data, labels)
-dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
 
 class NeuralNetwork(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -51,7 +51,7 @@ class NeuralNetwork(nn.Module):
         return x
 
 input_size = 4  # 对于OD经纬度数据，每个数据点包含4个值（O点的经度、纬度和D点的经度、纬度）
-hidden_size = 100  # 可以调整隐藏层大小
+hidden_size = 128  # 可以调整隐藏层大小
 output_size = 1  # 输出1个值，空间距离
 
 model = NeuralNetwork(input_size, hidden_size, output_size)
@@ -62,6 +62,7 @@ epochs = 100
 for epoch in range(epochs):
     for i, (inputs, targets) in enumerate(dataloader):
         inputs, targets = torch.tensor(inputs, dtype=torch.float32), torch.tensor(targets, dtype=torch.float32)
+        targets = targets.unsqueeze(dim=1)
         optimizer.zero_grad()
         outputs = model(inputs)
         loss = loss_function(outputs, targets)
