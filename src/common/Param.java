@@ -1,6 +1,7 @@
 package common;
 
 import map.GISMap;
+import map.NetMap;
 import map.TestMap;
 import map.TouringMap;
 import model.Coordinates;
@@ -11,7 +12,7 @@ import java.util.Random;
 
 public class Param {
 
-    public static final int MAP_CHOOSE = 1;                                       // 地图选择参数     1: TestMap    2: GISMap
+    
     public static final int MATCH_ALGO = 2;                                       // 匹配算法选择参数  1: match_zjr  2: match_zkj   3: match_ortools
     public static final long MAX_ETA2 = 120;                                      // 接第二个乘客最大eta
     public static final double LEAVING_COFF = 1;                              // 乘客根据预期到达时间决定的取消订单时间系数
@@ -29,30 +30,27 @@ public class Param {
     public static int samePlus = 2;
     public static int MAX_TIME = 1200;                                    // 订单收集期
     public static int COUNT = 0;
-    public static int timeCost = 0;
     public static double LNG = 94403.94;                                              // 每经度距离, 单位米
     public static double LAT = 111319.49;                                              // 每纬度距离, 单位米
-    public static Random RND;
     public static TouringMap<Coordinates, Passenger> touringMap;
 
     public static double timeCostOnGenPatterns = 0;
-
-    public static void setMapChoose() {
-        if (Param.MAP_CHOOSE == 2) {
-            touringMap = new GISMap();
-        } else {
-            touringMap = new TestMap();
+    public static int MAP_CHOOSE;                                       // 地图选择参数     1: GISMap    2: NetMap  default: TestMap
+    public static void setMapChoose(int val) {
+        Param.MAP_CHOOSE = val;
+        switch (Param.MAP_CHOOSE) {
+            case 1: {
+                touringMap = new GISMap();
+                break;
+            }
+            case 2: {
+                touringMap = new NetMap();
+                break;
+            }
+            default: {
+                touringMap = new TestMap();
+            }
         }
-    }
-
-    /**
-     * 将角度值转为弧度值
-     *
-     * @param d 角度
-     * @return 返回弧度
-     */
-    private static double rad(double d) {
-        return d * Math.PI / 180.0;
     }
 
     /**

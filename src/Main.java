@@ -1,19 +1,29 @@
-import algo.BlossomAlgorithm;
+
+import ai.djl.MalformedModelException;
+import ai.djl.Model;
+import ai.djl.inference.Predictor;
+import ai.djl.ndarray.NDArray;
+import ai.djl.ndarray.NDList;
+import ai.djl.ndarray.NDManager;
+import ai.djl.translate.NoBatchifyTranslator;
+import ai.djl.translate.TranslateException;
+import ai.djl.translate.TranslatorContext;
 import common.Param;
 import match.Batch;
 import match.Match;
 import model.Pattern;
 import model.Solution;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        Param.setMapChoose();
-        int timeInterval = 5;
-        for (; timeInterval < 61; timeInterval += 5) {
-            runSample(timeInterval, 2);
-        }
+        Param.setMapChoose(2);
+        int timeInterval = 10;
+        runSample(timeInterval, 2);
     }
 
     public static void runDefault(int timeInterval) throws Exception {
@@ -93,20 +103,20 @@ public class Main {
             passengerSum += size2 - size1;
             matchSum += result * 2;
             long end_time = System.currentTimeMillis();
-//            System.out.printf("第%d个阶段，待匹配司机数为%d，待匹配乘客数为%d，匹配成功对数为%d，" +
-//                            "当前阶段剩余司机数为%d，剩余乘客数为%d，取消订单乘客数为%d，求解总消耗时长%d毫秒",
-//                    end / timeInterval, waitingDriverNum, waitingPassengerNum, result,
-//                    batch.driverList.size(), batch.passengerList.size(), curSolution.leaveCount, end_time - start_time);
-//            System.out.println();
+            System.out.printf("第%d个阶段，待匹配司机数为%d，待匹配乘客数为%d，匹配成功对数为%d，" +
+                            "当前阶段剩余司机数为%d，剩余乘客数为%d，取消订单乘客数为%d，求解总消耗时长%d毫秒",
+                    end / timeInterval, waitingDriverNum, waitingPassengerNum, result,
+                    batch.driverList.size(), batch.passengerList.size(), curSolution.leaveCount, end_time - start_time);
+            System.out.println();
 
         }
         //solution.outputSolution(sample_index);
-//        System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，取消订单乘客数为%d，拼车成功率为%.2f%%",
-//                passengerSum, matchSum, passengerSum - matchSum - batch.passengerList.size() - solution.leaveCount,
-//                batch.passengerList.size(), solution.leaveCount, (double) matchSum / passengerSum * 100);
-//        System.out.println();
-        System.out.printf("%.2f  \t%d  \t  %d  \t  %d  \t%.2f   \t%.2f%n", solution.profit, matchSum, passengerSum - matchSum - batch.passengerList.size(), 
-                batch.passengerList.size(), solution.getAvgEta(), solution.getAvgSame());
+        System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，取消订单乘客数为%d，拼车成功率为%.2f%%",
+                passengerSum, matchSum, passengerSum - matchSum - batch.passengerList.size() - solution.leaveCount,
+                batch.passengerList.size(), solution.leaveCount, (double) matchSum / passengerSum * 100);
+        System.out.println();
+//        System.out.printf("%.2f  \t%d  \t  %d  \t  %d  \t%.2f   \t%.2f%n", solution.profit, matchSum, passengerSum - matchSum - batch.passengerList.size(), 
+//                batch.passengerList.size(), solution.getAvgEta(), solution.getAvgSame());
         return solution;
     }
 
@@ -131,14 +141,32 @@ public class Main {
 
     }
 
-    public static void test() {
-        double[][] costMatrix = {
-                {0, 12, 11},
-                {12, 0, 3},
-                {11, 3, 0}
-        };
-        BlossomAlgorithm blossomAlgorithm = new BlossomAlgorithm(costMatrix);
-        int[][] result = blossomAlgorithm.generateResultMatrix();
-        System.out.println(Arrays.deepToString(result));
+    public static void test() throws MalformedModelException, IOException, TranslateException {
+        Path modeldir = Paths.get("MapLearning\\model\\NetMap.pt");
+        Model model = Model.newInstance("test");
+        model.load(modeldir);
+        Predictor<double[], Double> predictor = model.newPredictor(new NoBatchifyTranslator<double[], Double>() {
+            @Override
+            public Double processOutput(TranslatorContext translatorContext, NDList ndList) throws Exception {
+                return ndList.get(0).getDouble();
+            }
+
+            @Override
+            public NDList processInput(TranslatorContext translatorContext, double[] floats) throws Exception {
+                NDManager ndManager = translatorContext.getNDManager();
+                NDArray ndArray = ndManager.create(floats);
+                return new NDList(ndArray);
+            }
+        });
+        long s = System.currentTimeMillis();
+        double result1 = predictor.predict(new double[]{0.205644, -0.018696, 0.205644, -0.018696});
+        System.out.println(result1 + "\t");
+        long s2 = System.currentTimeMillis();
+        for (int i = 0; i < 100; i++) {
+            double result2 = predictor.predict(new double[]{-1.258888, 1.36756, -1.21104, 1.37831});
+
+        }
+        System.out.println(System.currentTimeMillis() - s2);
+
     }
 }

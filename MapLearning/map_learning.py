@@ -25,11 +25,10 @@ class ODDataset(Dataset):
 
         return x, y
 
-loadings = pd.read_csv("MapLearning/output/train.csv")
+loadings = pd.read_csv("output/train.csv")
 data = np.array(loadings[['origin_lat', 'origin_lng', 'dest_lat', 'dest_lng']])
-data_mean = np.mean(data, axis=0)  # 计算每个数据点（经度、纬度）的均值
-data_std = np.std(data, axis=0)  # 计算每个数据点（经度、纬度）的标准差
-data = (data - data_mean) / data_std  # 输入OD经纬度数据
+data_mean = torch.tensor(np.mean(data, axis=0), dtype=torch.float64)  # 计算每个数据点（经度、纬度）的均值
+data_std = torch.tensor(np.std(data, axis=0), dtype=torch.float64)  # 计算每个数据点（经度、纬度）的标准差
 labels = np.array(loadings['dist'])  # 输入空间距离标签
 dataset = ODDataset(data, labels)
 dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
@@ -43,6 +42,7 @@ class NeuralNetwork(nn.Module):
         self.activate = nn.LeakyReLU()
 
     def forward(self, x):
+        x = (x - data_mean) / data_std
         x = self.fc1(x)
         x = self.activate(x)
         x = self.fc2(x)
@@ -51,17 +51,19 @@ class NeuralNetwork(nn.Module):
         return x
 
 input_size = 4  # 对于OD经纬度数据，每个数据点包含4个值（O点的经度、纬度和D点的经度、纬度）
-hidden_size = 128  # 可以调整隐藏层大小
+hidden_size = 64  # 可以调整隐藏层大小
 output_size = 1  # 输出1个值，空间距离
 
 model = NeuralNetwork(input_size, hidden_size, output_size)
+model.double()
 loss_function = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 epochs = 100
 for epoch in range(epochs):
     for i, (inputs, targets) in enumerate(dataloader):
-        inputs, targets = torch.tensor(inputs, dtype=torch.float32), torch.tensor(targets, dtype=torch.float32)
+        inputs = inputs.clone().detach()
+        targets = targets.clone().detach()
         targets = targets.unsqueeze(dim=1)
         optimizer.zero_grad()
         outputs = model(inputs)
@@ -74,9 +76,14 @@ def eval_model(model, inputs):
     model.eval()
     total_loss = 0
     outputs = []
-    for input in inputs :     
-        input = torch.tensor(input, dtype=torch.float32)
-        output = float(model(input))
+    for input__ in inputs :     
+        input__ = torch.tensor(input__, dtype=torch.float64)
+        output = float(model(input__))
         outputs.append(output)
     return outputs
-output___ = eval_model(model, data)
+output__ = eval_model(model, data)
+
+
+inputs = torch.tensor([0,0,0,0], dtype=torch.float64) 
+convert = torch.jit.trace(model, inputs)
+convert.save("model/NetMap.pt")

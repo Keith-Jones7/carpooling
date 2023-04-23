@@ -1,11 +1,52 @@
 package map;
 
+import ai.djl.MalformedModelException;
+import ai.djl.Model;
+import ai.djl.inference.Predictor;
+import ai.djl.ndarray.NDArray;
+import ai.djl.ndarray.NDList;
+import ai.djl.ndarray.NDManager;
+import ai.djl.translate.NoBatchifyTranslator;
+import ai.djl.translate.TranslateException;
+import ai.djl.translate.TranslatorContext;
 import common.Param;
 import model.Coordinates;
 import model.Passenger;
 
-public class TestMap implements TouringMap<Coordinates, Passenger> {
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+public class NetMap implements TouringMap<Coordinates, Passenger> {
     
+    private static final Path MODEL_DIR = Paths.get("MapLearning\\model\\NetMap.pt");
+    
+    Model model;
+    Predictor<double[], Double> predictor;
+    public NetMap() {
+        model = Model.newInstance("NetMap");
+        try {
+            model.load(MODEL_DIR);
+            predictor = model.newPredictor(new NoBatchifyTranslator<double[], Double>() {
+                @Override
+                public Double processOutput(TranslatorContext translatorContext, NDList ndList) {
+                    return ndList.get(0).getDouble();
+                }
+                
+                @Override
+                public NDList processInput(TranslatorContext translatorContext, double[] floats) {
+                    NDManager ndManager = translatorContext.getNDManager();
+                    NDArray ndArray = ndManager.create(floats);
+                    return new NDList(ndArray);
+                }
+            });
+        } catch (MalformedModelException | IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    
+
     /**
      * 计算坐标是否重合
      *
@@ -30,9 +71,13 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
      */
     @Override
     public double calSpatialDistance(Coordinates o1, Coordinates o2) {
-        double lngGap = (o1.lng - o2.lng) * Param.LNG;
-        double latGap = (o1.lat - o2.lat) * Param.LAT;
-        return Math.sqrt(lngGap * lngGap + latGap * latGap);
+        try {
+            return predictor.predict(new double[]{o1.lat, o1.lng, o2.lat, o2.lng});
+        } catch (TranslateException e) {
+            double lngGap = (o1.lng - o2.lng) * Param.LNG;
+            double latGap = (o1.lat - o2.lat) * Param.LAT;
+            return Math.sqrt(lngGap * lngGap + latGap * latGap);
+        }
     }
 
     /**
@@ -43,7 +88,6 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
     @Override
     public double calTimeDistance(Coordinates o1, Coordinates o2) {
         double dis = calSpatialDistance(o1, o2);
-        Param.COUNT++;
         return dis / Param.SPEED;
     }
 
@@ -102,4 +146,3 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
         return similarity;
     }
 }
-
