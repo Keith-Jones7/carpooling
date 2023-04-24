@@ -8,6 +8,9 @@ import ai.djl.ndarray.NDManager;
 import ai.djl.translate.NoBatchifyTranslator;
 import ai.djl.translate.TranslateException;
 import ai.djl.translate.TranslatorContext;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import org.slf4j.LoggerFactory;
 import common.Param;
 import match.Batch;
 import match.Match;
@@ -17,7 +20,6 @@ import model.Solution;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -142,6 +144,8 @@ public class Main {
     }
 
     public static void test() throws MalformedModelException, IOException, TranslateException {
+        Logger logger = (Logger) LoggerFactory.getLogger("ai.djl");
+        logger.setLevel(Level.ERROR);
         Path modeldir = Paths.get("MapLearning\\model\\NetMap.pt");
         Model model = Model.newInstance("test");
         model.load(modeldir);
@@ -167,6 +171,5 @@ public class Main {
 
         }
         System.out.println(System.currentTimeMillis() - s2);
-
     }
 }

@@ -9,9 +9,12 @@ import ai.djl.ndarray.NDManager;
 import ai.djl.translate.NoBatchifyTranslator;
 import ai.djl.translate.TranslateException;
 import ai.djl.translate.TranslatorContext;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import common.Param;
 import model.Coordinates;
 import model.Passenger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -20,10 +23,11 @@ import java.nio.file.Paths;
 public class NetMap implements TouringMap<Coordinates, Passenger> {
     
     private static final Path MODEL_DIR = Paths.get("MapLearning\\model\\NetMap.pt");
-    
     Model model;
     Predictor<double[], Double> predictor;
     public NetMap() {
+        Logger logger = (Logger) LoggerFactory.getLogger("ai.djl");
+        logger.setLevel(Level.ERROR);
         model = Model.newInstance("NetMap");
         try {
             model.load(MODEL_DIR);
