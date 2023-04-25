@@ -146,9 +146,9 @@ public class Main {
     public static void test() throws MalformedModelException, IOException, TranslateException {
         Logger logger = (Logger) LoggerFactory.getLogger("ai.djl");
         logger.setLevel(Level.ERROR);
-        Path modeldir = Paths.get("MapLearning\\model\\NetMap.pt");
+        Path modelDir = Paths.get("MapLearning\\model\\NetMap.pt");
         Model model = Model.newInstance("test");
-        model.load(modeldir);
+        model.load(modelDir);
         Predictor<double[], Double> predictor = model.newPredictor(new NoBatchifyTranslator<double[], Double>() {
             @Override
             public Double processOutput(TranslatorContext translatorContext, NDList ndList) throws Exception {
@@ -163,13 +163,9 @@ public class Main {
             }
         });
         long s = System.currentTimeMillis();
-        double result1 = predictor.predict(new double[]{0.205644, -0.018696, 0.205644, -0.018696});
+        double result1 = predictor.predict(new double[]{32.23714, 118.754071,32.23714, 118.754071});
         System.out.println(result1 + "\t");
         long s2 = System.currentTimeMillis();
-        for (int i = 0; i < 100; i++) {
-            double result2 = predictor.predict(new double[]{-1.258888, 1.36756, -1.21104, 1.37831});
-
-        }
-        System.out.println(System.currentTimeMillis() - s2);
+        System.out.println(System.currentTimeMillis() - s);
     }
 }

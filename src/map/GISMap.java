@@ -95,7 +95,7 @@ public class GISMap implements TouringMap<Coordinates, Passenger> {
 
     @Override
     public boolean inEllipsoid(Passenger p1, Passenger p2) {
-        if (!Param.inEllipsoid(p1, p2)) {
+        if (!Param.testMap.inEllipsoid(p1, p2)) {
             return false;
         }
         double o1_o2 = calTimeDistance(p1.curCoor, p2.originCoor);
@@ -107,7 +107,7 @@ public class GISMap implements TouringMap<Coordinates, Passenger> {
 
     @Override
     public boolean allInEllipsoid(Passenger p1, Passenger p2) {
-        if (!Param.allInEllipsoid(p1, p2)) {
+        if (!Param.testMap.allInEllipsoid(p1, p2)) {
             return false;
         }
         double o1_o2 = calTimeDistance(p1.curCoor, p2.originCoor);

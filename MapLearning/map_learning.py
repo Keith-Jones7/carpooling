@@ -11,6 +11,9 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import pandas as pd
+import math
+import matplotlib.pyplot as plt
+import random
 class ODDataset(Dataset):
     def __init__(self, data, labels):
         self.data = data
@@ -26,12 +29,18 @@ class ODDataset(Dataset):
         return x, y
 
 loadings = pd.read_csv("output/train.csv")
+loadings = loadings[loadings['dist'] < 1000]
+size = len(loadings.index)
+for i in range(size):
+    print(i)
+    offset = random.random() / 10
+    loadings.loc[i + size] = [loadings.iloc[i,0] + offset, loadings.iloc[i,1] + offset , loadings.iloc[i,0] + offset, loadings.iloc[i,1] + offset, 0]
 data = np.array(loadings[['origin_lat', 'origin_lng', 'dest_lat', 'dest_lng']])
 data_mean = torch.tensor(np.mean(data, axis=0), dtype=torch.float64)  # 计算每个数据点（经度、纬度）的均值
 data_std = torch.tensor(np.std(data, axis=0), dtype=torch.float64)  # 计算每个数据点（经度、纬度）的标准差
 labels = np.array(loadings['dist'])  # 输入空间距离标签
 dataset = ODDataset(data, labels)
-dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
 
 class NeuralNetwork(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -81,9 +90,26 @@ def eval_model(model, inputs):
         output = float(model(input__))
         outputs.append(output)
     return outputs
-output__ = eval_model(model, data)
 
+def get_linear_dist(dest_lat, dest_lng, origin_lat, origin_lng):
+    LNG = 94403.94
+    LAT = 111319.49
+    lng_gap = (dest_lng - origin_lng) * LNG
+    lat_gap = (dest_lat - origin_lat) * LAT
+    return math.sqrt(lng_gap * lng_gap + lat_gap * lat_gap)
+
+
+
+output__ = eval_model(model, data)
 
 inputs = torch.tensor([0,0,0,0], dtype=torch.float64) 
 convert = torch.jit.trace(model, inputs)
-convert.save("model/NetMap.pt")
+convert.save("model/NetMap2.pt")
+
+
+plt.legend()
+plt.xlabel('predict')
+plt.ylabel('True')
+plt.title('predict vs True')
+plt.show()
+

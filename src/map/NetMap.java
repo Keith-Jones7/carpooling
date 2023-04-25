@@ -105,6 +105,9 @@ public class NetMap implements TouringMap<Coordinates, Passenger> {
 
     @Override
     public boolean inEllipsoid(Passenger p1, Passenger p2) {
+        if (!Param.testMap.inEllipsoid(p1, p2)) {
+            return false;
+        }
         double o1_o2 = calTimeDistance(p1.originCoor, p2.originCoor);
         double o2_d1 = calTimeDistance(p2.originCoor, p1.destCoor);
         double d1_d2 = calTimeDistance(p1.destCoor, p2.destCoor);
@@ -120,6 +123,9 @@ public class NetMap implements TouringMap<Coordinates, Passenger> {
      * @return 乘客2的两个焦点全部在乘客1的椭圆内
      */
     public boolean allInEllipsoid(Passenger p1, Passenger p2) {
+        if (!Param.testMap.allInEllipsoid(p1, p2)) {
+            return false;
+        }
         double o1_o2 = calTimeDistance(p1.originCoor, p2.originCoor);
         double o2_d2 = calTimeDistance(p2.originCoor, p2.destCoor);
         double d2_d1 = calTimeDistance(p2.destCoor, p1.destCoor);

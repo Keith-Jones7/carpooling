@@ -61,14 +61,14 @@ def get_linear_dist(dest_lat, dest_lng, origin_lat, origin_lng):
 date = '2023-03-09'
 
 #读取文件名
-file_name = 'MapLearning/input/sample_ds_' + date + '.csv'
+file_name = 'input/sample_ds_' + date + '.csv'
 
 #读取数据
 data = pd.read_csv(file_name)
 data.dropna(inplace=True)
-data = data.iloc[0:20000, :]
+#data = data.iloc[0:20000, :]
 #定义每次遍历行数
-batch_size = 3000
+batch_size = 2000
 
 #获取数据总行数
 total_rows = data.shape[0]
@@ -89,10 +89,10 @@ for i in range(num_batches):
     orig_lats = list(sub_data['origin_lat'])
     orig_lngs = list(sub_data['origin_lng'])
     dist.extend(multi_thread(dest_lats, dest_lngs, orig_lats, orig_lngs))
-    time.sleep(3)
+    time.sleep(10)
     print("当前阶段已处理" + str(end_idx))
 
 data['dist'] = dist
 data.dropna(inplace=True)
-data.to_csv("MapLearning/output/train.csv", index=False)
+data.to_csv("output/train2.csv", index=False)
 

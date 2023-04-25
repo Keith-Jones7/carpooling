@@ -79,7 +79,34 @@ public class Solution {
             }
         }
     }
-
+    public void checkSolutionGIS() {
+        ArrayList<Pattern> removeList = new ArrayList<>();
+        for (Pattern pattern : this.patterns) {
+            Driver driver = pattern.driver;
+            if (driver.queue.size() == 1) {
+                Passenger p1 = driver.queue.getFirst();
+                if (Param.gisMap.calTimeDistance(driver.matchCoor, p1.originCoor) > Param.MAX_ETA) {
+                    removeList.add(pattern);
+                }
+            } else if (driver.queue.size() == 2) {
+                Passenger p1 = driver.queue.getFirst();
+                Passenger p2 = driver.queue.getLast();
+                if (Param.gisMap.calTimeDistance(driver.matchCoor, p1.originCoor) > Param.MAX_ETA) {
+                    removeList.add(pattern);
+                }
+                else if (Param.gisMap.calTimeDistance(p1.originCoor, p2.originCoor) > Param.MAX_ETA2) {
+                    removeList.add(pattern);
+                }
+                else if (!Param.gisMap.inEllipsoid(p1, p2) && !Param.touringMap.allInEllipsoid(p1, p2)) {
+                    removeList.add(pattern);
+                }
+                else if (Param.gisMap.calSimilarity(p1, p2) < Param.MIN_TOURING_SIMILARITY) {
+                    removeList.add(pattern);
+                }
+            }
+        }
+        patterns.removeAll(removeList);
+    }
     public void outputSolution(int sample_index) {
         String file_name = String.format("test/output/drs%d/solution.csv", sample_index);
         File outputFile = new File(file_name);

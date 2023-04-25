@@ -50,7 +50,7 @@ public class Match {
                 if (passenger.curDriver != null || passenger.pre != -1) {
                     continue;
                 }
-                if (driver.queue.size() == 0) {
+                if (driver.queue.size() == 0 && Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA) {
                     double eta = Param.touringMap.calTimeDistance(driver.curCoor, passenger.originCoor);
                     if (passenger.next != -1) {
                         if (eta <= Param.MAX_ETA) {
@@ -62,15 +62,17 @@ public class Match {
                             validMatrix[i][j] = (1 - eta / Param.MAX_ETA);
                         }
                     }
-                } else if (flag > 0 && driver.queue.size() == 1 && passenger.next == -1) {
+                } else if (flag > 0 && driver.queue.size() == 1 && passenger.next == -1 ) {
                     Passenger passenger1 = driver.queue.getFirst();
-                    double eta = Param.touringMap.calTimeDistance(passenger1.originCoor, passenger.originCoor);
-                    if ((Param.touringMap.inEllipsoid(passenger1, passenger) || Param.touringMap.allInEllipsoid(passenger1, passenger)) && eta <= Param.MAX_ETA2) {
-                        double similarity = Param.touringMap.calSimilarity(passenger1, passenger);
-                        if (similarity > 0) {
-                            validMatrix[i][j] += Param.samePlus;
-                            validMatrix[i][j] += Param.touringMap.calSimilarity(passenger1, passenger);
-                            validMatrix[i][j] += 1 - eta / Param.MAX_ETA2;
+                    if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger.originCoor) <= Param.MAX_ETA2) {
+                        double eta = Param.touringMap.calTimeDistance(passenger1.originCoor, passenger.originCoor);
+                        if ((Param.touringMap.inEllipsoid(passenger1, passenger) || Param.touringMap.allInEllipsoid(passenger1, passenger)) && eta <= Param.MAX_ETA2) {
+                            double similarity = Param.touringMap.calSimilarity(passenger1, passenger);
+                            if (similarity > 0) {
+                                validMatrix[i][j] += Param.samePlus;
+                                validMatrix[i][j] += Param.touringMap.calSimilarity(passenger1, passenger);
+                                validMatrix[i][j] += 1 - eta / Param.MAX_ETA2;
+                            }
                         }
                     }
                 }
@@ -112,7 +114,7 @@ public class Match {
             }
             for (int jj = j + 1; jj < nPassengers; jj++) {
                 Passenger passenger2 = passengerList.get(jj);
-                if (passenger2.curDriver != null) {
+                if (passenger2.curDriver != null || Param.testMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor) > Param.MAX_ETA2) {
                     continue;
                 }
                 double eta2 = Param.touringMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor);
@@ -228,8 +230,9 @@ public class Match {
         if (algo_flag == 4) {
             solution = match_cplex();
         }
-        solution.checkSolution();
+        //solution.checkSolution();
         remove(solution, cur_time);
+//        solution.checkSolutionGIS();
         return solution;
     }
 
