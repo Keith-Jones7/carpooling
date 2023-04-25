@@ -29,12 +29,7 @@ class ODDataset(Dataset):
         return x, y
 
 loadings = pd.read_csv("output/train.csv")
-loadings = loadings[loadings['dist'] < 1000]
-size = len(loadings.index)
-for i in range(size):
-    print(i)
-    offset = random.random() / 10
-    loadings.loc[i + size] = [loadings.iloc[i,0] + offset, loadings.iloc[i,1] + offset , loadings.iloc[i,0] + offset, loadings.iloc[i,1] + offset, 0]
+
 data = np.array(loadings[['origin_lat', 'origin_lng', 'dest_lat', 'dest_lng']])
 data_mean = torch.tensor(np.mean(data, axis=0), dtype=torch.float64)  # 计算每个数据点（经度、纬度）的均值
 data_std = torch.tensor(np.std(data, axis=0), dtype=torch.float64)  # 计算每个数据点（经度、纬度）的标准差
@@ -83,7 +78,6 @@ for epoch in range(epochs):
 
 def eval_model(model, inputs):
     model.eval()
-    total_loss = 0
     outputs = []
     for input__ in inputs :     
         input__ = torch.tensor(input__, dtype=torch.float64)
@@ -104,12 +98,5 @@ output__ = eval_model(model, data)
 
 inputs = torch.tensor([0,0,0,0], dtype=torch.float64) 
 convert = torch.jit.trace(model, inputs)
-convert.save("model/NetMap2.pt")
-
-
-plt.legend()
-plt.xlabel('predict')
-plt.ylabel('True')
-plt.title('predict vs True')
-plt.show()
+convert.save("model/NetMap.pt")
 

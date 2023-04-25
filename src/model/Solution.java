@@ -1,7 +1,6 @@
 package model;
 
 import common.Param;
-import map.TouringMap;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -21,6 +20,7 @@ public class Solution {
         this.patterns = patterns;
         this.profit = profit;
     }
+
     public double getAvgEta() {
         double sum = 0;
         int cnt = 0;
@@ -37,6 +37,7 @@ public class Solution {
         }
         return sum / cnt;
     }
+
     public double getAvgSame() {
         double sum = 0;
         int cnt = 0;
@@ -51,6 +52,7 @@ public class Solution {
         }
         return sum / cnt;
     }
+
     public void checkSolution() {
         for (Pattern pattern : this.patterns) {
             Driver driver = pattern.driver;
@@ -79,6 +81,7 @@ public class Solution {
             }
         }
     }
+
     public void checkSolutionGIS() {
         ArrayList<Pattern> removeList = new ArrayList<>();
         for (Pattern pattern : this.patterns) {
@@ -93,20 +96,18 @@ public class Solution {
                 Passenger p2 = driver.queue.getLast();
                 if (Param.gisMap.calTimeDistance(driver.matchCoor, p1.originCoor) > Param.MAX_ETA) {
                     removeList.add(pattern);
-                }
-                else if (Param.gisMap.calTimeDistance(p1.originCoor, p2.originCoor) > Param.MAX_ETA2) {
+                } else if (Param.gisMap.calTimeDistance(p1.originCoor, p2.originCoor) > Param.MAX_ETA2) {
                     removeList.add(pattern);
-                }
-                else if (!Param.gisMap.inEllipsoid(p1, p2) && !Param.touringMap.allInEllipsoid(p1, p2)) {
+                } else if (!Param.gisMap.inEllipsoid(p1, p2) && !Param.touringMap.allInEllipsoid(p1, p2)) {
                     removeList.add(pattern);
-                }
-                else if (Param.gisMap.calSimilarity(p1, p2) < Param.MIN_TOURING_SIMILARITY) {
+                } else if (Param.gisMap.calSimilarity(p1, p2) < Param.MIN_TOURING_SIMILARITY) {
                     removeList.add(pattern);
                 }
             }
         }
         patterns.removeAll(removeList);
     }
+
     public void outputSolution(int sample_index) {
         String file_name = String.format("test/output/drs%d/solution.csv", sample_index);
         File outputFile = new File(file_name);

@@ -42,7 +42,7 @@ public class Pattern {
         this.driverIdx = driverIdx;
         this.passenger1Idx = passenger1Idx;
         this.passenger2Idx = passenger2Idx;
-    }   
+    }
 
     // Todo: 后续可以在这里修改方案变量的目标系数
     public void setAim(double sameAim, double etaAim1, double etaAim2) {

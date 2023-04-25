@@ -21,10 +21,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class NetMap implements TouringMap<Coordinates, Passenger> {
-    
+
     private static final Path MODEL_DIR = Paths.get("MapLearning\\model\\NetMap.pt");
     Model model;
     Predictor<double[], Double> predictor;
+
     public NetMap() {
         Logger logger = (Logger) LoggerFactory.getLogger("ai.djl");
         logger.setLevel(Level.ERROR);
@@ -36,7 +37,7 @@ public class NetMap implements TouringMap<Coordinates, Passenger> {
                 public Double processOutput(TranslatorContext translatorContext, NDList ndList) {
                     return ndList.get(0).getDouble();
                 }
-                
+
                 @Override
                 public NDList processInput(TranslatorContext translatorContext, double[] floats) {
                     NDManager ndManager = translatorContext.getNDManager();
@@ -49,7 +50,7 @@ public class NetMap implements TouringMap<Coordinates, Passenger> {
         }
 
     }
-    
+
 
     /**
      * 计算坐标是否重合

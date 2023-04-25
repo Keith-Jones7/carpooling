@@ -8,11 +8,10 @@ import model.Coordinates;
 import model.Passenger;
 
 import java.util.BitSet;
-import java.util.Random;
 
 public class Param {
 
-    
+
     public static final int MATCH_ALGO = 2;                                       // 匹配算法选择参数  0: cplex  1: match_zjr  2: match_zkj   3: match_ortools
     public static final long MAX_ETA2 = 200;                                      // 接第二个乘客最大eta
     public static final double LEAVING_COFF = 1;                              // 乘客根据预期到达时间决定的取消订单时间系数
@@ -35,6 +34,7 @@ public class Param {
     public static TouringMap<Coordinates, Passenger> testMap;
     public static double timeCostOnGenPatterns = 0;
     public static int MAP_CHOOSE;                                       // 地图选择参数     1: GISMap    2: NetMap  default: TestMap
+
     public static void setMapChoose(int val) {
         Param.MAP_CHOOSE = val;
         gisMap = new GISMap();

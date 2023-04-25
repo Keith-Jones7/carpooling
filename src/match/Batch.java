@@ -69,7 +69,7 @@ public class Batch {
 
             }
         } catch (Exception ignored) {
-            
+
         }
     }
 

@@ -62,7 +62,7 @@ public class Match {
                             validMatrix[i][j] = (1 - eta / Param.MAX_ETA);
                         }
                     }
-                } else if (flag > 0 && driver.queue.size() == 1 && passenger.next == -1 ) {
+                } else if (flag > 0 && driver.queue.size() == 1 && passenger.next == -1) {
                     Passenger passenger1 = driver.queue.getFirst();
                     if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger.originCoor) <= Param.MAX_ETA2) {
                         double eta = Param.touringMap.calTimeDistance(passenger1.originCoor, passenger.originCoor);
@@ -358,7 +358,7 @@ public class Match {
         model.setParam(IloCplex.Param.MIP.Tolerances.MIPGap, precision);
         model.setOut(null);
         //System.out.println(model.getVersion());
-        
+
         //决策变量
         IloNumVar[][] match = new IloNumVar[nDrivers][nPassengers];
         for (int i = 0; i < nDrivers; i++) {

@@ -54,7 +54,7 @@ def get_linear_dist(dest_lat, dest_lng, origin_lat, origin_lng):
     LAT = 111319.49
     lng_gap = (dest_lng - origin_lng) * LNG
     lat_gap = (dest_lat - origin_lat) * LAT
-    return dest_lat + dest_lng + origin_lat + origin_lng
+    return math.sqrt(lng_gap * lng_gap + lat_gap * lat_gap)
 
     
 #数据日期
@@ -73,7 +73,7 @@ batch_size = 2000
 #获取数据总行数
 total_rows = data.shape[0]
 
-#计算遍历次数
+#计算遍历次数#
 num_batches = (total_rows // batch_size) + 1
 
 dist = []
