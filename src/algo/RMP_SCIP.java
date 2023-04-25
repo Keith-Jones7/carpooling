@@ -46,7 +46,7 @@ public class RMP_SCIP {
     void formulate() {
         // init
         Loader.loadNativeLibraries();
-        String solverName = Param.LP_IP ? "GLOP" : "SCIP";
+        String solverName = "GLOP";
         solver = MPSolver.createSolver(solverName);
 
         x = new ArrayList<>();
@@ -125,7 +125,7 @@ public class RMP_SCIP {
             pool.add(pattern);
             // add var
             String name = "x_" + pattern.driverIdx + "," + pattern.passenger1Idx + "," + pattern.passenger2Idx;
-            MPVariable var = solver.makeVar(0, infinity, !Param.LP_IP, name);
+            MPVariable var = solver.makeVar(0, infinity, false, name);
             // set obj
             obj.setCoefficient(var, pattern.aim);
             // set range on driver

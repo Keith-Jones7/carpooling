@@ -67,11 +67,7 @@ public class DivingHeuristic {
             }
             // solve modified LP; update nlp
             rmp.setDiving(fixedIdx, this.lpSol.vals);
-            if (Param.USE_CG) {
-                this.lpSol = columnGeneration.cg();
-            } else {
-                this.lpSol = rmp.solveLP();
-            }
+            this.lpSol = columnGeneration.cg();
             // update fracIdx and nFrac
             fracPair = setFixedAndFracIdx();
             nFrac = fracPair.getKey();

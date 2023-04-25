@@ -24,7 +24,7 @@ import java.nio.file.Paths;
 public class Main {
     public static void main(String[] args) throws Exception {
         Param.setMapChoose(2);
-        int timeInterval = 10;
+        int timeInterval = 300;
         runSample(timeInterval, 2);
     }
 

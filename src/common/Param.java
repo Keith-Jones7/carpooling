@@ -13,7 +13,7 @@ import java.util.Random;
 public class Param {
 
     
-    public static final int MATCH_ALGO = 2;                                       // 匹配算法选择参数  1: match_zjr  2: match_zkj   3: match_ortools
+    public static final int MATCH_ALGO = 2;                                       // 匹配算法选择参数  0: cplex  1: match_zjr  2: match_zkj   3: match_ortools
     public static final long MAX_ETA2 = 200;                                      // 接第二个乘客最大eta
     public static final double LEAVING_COFF = 1;                              // 乘客根据预期到达时间决定的取消订单时间系数
     public static final double SPEED = 10;                                         // 车辆平均行驶速度,单位米每秒
@@ -22,8 +22,6 @@ public class Param {
     public static final int SEED = 3;
     public static final double eps = 1e-3;
     public static int MATCH_MODEL = 2;                                   // 匹配算法模式参数     0: 0-1匹配    1: 1-1匹配    2: 0-2匹配
-    public static boolean LP_IP = true;                                             // 模型参数     true: LP    false: IP
-    public static boolean USE_CG = true;                                               // cg使用参数
     public static long MAX_ETA = 300;                                        // 接第一个乘客最大eta
     public static double DETOUR_RATIO = 1.4;                             // 最大绕行比
     public static double MIN_TOURING_SIMILARITY = 0.4;                      // 最小行程相似度
