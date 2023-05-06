@@ -54,7 +54,7 @@ public class Param {
         }
     }
 
-    public static double getTimecost(long start) {
+    public static double getTimeCost(long start) {
         return 0.001 * (System.currentTimeMillis() - start);
     }
 

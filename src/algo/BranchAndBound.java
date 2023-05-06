@@ -176,7 +176,7 @@ public class BranchAndBound {
         long s1 = System.currentTimeMillis();
         KMAlgorithm kmAlgo = new KMAlgorithm(weight);
         int[][] matchMatrix = kmAlgo.getMatch();
-        double time1 = Param.getTimecost(s1);
+        double time1 = Param.getTimeCost(s1);
         for (Pattern pattern : singlePool) {
             int driverIdx = pattern.driverIdx;
             int passenger1Idx = pattern.passenger1Idx;
@@ -184,7 +184,7 @@ public class BranchAndBound {
                 pool.add(pattern);
             }
         }
-        double time = Param.getTimecost(s);
+        double time = Param.getTimeCost(s);
         return pool;
     }
 
@@ -285,7 +285,7 @@ public class BranchAndBound {
             }
 
         }
-        double timeCost = Param.getTimecost(s);
+        double timeCost = Param.getTimeCost(s);
         return new Solution(patterns, profit);
     }
 

@@ -45,7 +45,7 @@ public class ColumnGeneration {
         double obj;
         long s0 = System.currentTimeMillis();
         rmp.solveLP();
-        double timeCost = Param.getTimecost(s0);
+        double timeCost = Param.getTimeCost(s0);
         obj = rmp.getObjVal();
         dualsOfRanges = rmp.getDualsOfRanges();
         fixedDrivers = rmp.fixedDrivers;
@@ -56,7 +56,7 @@ public class ColumnGeneration {
             rmp.addColumns(pp.patterns);
             s0 = System.currentTimeMillis();
             rmp.solveLP();
-            timeCost = Param.getTimecost(s0);
+            timeCost = Param.getTimeCost(s0);
             obj = rmp.getObjVal();
             dualsOfRanges = rmp.getDualsOfRanges();
             pp.solve(dualsOfRanges, fixedDrivers, fixedPassengers);

@@ -9,6 +9,7 @@ import ai.djl.translate.TranslateException;
 import ai.djl.translate.TranslatorContext;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.google.ortools.Loader;
 import common.Param;
 import match.Batch;
 import match.Match;
@@ -16,7 +17,12 @@ import model.Pattern;
 import model.Solution;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -70,6 +76,7 @@ public class Main {
     }
 
     public static Solution runSample(int timeInterval, int sampleIndex) throws Exception {
+        Loader.loadNativeLibraries();
         Batch batch = new Batch();
         Solution solution = new Solution();
         int passengerSum = 0, matchSum = 0;
@@ -137,15 +144,15 @@ public class Main {
 
         Solution solution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
 //            System.out.println(System.currentTimeMillis() - time);
-        double time_cost = Param.getTimecost(startTime);
+        double time_cost = Param.getTimeCost(startTime);
         System.out.printf("%d\t%d  \t%.6f   \t%.3f   \t%d%n", waitingDriverNum, waitingPassengerNum, solution.profit, time_cost, batch.passengerList.size());
 
     }
 
-    public static void test() throws MalformedModelException, IOException, TranslateException {
+    public static double testNetMap(double lat1, double lng1, double lat2, double lng2) throws MalformedModelException, IOException, TranslateException {
         Logger logger = (Logger) LoggerFactory.getLogger("ai.djl");
         logger.setLevel(Level.ERROR);
-        Path modelDir = Paths.get("MapLearning\\model\\NetMap.pt");
+        Path modelDir = Paths.get("MapLearning\\model\\NetMap2.pt");
         Model model = Model.newInstance("test");
         model.load(modelDir);
         Predictor<double[], Double> predictor = model.newPredictor(new NoBatchifyTranslator<double[], Double>() {
@@ -161,10 +168,46 @@ public class Main {
                 return new NDList(ndArray);
             }
         });
-        long s = System.currentTimeMillis();
-        double result1 = predictor.predict(new double[]{32.23714, 118.754071,32.23714, 118.754071});
-        System.out.println(result1 + "\t");
-        long s2 = System.currentTimeMillis();
-        System.out.println(System.currentTimeMillis() - s);
+        return predictor.predict(new double[]{lat1, lng1, lat2, lng2});
+
+    }
+
+    public static double post(double lat1, double lng1, double lat2, double lng2) {
+        long start_time = System.currentTimeMillis();
+        String url = "http://gateway.t3go.com.cn/gis-map-api/lbs/v2/distance/mto";
+        String json = "{\"cityCode\": \"320100\",\"dest\": {\"lat\":"
+                + lat2 + ",\"lng\":"
+                + lng2 + "},\"origins\": [{\"lat\":"
+                + lat1 + ",\"lng\":"
+                + lng1 + "}]}";
+
+        String post_result = sendHttpPost(url, json);
+        String[] splits = post_result.split(":");
+        String distance = splits[8].split(",")[0];
+        return Double.parseDouble(distance);
+    }
+
+    public static String sendHttpPost(String url_string, String jsonBody) {
+        try {
+            URL url = new URL(url_string);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+            OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
+            writer.write(jsonBody);
+            writer.flush();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+            StringBuilder response = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+            return response.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }

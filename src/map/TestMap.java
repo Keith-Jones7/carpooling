@@ -5,7 +5,7 @@ import model.Coordinates;
 import model.Passenger;
 
 public class TestMap implements TouringMap<Coordinates, Passenger> {
-    
+
     /**
      * 计算坐标是否重合
      *

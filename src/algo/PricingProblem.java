@@ -81,7 +81,7 @@ public class PricingProblem {
         }
         patterns.addAll(patternPriorityQueue);
 //        totalPatterns.removeAll(patterns);
-        double timeCost = Param.getTimecost(s0);
+        double timeCost = Param.getTimeCost(s0);
     }
 
     // 优化遍历

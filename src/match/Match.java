@@ -105,7 +105,7 @@ public class Match {
         }
     }
 
-    public int calMatch() {
+    public void calMatch() {
         ppValidMatrix2 = new double[nPassengers][nPassengers];
         for (int j = 0; j < nPassengers; j++) {
             Passenger passenger1 = passengerList.get(j);
@@ -136,34 +136,25 @@ public class Match {
                 }
             }
         }
-        long start = System.currentTimeMillis();
-        Loader.loadNativeLibraries();
         MPSolver solver = MPSolver.createSolver("SCIP");
         MPVariable[][] variables = new MPVariable[nPassengers][nPassengers];
         MPConstraint[] constraints = new MPConstraint[nPassengers];
         MPObjective obj = solver.objective();
         obj.setMaximization();
         for (int i = 0; i < nPassengers; i++) {
+            constraints[i] = solver.makeConstraint(0, 1);
             for (int j = 0; j < nPassengers; j++) {
                 if (ppValidMatrix2[i][j] > 0) {
                     variables[i][j] = solver.makeVar(0, 1, true, i + "," + j);
                     obj.setCoefficient(variables[i][j], ppValidMatrix2[i][j]);
+                    constraints[i].setCoefficient(variables[i][j], 1);
                 }
-            }
-        }
-        for (int i = 0; i < nPassengers; i++) {
-            constraints[i] = solver.makeConstraint(0, 1);
-            for (int index = 0; index < nPassengers; index++) {
-                if (ppValidMatrix2[i][index] > 0) {
-                    constraints[i].setCoefficient(variables[i][index], 1);
-                }
-                if (ppValidMatrix2[index][i] > 0) {
-                    constraints[i].setCoefficient(variables[index][i], 1);
+                if (ppValidMatrix2[j][i] > 0) {
+                    constraints[i].setCoefficient(variables[j][i], 1);
                 }
             }
         }
         solver.solve();
-        int cnt = 0;
         for (int j = 0; j < nPassengers; j++) {
             for (int jj = 0; jj < nPassengers; jj++) {
                 if (ppValidMatrix2[j][jj] > 0 && (int) variables[j][jj].solutionValue() == 1) {
@@ -171,11 +162,9 @@ public class Match {
                     Passenger passenger2 = passengerList.get(jj);
                     passenger1.next = jj;
                     passenger2.pre = j;
-                    cnt++;
                 }
             }
         }
-        return cnt;
     }
 
     void calPPValid() {
@@ -196,7 +185,7 @@ public class Match {
                 }
             }
         }
-//        System.out.println(Param.getTimecost(s));
+//        System.out.println(Param.getTimeCost(s));
     }
 
     void calDPValid() {
@@ -213,7 +202,7 @@ public class Match {
                     }
                 } else {
                     Passenger passenger0 = driverList.get(i).queue.getFirst();
-                    if (Param.testMap.calTimeDistance(passenger0.originCoor, passenger.originCoor) <= Param.MAX_ETA2){
+                    if (Param.testMap.calTimeDistance(passenger0.originCoor, passenger.originCoor) <= Param.MAX_ETA2) {
                         dpTimeMatrix[i][j] = Param.touringMap.calTimeDistance(passenger0.originCoor, passenger.originCoor);
                         // 只有当司机带了一个顾客时，才需要计算司机到顾客的里程相似度
                         if (Param.touringMap.inEllipsoid(passenger0, passenger) || Param.touringMap.allInEllipsoid(passenger0, passenger)) {
@@ -226,7 +215,7 @@ public class Match {
                 }
             }
         }
-        System.out.println(Param.getTimecost(s));
+        System.out.println(Param.getTimeCost(s));
     }
 
     public Solution match(long cur_time, int algo_flag, int match_flag) throws Exception {

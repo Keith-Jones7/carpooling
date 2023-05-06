@@ -76,7 +76,7 @@ total_rows = data.shape[0]
 #计算遍历次数#
 num_batches = (total_rows // batch_size) + 1
 
-dist = []
+distance = []
 for i in range(num_batches):
     # 计算当前批次的起始行索引和结束行索引
     start_idx = i * batch_size
@@ -88,11 +88,11 @@ for i in range(num_batches):
     dest_lngs = list(sub_data['dest_lng'])
     orig_lats = list(sub_data['origin_lat'])
     orig_lngs = list(sub_data['origin_lng'])
-    dist.extend(multi_thread(dest_lats, dest_lngs, orig_lats, orig_lngs))
+    distance.extend(multi_thread(dest_lats, dest_lngs, orig_lats, orig_lngs))
     time.sleep(10)
     print("当前阶段已处理" + str(end_idx))
 
-data['dist'] = dist
+data['distance'] = distance
 data.dropna(inplace=True)
 data.to_csv("output/train2.csv", index=False)
 
