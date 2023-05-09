@@ -44,7 +44,6 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
     @Override
     public double calTimeDistance(Coordinates o1, Coordinates o2) {
         double dis = calSpatialDistance(o1, o2);
-        Param.COUNT++;
         return dis / Param.SPEED;
     }
 

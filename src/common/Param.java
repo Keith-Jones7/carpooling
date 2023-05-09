@@ -20,7 +20,7 @@ public class Param {
     public static final double EPS = 1e-8;
     public static final int SEED = 3;
     public static final double eps = 1e-3;
-    public static int MATCH_MODEL = 2;                                   // 匹配算法模式参数     0: 0-1匹配    1: 1-1匹配    2: 0-2匹配
+    public static int MATCH_MODEL = 1;                                   // 匹配算法模式参数     0: 0-1匹配    1: 1-1匹配    2: 0-2匹配
     public static long MAX_ETA = 300;                                        // 接第一个乘客最大eta
     public static double DETOUR_RATIO = 1.4;                             // 最大绕行比
     public static double MIN_TOURING_SIMILARITY = 0.4;                      // 最小行程相似度

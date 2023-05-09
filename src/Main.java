@@ -28,9 +28,12 @@ import java.nio.file.Paths;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        Param.setMapChoose(2);
-        int timeInterval = 300;
+        Param.COUNT = 0;
+        Param.MAX_TIME = 10;
+        Param.setMapChoose(1);
+        int timeInterval = 10;
         runSample(timeInterval, 2);
+        System.out.println(Param.COUNT);
     }
 
     public static void runDefault(int timeInterval) throws Exception {
@@ -123,8 +126,8 @@ public class Main {
                 passengerSum, matchSum, passengerSum - matchSum - batch.passengerList.size() - solution.leaveCount,
                 batch.passengerList.size(), solution.leaveCount, (double) matchSum / passengerSum * 100);
         System.out.println();
-//        System.out.printf("%.2f  \t%d  \t  %d  \t  %d  \t%.2f   \t%.2f%n", solution.profit, matchSum, passengerSum - matchSum - batch.passengerList.size(), 
-//                batch.passengerList.size(), solution.getAvgEta(), solution.getAvgSame());
+        System.out.printf("%.2f  \t%d  \t  %d  \t  %d  \t%.2f   \t%.2f%n", solution.profit, matchSum, passengerSum - matchSum - batch.passengerList.size(), 
+                batch.passengerList.size(), solution.getAvgEta(), solution.getAvgSame());
         return solution;
     }
 
@@ -189,6 +192,7 @@ public class Main {
 
     public static String sendHttpPost(String url_string, String jsonBody) {
         try {
+
             URL url = new URL(url_string);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");

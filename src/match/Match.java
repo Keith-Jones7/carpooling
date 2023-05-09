@@ -16,6 +16,7 @@ import model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
 public class Match {
     public List<Driver> driverList;
@@ -42,7 +43,9 @@ public class Match {
     }
 
     public void calValid(int flag) {//flag == 1 考虑拼车，其他：不考虑
-        validMatrix = new double[nDrivers][nPassengers];
+        validMatrix = new double[nDrivers][nPassengers];    
+        ExecutorService executor = Executors.newFixedThreadPool(nDrivers * nPassengers);
+        List<Future<Double>> futures = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {
             Driver driver = driverList.get(i);
             for (int j = 0; j < nPassengers; j++) {
@@ -51,7 +54,32 @@ public class Match {
                     continue;
                 }
                 if (driver.queue.size() == 0 && Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA) {
-                    double eta = Param.touringMap.calTimeDistance(driver.curCoor, passenger.originCoor);
+                    Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(driver.curCoor, passenger.originCoor);
+                    futures.add(executor.submit(etaCalculator));
+                }else if (flag > 0 && driver.queue.size() == 1 && passenger.next == -1) {
+                    Passenger passenger1 =  driver.queue.getFirst();
+                    if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger.originCoor) <= Param.MAX_ETA2) {
+                        Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(passenger1.originCoor, passenger.originCoor);
+                        futures.add(executor.submit(etaCalculator));
+                    }
+                }
+            }
+        }
+        int index = 0;
+        for (int i = 0; i < nDrivers; i++) {
+            Driver driver = driverList.get(i);
+            for (int j = 0; j < nPassengers; j++) {
+                Passenger passenger = passengerList.get(j);
+                if (passenger.curDriver != null || passenger.pre != -1) {
+                    continue;
+                }
+                if (driver.queue.size() == 0 && Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA) {
+                    double eta = Param.MAX_ETA;
+                    try {
+                        eta = futures.get(index++).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
                     if (passenger.next != -1) {
                         if (eta <= Param.MAX_ETA) {
                             validMatrix[i][j] = (1 - eta / Param.MAX_ETA);
@@ -65,8 +93,13 @@ public class Match {
                 } else if (flag > 0 && driver.queue.size() == 1 && passenger.next == -1) {
                     Passenger passenger1 = driver.queue.getFirst();
                     if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger.originCoor) <= Param.MAX_ETA2) {
-                        double eta = Param.touringMap.calTimeDistance(passenger1.originCoor, passenger.originCoor);
-                        if ((Param.touringMap.inEllipsoid(passenger1, passenger) || Param.touringMap.allInEllipsoid(passenger1, passenger)) && eta <= Param.MAX_ETA2) {
+                        double eta = Param.MAX_ETA2;
+                        try {
+                            eta = futures.get(index++).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                        if (eta <= Param.MAX_ETA2 && (Param.touringMap.inEllipsoid(passenger1, passenger) || Param.touringMap.allInEllipsoid(passenger1, passenger))) {
                             double similarity = Param.touringMap.calSimilarity(passenger1, passenger);
                             if (similarity > 0) {
                                 validMatrix[i][j] += Param.samePlus;
@@ -107,6 +140,8 @@ public class Match {
 
     public void calMatch() {
         ppValidMatrix2 = new double[nPassengers][nPassengers];
+        ExecutorService executor = Executors.newFixedThreadPool(nPassengers * nPassengers);
+        List<Future<Double>> futures = new ArrayList<>();
         for (int j = 0; j < nPassengers; j++) {
             Passenger passenger1 = passengerList.get(j);
             if (passenger1.curDriver != null) {
@@ -117,7 +152,27 @@ public class Match {
                 if (passenger2.curDriver != null || Param.testMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor) > Param.MAX_ETA2) {
                     continue;
                 }
-                double eta2 = Param.touringMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor);
+                Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor);
+                futures.add(executor.submit(etaCalculator));
+            }
+        }
+        int index = 0;
+        for (int j = 0; j < nPassengers; j++) {
+            Passenger passenger1 = passengerList.get(j);
+            if (passenger1.curDriver != null) {
+                continue;
+            }
+            for (int jj = j + 1; jj < nPassengers; jj++) {
+                Passenger passenger2 = passengerList.get(jj);
+                if (passenger2.curDriver != null || Param.testMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor) > Param.MAX_ETA2) {
+                    continue;
+                }
+                double eta2 = Param.MAX_ETA2;
+                try {
+                    eta2 = futures.get(index++).get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
                 if (eta2 <= Param.MAX_ETA2) {
                     double same1 = 0, same2 = 0;
                     if (Param.touringMap.inEllipsoid(passenger1, passenger2) ||

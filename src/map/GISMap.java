@@ -3,22 +3,32 @@ package map;
 import common.Param;
 import model.Coordinates;
 import model.Passenger;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.util.EntityUtils;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GISMap implements TouringMap<Coordinates, Passenger> {
     private static final String api = "http://gateway.t3go.com.cn/gis-map-api/lbs/v2/distance/mto";
-    private final HashMap<Integer, Double> spatialMap;
-    private final HashMap<Integer, Double> timeMap;
+    private final ConcurrentHashMap<Integer, Double> spatialMap;
+    private final ConcurrentHashMap<Integer, Double> timeMap;
 
     public GISMap() {
-        spatialMap = new HashMap<>();
-        timeMap = new HashMap<>();
+        spatialMap = new ConcurrentHashMap<>();
+        timeMap = new ConcurrentHashMap<>();
     }
 
     private static String generateJson(Coordinates o, Coordinates d) {
@@ -33,25 +43,29 @@ public class GISMap implements TouringMap<Coordinates, Passenger> {
                 "}]}";
     }
 
-    private static String sendHttpPost(String jsonBody) {
+    private static final CloseableHttpClient httpClient;
+
+    private static final ThreadLocal<HttpPost> localHttpPost = ThreadLocal.withInitial(() -> {
+        HttpPost httpPost = new HttpPost(api);
+        httpPost.setHeader("Content-Type", "application/json");
+        return httpPost;
+    });
+
+    static {
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(10000);
+        cm.setDefaultMaxPerRoute(10000);
+        httpClient = HttpClients.custom().setConnectionManager(cm).build();
+    }
+
+    public static String sendHttpPost(String jsonBody) {
         try {
-            URL url = new URL(api);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
-            OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
-            writer.write(jsonBody);
-            writer.flush();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder response = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-            reader.close();
-            return response.toString();
-        } catch (Exception e) {
+            HttpPost httpPost = localHttpPost.get();
+            HttpEntity entity = new StringEntity(jsonBody, "UTF-8");
+            httpPost.setEntity(entity);
+            HttpResponse response = httpClient.execute(httpPost);
+            return EntityUtils.toString(response.getEntity());
+        } catch (IOException e) {
             System.out.println("获取地理位置出错！");
             return "";
         }
