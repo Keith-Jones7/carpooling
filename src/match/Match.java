@@ -54,6 +54,7 @@ public class Match {
                     continue;
                 }
                 if (driver.queue.size() == 0 && Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA) {
+                    Param.COUNT++;
                     Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(driver.curCoor, passenger.originCoor);
                     futures.add(executor.submit(etaCalculator));
                 }else if (flag > 0 && driver.queue.size() == 1 && passenger.next == -1) {
@@ -65,6 +66,7 @@ public class Match {
                 }
             }
         }
+        executor.shutdown();
         int index = 0;
         for (int i = 0; i < nDrivers; i++) {
             Driver driver = driverList.get(i);
@@ -153,9 +155,11 @@ public class Match {
                     continue;
                 }
                 Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor);
+                Param.COUNT++;
                 futures.add(executor.submit(etaCalculator));
             }
         }
+        executor.shutdown();
         int index = 0;
         for (int j = 0; j < nPassengers; j++) {
             Passenger passenger1 = passengerList.get(j);
@@ -266,7 +270,6 @@ public class Match {
                     } else {
                         dpTimeMatrix[i][j] = 2 * Param.MAX_ETA2;
                     }
-
                 }
             }
         }
