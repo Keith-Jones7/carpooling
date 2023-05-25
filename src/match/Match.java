@@ -43,6 +43,7 @@ public class Match {
     }
 
     public void calValid(int flag) {//flag == 1 考虑拼车，其他：不考虑
+        long s = System.currentTimeMillis();
         validMatrix = new double[nDrivers][nPassengers];    
         ExecutorService executor = Executors.newFixedThreadPool(nDrivers * nPassengers);
         List<Future<Double>> futures = new ArrayList<>();
@@ -113,6 +114,7 @@ public class Match {
                 }
             }
         }
+        System.out.println(Param.getTimeCost(s));
     }
 
     public void calValidSeeker() {
@@ -228,12 +230,33 @@ public class Match {
 
     void calPPValid() {
         long s = System.currentTimeMillis();
+        ExecutorService executor = Executors.newFixedThreadPool(nPassengers * nPassengers);
+        List<Future<Double>> futures = new ArrayList<>();
         for (int i = 0; i < nPassengers; i++) {
             Passenger passenger1 = passengerList.get(i);
             for (int j = 0; j < nPassengers; j++) {
                 Passenger passenger2 = passengerList.get(j);
                 if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor) <= Param.MAX_ETA2) {
-                    ppTimeMatrix[i][j] = Param.touringMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor);
+                    Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor);
+                    futures.add(executor.submit(etaCalculator));
+                }
+            }
+        }
+        executor.shutdown();
+        int index = 0;
+        for (int i = 0; i < nPassengers; i++) {
+            Passenger passenger1 = passengerList.get(i);
+            for (int j = 0; j < nPassengers; j++) {
+                Passenger passenger2 = passengerList.get(j);
+                if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor) <= Param.MAX_ETA2) {
+                    double eta = Param.MAX_ETA;
+                    try {
+                        eta = futures.get(index++).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                    ppTimeMatrix[i][j] = eta;
+
                     if (ppTimeMatrix[i][j] <= Param.MAX_ETA2) {
                         if (Param.touringMap.inEllipsoid(passenger1, passenger2) || Param.touringMap.allInEllipsoid(passenger1, passenger2)) {
                             ppValidMatrix[i][j] = Param.touringMap.calSimilarity(passenger1, passenger2);
@@ -244,25 +267,59 @@ public class Match {
                 }
             }
         }
-//        System.out.println(Param.getTimeCost(s));
+        System.out.println(Param.getTimeCost(s));
     }
 
     void calDPValid() {
         long s = System.currentTimeMillis();
+        ExecutorService executor = Executors.newFixedThreadPool(nDrivers * nPassengers);
+        List<Future<Double>> futures = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {
             Driver driver = driverList.get(i);
             for (int j = 0; j < nPassengers; j++) {
                 Passenger passenger = passengerList.get(j);
                 if (driverList.get(i).queue.size() == 0) {
                     if (Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA) {
-                        dpTimeMatrix[i][j] = Param.touringMap.calTimeDistance(driver.curCoor, passenger.originCoor);
+                        Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(driver.curCoor, passenger.originCoor);
+                        futures.add(executor.submit(etaCalculator));
+                    }
+                } else {
+                    Passenger passenger0 = driverList.get(i).queue.getFirst();
+                    if (Param.testMap.calTimeDistance(passenger0.originCoor, passenger.originCoor) <= Param.MAX_ETA2) {
+                        Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(passenger0.originCoor, passenger.originCoor);
+                        futures.add(executor.submit(etaCalculator));
+                    }
+                }
+            }
+        }
+        executor.shutdown();
+        int index = 0;
+        for (int i = 0; i < nDrivers; i++) {
+            Driver driver = driverList.get(i);
+            for (int j = 0; j < nPassengers; j++) {
+                Passenger passenger = passengerList.get(j);
+                if (driverList.get(i).queue.size() == 0) {
+                    if (Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA) {
+                        double eta = Param.MAX_ETA;
+                        try {
+                            eta = futures.get(index++).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                        dpTimeMatrix[i][j] = eta;
                     } else {
                         dpTimeMatrix[i][j] = 2 * Param.MAX_ETA;
                     }
                 } else {
                     Passenger passenger0 = driverList.get(i).queue.getFirst();
                     if (Param.testMap.calTimeDistance(passenger0.originCoor, passenger.originCoor) <= Param.MAX_ETA2) {
-                        dpTimeMatrix[i][j] = Param.touringMap.calTimeDistance(passenger0.originCoor, passenger.originCoor);
+                        double eta = Param.MAX_ETA;
+                        try {
+                            eta = futures.get(index++).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                        dpTimeMatrix[i][j] = eta;
                         // 只有当司机带了一个顾客时，才需要计算司机到顾客的里程相似度
                         if (Param.touringMap.inEllipsoid(passenger0, passenger) || Param.touringMap.allInEllipsoid(passenger0, passenger)) {
                             dpValidMatrix[i][j] = Param.touringMap.calSimilarity(passenger0, passenger);
