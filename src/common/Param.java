@@ -20,7 +20,7 @@ public class Param {
     public static final double EPS = 1e-8;
     public static final int SEED = 3;
     public static final double eps = 1e-3;
-    public static int MATCH_MODEL = 2;                                   // 匹配算法模式参数     0: 0-1匹配    1: 1-1匹配    2: 0-2匹配
+    public static int MATCH_MODEL = 1;                                   // 匹配算法模式参数     0: 0-1匹配    1: 1-1匹配    2: 0-2匹配
     public static long MAX_ETA = 300;                                        // 接第一个乘客最大eta
     public static double LINEAR_RATIO = 0.6;
     public static double DETOUR_RATIO = 1.3;                             // 最大绕行比
@@ -36,10 +36,10 @@ public class Param {
     public static double timeCostOnGenPatterns = 0;
     public static int MAP_CHOOSE;                                       // 地图选择参数     1: GISMap    2: NetMap  default: TestMap
 
-    public static double POOL_RATIO = 0.73;
-    public static double L0 = 3 * 0.001;
+    public static double POOL_RATIO = 0.78;
+    public static double L0 = 3000;
     public static double P0 = 10;
-    public static double UNIT_PH = (1.9 + 0.55 * 3) * 0.001 / 60;
+    public static double UNIT_PH = (1.9 + 0.55 * 3) * 0.001;
     public static double DRIVER_RATIO = 0.8;
     public static double D0 = P0 * DRIVER_RATIO;
     public static double UNIT_DH = UNIT_PH * DRIVER_RATIO;
@@ -63,7 +63,21 @@ public class Param {
             }
         }
     }
+    public static double calPlatformMoney(double distance1, double distance2, double totalDistance) {
+        return Param.POOL_RATIO * (calPassengerMoney(distance1) + calPassengerMoney(distance2)) - calDriverMoney(totalDistance);
+    }
 
+    public static double calPlatformMoney(double distance) {
+        return calPassengerMoney(distance) - calDriverMoney(distance);
+    }
+
+    public static double calPassengerMoney(double distance) {
+        return (Param.P0 + Math.max(0, distance - Param.L0) * Param.UNIT_PH);
+    }
+
+    public static double calDriverMoney(double distance) {
+        return (Param.D0 + Math.max(0, distance - Param.L0) * Param.UNIT_DH);
+    }
     public static double getTimeCost(long start) {
         return 0.001 * (System.currentTimeMillis() - start);
     }

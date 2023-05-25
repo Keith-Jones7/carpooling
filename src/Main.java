@@ -13,6 +13,7 @@ import com.google.ortools.Loader;
 import common.Param;
 import match.Batch;
 import match.Match;
+import model.Driver;
 import model.Pattern;
 import model.Solution;
 import org.slf4j.LoggerFactory;
@@ -29,11 +30,11 @@ import java.nio.file.Paths;
 public class Main {
     public static void main(String[] args) throws Exception {
         Param.COUNT = 0;
-        Param.MAX_TIME = 50;
-        Param.setMapChoose(2);
+        Param.MAX_TIME = 20;
+        Param.setMapChoose(1);
         int timeInterval = 10;
         runSample(timeInterval, 2);
-        System.out.println(Param.COUNT);
+        //System.out.println(Param.COUNT);
     }
 
     public static void runDefault(int timeInterval) throws Exception {
@@ -82,6 +83,7 @@ public class Main {
         Loader.loadNativeLibraries();
         Batch batch = new Batch();
         Solution solution = new Solution();
+        Solution curSolution = new Solution();
         int passengerSum = 0, matchSum = 0;
         int start, end = 0;
         while (end < Param.MAX_TIME) {
@@ -100,13 +102,13 @@ public class Main {
             int waitingPassengerNum = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
             batch.curTime += timeInterval;
-            Solution curSolution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
+            curSolution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
 //            System.out.println(System.currentTimeMillis() - time);
-            solution.profit += curSolution.profit;
             int result = 0;
             for (Pattern pattern : curSolution.patterns) {
                 if (pattern.passenger2Id != -1) {
                     solution.patterns.add(pattern);
+                    solution.profit += pattern.aim;
                     result++;
                 }
             }
@@ -120,6 +122,13 @@ public class Main {
                     batch.driverList.size(), batch.passengerList.size(), curSolution.leaveCount, end_time - start_time);
             System.out.println();
 
+        }
+        for (Driver driver : batch.driverList) {
+            if (driver.queue.size() == 1) {
+                double revenue = Param.calPassengerMoney(driver.queue.getFirst().singleDistance);
+                double driver_revenue = Param.calDriverMoney(driver.queue.getFirst().singleDistance);
+                solution.profit += (Param.MATCH_MODEL == 0 ? revenue - driver_revenue : revenue - 0.5 - driver_revenue);
+            }
         }
         //solution.outputSolution(sample_index);
         System.out.printf("总乘客数目为%d，匹配成功的乘客数为%d，未匹配成功的乘客数为%d, 未上车的乘客数为%d，取消订单乘客数为%d，拼车成功率为%.2f%%",

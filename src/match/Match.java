@@ -45,7 +45,7 @@ public class Match {
     public void calValid(int flag) {//flag == 1 考虑拼车，其他：不考虑
         long s = System.currentTimeMillis();
         validMatrix = new double[nDrivers][nPassengers];
-        ExecutorService executor = Executors.newFixedThreadPool(nDrivers * nPassengers);
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<Double>> futures = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {
             Driver driver = driverList.get(i);
@@ -54,7 +54,7 @@ public class Match {
                 if (passenger.curDriver != null || passenger.pre != -1) {
                     continue;
                 }
-                if (driver.queue.size() == 0 && Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA) {
+                if (driver.queue.size() == 0 && Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA * Param.LINEAR_RATIO) {
                     Param.COUNT++;
                     Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(driver.curCoor, passenger.originCoor);
                     futures.add(executor.submit(etaCalculator));
@@ -76,7 +76,7 @@ public class Match {
                 if (passenger.curDriver != null || passenger.pre != -1) {
                     continue;
                 }
-                if (driver.queue.size() == 0 && Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA) {
+                if (driver.queue.size() == 0 && Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA * Param.LINEAR_RATIO) {
                     double eta = Param.MAX_ETA;
                     try {
                         eta = futures.get(index++).get();
@@ -95,7 +95,7 @@ public class Match {
                     }
                 } else if (flag > 0 && driver.queue.size() == 1 && passenger.next == -1) {
                     Passenger passenger1 = driver.queue.getFirst();
-                    if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger.originCoor) <= Param.MAX_ETA2) {
+                    if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger.originCoor) <= Param.MAX_ETA2 * Param.LINEAR_RATIO) {
                         double eta = Param.MAX_ETA2;
                         try {
                             eta = futures.get(index++).get();
@@ -144,7 +144,7 @@ public class Match {
 
     public void calMatch() {
         ppValidMatrix2 = new double[nPassengers][nPassengers];
-        ExecutorService executor = Executors.newFixedThreadPool(nPassengers * nPassengers);
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<Double>> futures = new ArrayList<>();
         for (int j = 0; j < nPassengers; j++) {
             Passenger passenger1 = passengerList.get(j);
@@ -153,7 +153,7 @@ public class Match {
             }
             for (int jj = j + 1; jj < nPassengers; jj++) {
                 Passenger passenger2 = passengerList.get(jj);
-                if (passenger2.curDriver != null || Param.testMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor) > Param.MAX_ETA2) {
+                if (passenger2.curDriver != null || Param.testMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor) > Param.MAX_ETA2 * Param.LINEAR_RATIO) {
                     continue;
                 }
                 Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor);
@@ -170,7 +170,7 @@ public class Match {
             }
             for (int jj = j + 1; jj < nPassengers; jj++) {
                 Passenger passenger2 = passengerList.get(jj);
-                if (passenger2.curDriver != null || Param.testMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor) > Param.MAX_ETA2) {
+                if (passenger2.curDriver != null || Param.testMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor) > Param.MAX_ETA2 * Param.LINEAR_RATIO) {
                     continue;
                 }
                 double eta2 = Param.MAX_ETA2;
@@ -230,7 +230,7 @@ public class Match {
 
     void calPPValid() {
         long s = System.currentTimeMillis();
-        ExecutorService executor = Executors.newFixedThreadPool(3 * nPassengers * nPassengers);
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<Double>> futures = new ArrayList<>();
         for (int i = 0; i < nPassengers; i++) {
             Passenger passenger1 = passengerList.get(i);
@@ -299,7 +299,7 @@ public class Match {
 
     void calDPValid() {
         long s = System.currentTimeMillis();
-        ExecutorService executor = Executors.newFixedThreadPool(3 * nDrivers * nPassengers);
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<Double>> futures = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {
             Driver driver = driverList.get(i);
