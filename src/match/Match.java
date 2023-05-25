@@ -243,6 +243,8 @@ public class Match {
             }
         }
         executor.shutdown();
+        ExecutorService executor1 = Executors.newFixedThreadPool(2 * nPassengers * nPassengers);
+        List<Future<Boolean>> futures1 = new ArrayList<>();
         int index = 0;
         for (int i = 0; i < nPassengers; i++) {
             Passenger passenger1 = passengerList.get(i);
@@ -258,12 +260,39 @@ public class Match {
                     ppTimeMatrix[i][j] = eta;
 
                     if (ppTimeMatrix[i][j] <= Param.MAX_ETA2) {
-                        if (Param.touringMap.inEllipsoid(passenger1, passenger2) || Param.touringMap.allInEllipsoid(passenger1, passenger2)) {
-                            ppValidMatrix[i][j] = Param.touringMap.calSimilarity(passenger1, passenger2);
-                        }
+                        // 只有当司机带了一个顾客时，才需要计算司机到顾客的里程相似度
+                        Callable<Boolean> etaCalculator1 = () -> Param.touringMap.inEllipsoid(passenger1, passenger2);
+                        Callable<Boolean> etaCalculator2 = () -> Param.touringMap.allInEllipsoid(passenger1, passenger2);
+                        futures1.add(executor1.submit(etaCalculator1));
+                        futures1.add(executor1.submit(etaCalculator2));
                     }
                 } else {
                     ppTimeMatrix[i][j] = 2 * Param.MAX_ETA2;
+                }
+            }
+        }
+
+        executor1.shutdown();
+        int index1 = 0;
+        for (int i = 0; i < nPassengers; i++) {
+            Passenger passenger1 = passengerList.get(i);
+            for (int j = 0; j < nPassengers; j++) {
+                Passenger passenger2 = passengerList.get(j);
+                if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor) <= Param.MAX_ETA2) {
+                    if (ppTimeMatrix[i][j] <= Param.MAX_ETA2) {
+                        // 只有当司机带了一个顾客时，才需要计算司机到顾客的里程相似度
+                        boolean flag1 = false;
+                        boolean flag2 = false;
+                        try {
+                            flag1 = futures1.get(index1++).get();
+                            flag2 = futures1.get(index1++).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                        if (flag1 || flag2) {
+                            ppValidMatrix[i][j] = Param.touringMap.calSimilarity(passenger1, passenger2);
+                        }
+                    }
                 }
             }
         }
@@ -293,6 +322,8 @@ public class Match {
             }
         }
         executor.shutdown();
+        ExecutorService executor1 = Executors.newFixedThreadPool(2 * nDrivers * nPassengers);
+        List<Future<Boolean>> futures1 = new ArrayList<>();
         int index = 0;
         for (int i = 0; i < nDrivers; i++) {
             Driver driver = driverList.get(i);
@@ -321,11 +352,37 @@ public class Match {
                         }
                         dpTimeMatrix[i][j] = eta;
                         // 只有当司机带了一个顾客时，才需要计算司机到顾客的里程相似度
-                        if (Param.touringMap.inEllipsoid(passenger0, passenger) || Param.touringMap.allInEllipsoid(passenger0, passenger)) {
-                            dpValidMatrix[i][j] = Param.touringMap.calSimilarity(passenger0, passenger);
-                        }
+                        Callable<Boolean> etaCalculator1 = () -> Param.touringMap.inEllipsoid(passenger0, passenger);
+                        Callable<Boolean> etaCalculator2 = () -> Param.touringMap.allInEllipsoid(passenger0, passenger);
+                        futures1.add(executor1.submit(etaCalculator1));
+                        futures1.add(executor1.submit(etaCalculator2));
                     } else {
                         dpTimeMatrix[i][j] = 2 * Param.MAX_ETA2;
+                    }
+                }
+            }
+        }
+        executor1.shutdown();
+        int index1 = 0;
+        for (int i = 0; i < nDrivers; i++) {
+            Driver driver = driverList.get(i);
+            for (int j = 0; j < nPassengers; j++) {
+                Passenger passenger = passengerList.get(j);
+                if (driverList.get(i).queue.size() != 0) {
+                    Passenger passenger0 = driverList.get(i).queue.getFirst();
+                    if (Param.testMap.calTimeDistance(passenger0.originCoor, passenger.originCoor) <= Param.MAX_ETA2) {
+                        // 只有当司机带了一个顾客时，才需要计算司机到顾客的里程相似度
+                        boolean flag1 = false;
+                        boolean flag2 = false;
+                        try {
+                            flag1 = futures1.get(index1++).get();
+                            flag2 = futures1.get(index1++).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                        if (flag1 || flag2) {
+                            dpValidMatrix[i][j] = Param.touringMap.calSimilarity(passenger0, passenger);
+                        }
                     }
                 }
             }
