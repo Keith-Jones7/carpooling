@@ -29,9 +29,9 @@ import java.nio.file.Paths;
 public class Main {
     public static void main(String[] args) throws Exception {
         Param.COUNT = 0;
-        Param.MAX_TIME = 20;
-        Param.setMapChoose(1);
-        int timeInterval = 5;
+        Param.MAX_TIME = 50;
+        Param.setMapChoose(2);
+        int timeInterval = 10;
         runSample(timeInterval, 2);
         System.out.println(Param.COUNT);
     }

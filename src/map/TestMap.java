@@ -32,8 +32,8 @@ public class TestMap implements TouringMap<Coordinates, Passenger> {
     public double calSpatialDistance(Coordinates o1, Coordinates o2) {
         double lngGap = (o1.lng - o2.lng) * Param.LNG;
         double latGap = (o1.lat - o2.lat) * Param.LAT;
-//        return Math.sqrt(lngGap * lngGap + latGap * latGap);
-        return Math.abs(lngGap) + Math.abs(latGap);
+        return Math.sqrt(lngGap * lngGap + latGap * latGap);
+//        return Math.abs(lngGap) + Math.abs(latGap);
     }
 
     /**

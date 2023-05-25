@@ -22,8 +22,9 @@ public class Param {
     public static final double eps = 1e-3;
     public static int MATCH_MODEL = 2;                                   // 匹配算法模式参数     0: 0-1匹配    1: 1-1匹配    2: 0-2匹配
     public static long MAX_ETA = 300;                                        // 接第一个乘客最大eta
-    public static double DETOUR_RATIO = 1.4;                             // 最大绕行比
-    public static double MIN_TOURING_SIMILARITY = 0.4;                      // 最小行程相似度
+    public static double LINEAR_RATIO = 0.6;
+    public static double DETOUR_RATIO = 1.3;                             // 最大绕行比
+    public static double MIN_TOURING_SIMILARITY = 0.5;                      // 最小行程相似度
     public static int samePlus = 2;
     public static int MAX_TIME = 1200;                                    // 订单收集期
     public static int COUNT = 0;
@@ -34,6 +35,15 @@ public class Param {
     public static TouringMap<Coordinates, Passenger> testMap;
     public static double timeCostOnGenPatterns = 0;
     public static int MAP_CHOOSE;                                       // 地图选择参数     1: GISMap    2: NetMap  default: TestMap
+
+    public static double POOL_RATIO = 0.73;
+    public static double L0 = 3 * 0.001;
+    public static double P0 = 10;
+    public static double UNIT_PH = (1.9 + 0.55 * 3) * 0.001 / 60;
+    public static double DRIVER_RATIO = 0.8;
+    public static double D0 = P0 * DRIVER_RATIO;
+    public static double UNIT_DH = UNIT_PH * DRIVER_RATIO;
+
 
     public static void setMapChoose(int val) {
         Param.MAP_CHOOSE = val;
