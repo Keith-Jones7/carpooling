@@ -77,7 +77,6 @@ public class NetMap implements TouringMap<Coordinates, Passenger> {
     @Override
     public double calSpatialDistance(Coordinates o1, Coordinates o2) {
         try {
-            Param.COUNT++;
             return predictor.predict(new double[]{o1.lat, o1.lng, o2.lat, o2.lng});
         } catch (TranslateException e) {
             double lngGap = (o1.lng - o2.lng) * Param.LNG;
