@@ -11,7 +11,7 @@ public class Coordinates {
     }
 
     public String toString() {
-        return String.format("lng: %.6f, lat: %.6f", lng, lat);
+        return String.format("new AMap.LngLat(%.6f,%.6f)", lng, lat);
     }
 }
 

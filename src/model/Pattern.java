@@ -91,4 +91,22 @@ public class Pattern {
     public String toString() {
         return "(" + driverId + ", " + passenger1Id + ", " + passenger2Id + ")" + ": " + aim;
     }
+    
+    
+    public void getPath() {
+        if (passenger2 == null) {
+            return;
+        }
+        String path1 = "driving.search(" + driver.curCoor.toString() + "," + passenger2.destCoor.toString() + "," +
+                "{waypoints:[" + passenger1.originCoor.toString() + ","
+                + passenger2.originCoor.toString() + ","
+                + passenger1.destCoor.toString() + "]}";
+        String path2 = "driving.search(" + driver.curCoor.toString() + "," + passenger1.destCoor.toString() + "," +
+                "{waypoints:[" + passenger1.originCoor.toString() + ","
+                + passenger2.originCoor.toString() + ","
+                + passenger2.destCoor.toString() + "]}";
+        System.out.println(path1);
+        System.out.println(path2);
+
+    }
 }

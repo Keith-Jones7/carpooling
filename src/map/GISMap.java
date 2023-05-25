@@ -12,17 +12,25 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GISMap implements TouringMap<Coordinates, Passenger> {
     private static final String api = "http://gateway.t3go.com.cn/gis-map-api/lbs/v2/distance/mto";
+    private static final CloseableHttpClient httpClient;
+    private static final ThreadLocal<HttpPost> localHttpPost = ThreadLocal.withInitial(() -> {
+        HttpPost httpPost = new HttpPost(api);
+        httpPost.setHeader("Content-Type", "application/json");
+        return httpPost;
+    });
+
+    static {
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(10000);
+        cm.setDefaultMaxPerRoute(10000);
+        httpClient = HttpClients.custom().setConnectionManager(cm).build();
+    }
+
     private final ConcurrentHashMap<Integer, Double> spatialMap;
     private final ConcurrentHashMap<Integer, Double> timeMap;
 
@@ -41,21 +49,6 @@ public class GISMap implements TouringMap<Coordinates, Passenger> {
                 ",\"lng\":" +
                 String.format("%.6f", o.lng) +
                 "}]}";
-    }
-
-    private static final CloseableHttpClient httpClient;
-
-    private static final ThreadLocal<HttpPost> localHttpPost = ThreadLocal.withInitial(() -> {
-        HttpPost httpPost = new HttpPost(api);
-        httpPost.setHeader("Content-Type", "application/json");
-        return httpPost;
-    });
-
-    static {
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal(10000);
-        cm.setDefaultMaxPerRoute(10000);
-        httpClient = HttpClients.custom().setConnectionManager(cm).build();
     }
 
     public static String sendHttpPost(String jsonBody) {

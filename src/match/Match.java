@@ -44,7 +44,7 @@ public class Match {
 
     public void calValid(int flag) {//flag == 1 考虑拼车，其他：不考虑
         long s = System.currentTimeMillis();
-        validMatrix = new double[nDrivers][nPassengers];    
+        validMatrix = new double[nDrivers][nPassengers];
         ExecutorService executor = Executors.newFixedThreadPool(nDrivers * nPassengers);
         List<Future<Double>> futures = new ArrayList<>();
         for (int i = 0; i < nDrivers; i++) {

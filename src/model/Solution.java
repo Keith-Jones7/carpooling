@@ -21,6 +21,12 @@ public class Solution {
         this.profit = profit;
     }
 
+    public void outputSolution() {
+        for (Pattern pattern : patterns) {
+            pattern.getPath();
+        }
+    }
+
     public double getAvgEta() {
         double sum = 0;
         int cnt = 0;
@@ -98,13 +104,14 @@ public class Solution {
                     removeList.add(pattern);
                 } else if (Param.gisMap.calTimeDistance(p1.originCoor, p2.originCoor) > Param.MAX_ETA2) {
                     removeList.add(pattern);
-                } else if (!Param.gisMap.inEllipsoid(p1, p2) && !Param.touringMap.allInEllipsoid(p1, p2)) {
+                } else if (!Param.gisMap.inEllipsoid(p1, p2) && !Param.gisMap.allInEllipsoid(p1, p2)) {
                     removeList.add(pattern);
                 } else if (Param.gisMap.calSimilarity(p1, p2) < Param.MIN_TOURING_SIMILARITY) {
                     removeList.add(pattern);
                 }
             }
         }
+        System.out.println(removeList.size());
         patterns.removeAll(removeList);
     }
 

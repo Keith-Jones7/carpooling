@@ -93,16 +93,16 @@ public class Main {
             int size1 = batch.passengerList.size();
             for (int i = start; i < end; i++) {
                 String fileNamePassenger = "test/sample/drs" + sampleIndex + "/p/passengers_t" + i + ".txt";
-                batch.updatePassenger(fileNamePassenger, sampleIndex);
+                batch.updatePassenger(fileNamePassenger, i);
             }
             int size2 = batch.passengerList.size();
             int waitingDriverNum = batch.driverList.size();
             int waitingPassengerNum = batch.passengerList.size();
             batch.matching = new Match(batch.driverList, batch.passengerList);
+            batch.curTime += timeInterval;
             Solution curSolution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
 //            System.out.println(System.currentTimeMillis() - time);
             solution.profit += curSolution.profit;
-            batch.curTime += timeInterval;
             int result = 0;
             for (Pattern pattern : curSolution.patterns) {
                 if (pattern.passenger2Id != -1) {
@@ -126,7 +126,7 @@ public class Main {
                 passengerSum, matchSum, passengerSum - matchSum - batch.passengerList.size() - solution.leaveCount,
                 batch.passengerList.size(), solution.leaveCount, (double) matchSum / passengerSum * 100);
         System.out.println();
-        System.out.printf("%.2f  \t%d  \t  %d  \t  %d  \t%.2f   \t%.2f%n", solution.profit, matchSum, passengerSum - matchSum - batch.passengerList.size(), 
+        System.out.printf("%.2f  \t%d  \t  %d  \t  %d  \t%.2f   \t%.2f%n", solution.profit, matchSum, passengerSum - matchSum - batch.passengerList.size(),
                 batch.passengerList.size(), solution.getAvgEta(), solution.getAvgSame());
         return solution;
     }
@@ -172,46 +172,5 @@ public class Main {
             }
         });
         return predictor.predict(new double[]{lat1, lng1, lat2, lng2});
-
-    }
-
-    public static double post(double lat1, double lng1, double lat2, double lng2) {
-        long start_time = System.currentTimeMillis();
-        String url = "http://gateway.t3go.com.cn/gis-map-api/lbs/v2/distance/mto";
-        String json = "{\"cityCode\": \"320100\",\"dest\": {\"lat\":"
-                + lat2 + ",\"lng\":"
-                + lng2 + "},\"origins\": [{\"lat\":"
-                + lat1 + ",\"lng\":"
-                + lng1 + "}]}";
-
-        String post_result = sendHttpPost(url, json);
-        String[] splits = post_result.split(":");
-        String distance = splits[8].split(",")[0];
-        return Double.parseDouble(distance);
-    }
-
-    public static String sendHttpPost(String url_string, String jsonBody) {
-        try {
-
-            URL url = new URL(url_string);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
-            OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
-            writer.write(jsonBody);
-            writer.flush();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder response = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-            reader.close();
-            return response.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
     }
 }
