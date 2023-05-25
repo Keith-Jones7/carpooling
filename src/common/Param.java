@@ -37,9 +37,9 @@ public class Param {
     public static int MAP_CHOOSE;                                       // 地图选择参数     1: GISMap    2: NetMap  default: TestMap
 
     public static double POOL_RATIO = 0.73;
-    public static double L0 = 3 * 0.001;
+    public static double L0 = 3000;
     public static double P0 = 10;
-    public static double UNIT_PH = (1.9 + 0.55 * 3) * 0.001 / 60;
+    public static double UNIT_PH = (1.9 + 0.55 * 3) * 0.001;
     public static double DRIVER_RATIO = 0.8;
     public static double D0 = P0 * DRIVER_RATIO;
     public static double UNIT_DH = UNIT_PH * DRIVER_RATIO;

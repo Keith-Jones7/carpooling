@@ -77,11 +77,11 @@ public class Pattern {
     }
 
     public double calPassengerMoney(double distance) {
-        return (Param.P0 + Math.max(0, distance - Param.L0) * Param.UNIT_PH);
+        return Param.P0 + Math.max(0, distance - Param.L0) * Param.UNIT_PH;
     }
 
     public double calDriverMoney(double distance) {
-        return (Param.D0 + Math.max(0, distance - Param.L0) * Param.UNIT_DH);
+        return Param.D0 + Math.max(0, distance - Param.L0) * Param.UNIT_DH;
     }
 
     public void setCur_time(long cur_time) {
