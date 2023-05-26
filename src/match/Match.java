@@ -77,26 +77,31 @@ public class Match {
                     continue;
                 }
                 if (driver.queue.size() == 0 && Param.testMap.calTimeDistance(driver.curCoor, passenger.originCoor) <= Param.MAX_ETA * Param.LINEAR_RATIO) {
-                    double eta = Param.MAX_ETA;
+                    double eta = Param.MAX_ETA * 2;
                     try {
                         eta = futures.get(index++).get();
                     } catch (InterruptedException | ExecutionException e) {
                         e.printStackTrace();
                     }
+
                     if (passenger.next != -1) {
+                        Passenger passenger1 = passengerList.get(passenger.next);
                         if (eta <= Param.MAX_ETA) {
-                            validMatrix[i][j] = (1 - eta / Param.MAX_ETA);
-                            validMatrix[i][j] += ppValidMatrix2[j][passenger.next];
+                            Pattern pattern = new Pattern(driver, passenger, passenger1);
+                            pattern.setAim(0, 0, 0);
+                            validMatrix[i][j] = pattern.aim;
                         }
                     } else {
                         if (eta <= Param.MAX_ETA) {
-                            validMatrix[i][j] = (1 - eta / Param.MAX_ETA);
+                            Pattern pattern = new Pattern(driver, passenger, null);
+                            pattern.setAim(0, 0, 0);
+                            validMatrix[i][j] = pattern.aim;
                         }
                     }
                 } else if (flag > 0 && driver.queue.size() == 1 && passenger.next == -1) {
                     Passenger passenger1 = driver.queue.getFirst();
                     if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger.originCoor) <= Param.MAX_ETA2 * Param.LINEAR_RATIO) {
-                        double eta = Param.MAX_ETA2;
+                        double eta = Param.MAX_ETA2 * 2;
                         try {
                             eta = futures.get(index++).get();
                         } catch (InterruptedException | ExecutionException e) {
@@ -105,9 +110,9 @@ public class Match {
                         if (eta <= Param.MAX_ETA2 && (Param.touringMap.inEllipsoid(passenger1, passenger) || Param.touringMap.allInEllipsoid(passenger1, passenger))) {
                             double similarity = Param.touringMap.calSimilarity(passenger1, passenger);
                             if (similarity > 0) {
-                                validMatrix[i][j] += Param.samePlus;
-                                validMatrix[i][j] += Param.touringMap.calSimilarity(passenger1, passenger);
-                                validMatrix[i][j] += 1 - eta / Param.MAX_ETA2;
+                                Pattern pattern = new Pattern(driver, driver.queue.getFirst(), passenger);
+                                pattern.setAim(0, 0, 0);
+                                validMatrix[i][j] = pattern.aim;
                             }
                         }
                     }
