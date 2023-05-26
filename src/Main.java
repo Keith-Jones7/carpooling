@@ -33,7 +33,7 @@ public class Main {
         Param.MAX_TIME = 300;
         Param.setMapChoose(0);
         int timeInterval = 300;
-        runSample(timeInterval, 2);
+        runSample(timeInterval, 1);
         //System.out.println(Param.COUNT);
     }
 
@@ -103,6 +103,7 @@ public class Main {
             batch.matching = new Match(batch.driverList, batch.passengerList);
             batch.curTime += timeInterval;
             curSolution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
+            System.out.println(curSolution.profit);
 //            System.out.println(System.currentTimeMillis() - time);
             int result = 0;
             for (Pattern pattern : curSolution.patterns) {
@@ -127,7 +128,7 @@ public class Main {
             if (driver.queue.size() == 1) {
                 double revenue = Param.calPassengerMoney(driver.queue.getFirst().singleDistance);
                 double driver_revenue = Param.calDriverMoney(driver.queue.getFirst().singleDistance);
-                solution.profit += (Param.MATCH_MODEL == 0 ? revenue - driver_revenue : revenue - 0.5 - driver_revenue);
+                solution.profit += (revenue - driver_revenue);
             }
         }
         //solution.outputSolution(sample_index);

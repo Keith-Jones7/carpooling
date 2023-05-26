@@ -60,7 +60,7 @@ public class Match {
                     futures.add(executor.submit(etaCalculator));
                 }else if (flag > 0 && driver.queue.size() == 1 && passenger.next == -1) {
                     Passenger passenger1 =  driver.queue.getFirst();
-                    if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger.originCoor) <= Param.MAX_ETA2) {
+                    if (Param.testMap.calTimeDistance(passenger1.originCoor, passenger.originCoor) <= Param.MAX_ETA2 * Param.LINEAR_RATIO) {
                         Callable<Double> etaCalculator = () -> Param.touringMap.calTimeDistance(passenger1.originCoor, passenger.originCoor);
                         futures.add(executor.submit(etaCalculator));
                     }
