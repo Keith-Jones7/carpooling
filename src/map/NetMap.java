@@ -50,8 +50,7 @@ public class NetMap implements TouringMap<Coordinates, Passenger> {
         }
 
     }
-
-
+    
     /**
      * 计算坐标是否重合
      *

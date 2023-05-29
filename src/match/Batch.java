@@ -68,42 +68,9 @@ public class Batch {
                 pIndex++;
 
             }
-        } catch (Exception ignored) {
-
-        }
-    }
-
-    /**
-     * @param num 随机生成的司机数目
-     */
-    public void generateDrivers(int num) {
-        Random random = new Random(1);
-        for (int i = 0; i < num; i++) {
-            double lng = random.nextDouble() * Param.GAP + 118.6;
-            double lat = random.nextDouble() * Param.GAP + 31.9;
-            if (driverMap.containsKey(i)) {
-                Driver driver = driverMap.get(i);
-                driver.renew(lng, lat, curTime);
-            } else {
-                Driver driver = new Driver(lng, lat, curTime, i);
-                driverList.add(driver);
-                driverMap.put(i, driver);
-            }
-        }
-    }
-
-    /**
-     * @param num 随机生成的乘客数目
-     */
-    public void generatePassengers(int num) {
-        Random random = new Random(1);
-        for (int i = 0; i < num; i++) {
-            double lng1 = random.nextDouble() * Param.GAP + 118.6;
-            double lat1 = random.nextDouble() * Param.GAP + 31.9;
-            double lng2 = random.nextDouble() * Param.GAP + 118.3;
-            double lat2 = random.nextDouble() * Param.GAP + 31.4;
-            passengerList.add(new Passenger(new Coordinates(lng1, lat1),
-                    new Coordinates(lng2, lat2), curTime, pIndex++));
+        } catch (Exception e) {
+            System.out.println("读取乘客信息错误！");
+            e.printStackTrace();
         }
     }
 }

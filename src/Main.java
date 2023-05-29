@@ -30,10 +30,10 @@ import java.nio.file.Paths;
 public class Main {
     public static void main(String[] args) throws Exception {
         Param.COUNT = 0;
-        Param.MAX_TIME = 300;
-        Param.setMapChoose(0);
-        int timeInterval = 300;
-        runSample(timeInterval, 1);
+        Param.MAX_TIME = 120;
+        Param.setMapChoose(1);
+        int timeInterval = 10;
+        runSample(timeInterval, 2);
         //System.out.println(Param.COUNT);
     }
 
@@ -51,7 +51,7 @@ public class Main {
             for (int i = start; i < end; i++) {
                 String fileNamePassenger = "test/test/p/passengers_t" + i + ".txt";
                 batch.updatePassenger(fileNamePassenger, i);
-            }
+            }   
             int size2 = batch.passengerList.size();
             int waitingDriverNum = batch.driverList.size();
             int waitingPassengerNum = batch.passengerList.size();
@@ -83,7 +83,7 @@ public class Main {
         Loader.loadNativeLibraries();
         Batch batch = new Batch();
         Solution solution = new Solution();
-        Solution curSolution = new Solution();
+        Solution curSolution;
         int passengerSum = 0, matchSum = 0;
         int start, end = 0;
         while (end < Param.MAX_TIME) {
@@ -103,8 +103,6 @@ public class Main {
             batch.matching = new Match(batch.driverList, batch.passengerList);
             batch.curTime += timeInterval;
             curSolution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
-            System.out.println(curSolution.profit);
-//            System.out.println(System.currentTimeMillis() - time);
             int result = 0;
             for (Pattern pattern : curSolution.patterns) {
                 if (pattern.passenger2Id != -1) {
@@ -159,28 +157,5 @@ public class Main {
 //            System.out.println(System.currentTimeMillis() - time);
         double time_cost = Param.getTimeCost(startTime);
         System.out.printf("%d\t%d  \t%.6f   \t%.3f   \t%d%n", waitingDriverNum, waitingPassengerNum, solution.profit, time_cost, batch.passengerList.size());
-
-    }
-
-    public static double testNetMap(double lat1, double lng1, double lat2, double lng2) throws MalformedModelException, IOException, TranslateException {
-        Logger logger = (Logger) LoggerFactory.getLogger("ai.djl");
-        logger.setLevel(Level.ERROR);
-        Path modelDir = Paths.get("MapLearning\\model\\NetMap2.pt");
-        Model model = Model.newInstance("test");
-        model.load(modelDir);
-        Predictor<double[], Double> predictor = model.newPredictor(new NoBatchifyTranslator<double[], Double>() {
-            @Override
-            public Double processOutput(TranslatorContext translatorContext, NDList ndList) throws Exception {
-                return ndList.get(0).getDouble();
-            }
-
-            @Override
-            public NDList processInput(TranslatorContext translatorContext, double[] floats) throws Exception {
-                NDManager ndManager = translatorContext.getNDManager();
-                NDArray ndArray = ndManager.create(floats);
-                return new NDList(ndArray);
-            }
-        });
-        return predictor.predict(new double[]{lat1, lng1, lat2, lng2});
     }
 }

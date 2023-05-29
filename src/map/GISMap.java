@@ -133,7 +133,11 @@ public class GISMap implements TouringMap<Coordinates, Passenger> {
         double o2_d2 = calSpatialDistance(p2.originCoor, p2.destCoor);
         double d1_d2 = calSpatialDistance(p1.destCoor, p2.destCoor);
         double same = Math.min(o2_d1, o2_d2);
-        return same / (o1_o2 + same + d1_d2);
+        double similarity = same / (o1_o2 + same + d1_d2);
+        if (similarity < Param.MIN_TOURING_SIMILARITY) {
+            return 0;
+        }
+        return similarity;
     }
 
     @Override

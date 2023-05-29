@@ -49,9 +49,8 @@ public class Pattern {
         this.sameAim = sameAim;
         this.etaAim1 = etaAim1;
         this.etaAim2 = etaAim2;
-        //this.aim = (sameAim > 0 ? sameAim + 2 : 0);
         if (passenger2 == null) {
-            this.aim = calPlatformMoney(passenger1.singleDistance);
+            this.aim = Param.calPlatformMoney(passenger1.singleDistance);
         } else {
             Passenger p1 = passenger1;
             Passenger p2 = passenger2;
@@ -63,25 +62,9 @@ public class Pattern {
             double o2_d2 = Param.touringMap.calSpatialDistance(p2.originCoor, p2.destCoor);
             double d1_d2 = Param.touringMap.calSpatialDistance(p1.destCoor, p2.destCoor);
             double totalDistance = o1_o2 + Math.min(o2_d1, o2_d2) + d1_d2;
-            this.aim = calPlatformMoney(p1.singleDistance, p2.singleDistance, totalDistance);
+            this.aim = Param.calPlatformMoney(p1.singleDistance, p2.singleDistance, totalDistance);
         }
 //        this.aim = (sameAim > 0 ? sameAim + Param.samePlus : 0) + 1 - etaAim1 / Param.MAX_ETA + 1 - etaAim2 / Param.MAX_ETA2;
-    }
-
-    public double calPlatformMoney(double distance1, double distance2, double totalDistance) {
-        return Param.POOL_RATIO * (calPassengerMoney(distance1) + calPassengerMoney(distance2)) - calDriverMoney(totalDistance);
-    }
-
-    public double calPlatformMoney(double distance) {
-        return calPassengerMoney(distance) - calDriverMoney(distance);
-    }
-
-    public double calPassengerMoney(double distance) {
-        return Param.P0 + Math.max(0, distance - Param.L0) * Param.UNIT_PH;
-    }
-
-    public double calDriverMoney(double distance) {
-        return Param.D0 + Math.max(0, distance - Param.L0) * Param.UNIT_DH;
     }
 
     public void setCur_time(long cur_time) {
