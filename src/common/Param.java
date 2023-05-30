@@ -12,7 +12,7 @@ import java.util.BitSet;
 public class Param {
 
 
-    public static final int MATCH_ALGO = 1;                                       // 匹配算法选择参数  0: cplex  1: match_zjr  2: match_zkj   3: match_ortools
+    public static final int MATCH_ALGO = 2;                                       // 匹配算法选择参数  0: cplex  1: match_zjr  2: match_zkj   3: match_ortools
     public static final long MAX_ETA2 = 200;                                      // 接第二个乘客最大eta
     public static final double LEAVING_COFF = 0.5;                              // 乘客根据预期到达时间决定的取消订单时间系数
     public static final double SPEED = 10;                                         // 车辆平均行驶速度,单位米每秒

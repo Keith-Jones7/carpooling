@@ -36,8 +36,8 @@ public class BranchAndBound {
 
     public void run() {
         if (Param.MATCH_ALGO == 1) {
-//            bestSol = solve();
-            bestSol = solveNew();
+            bestSol = solve();
+//            bestSol = solveNew();
         } else {
             bestSol = solveCplex();
         }
