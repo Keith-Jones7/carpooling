@@ -71,18 +71,6 @@ public class BranchAndBound {
         return genFinalSol(carPoolSol, totalPool);
     }
 
-    public void updateUB() {
-
-    }
-
-    public void updateLB() {
-
-    }
-
-    public void createRoot() {
-
-    }
-
     Solution solveCplex() {
         PriorityQueue<Pattern> poolPQ = new PriorityQueue<>(Comparator.comparing(o -> -o.aim));
         ArrayList<Pattern> carPool = new ArrayList<>();
@@ -245,7 +233,6 @@ public class BranchAndBound {
         // 构建weight矩阵
         double[][] weight = new double[nDrivers][nPassengers];
         ArrayList<Pattern> singlePool = new ArrayList<>();
-        // Todo: 可优化
         for (Pattern pattern : totalPool) {
             int driverIdx = pattern.driverIdx;
             int passenger1Idx = pattern.passenger1Idx;
@@ -333,7 +320,7 @@ public class BranchAndBound {
                     double sameAim21 = inst.ppValidMatrix[j2][j1];
                     double etaAim12 = inst.ppTimeMatrix[j1][j2];
                     double etaAim21 = inst.ppTimeMatrix[j2][j1];
-                    if (sameAim12 > 0 && (sameAim12 < sameAim21 || sameAim21 == 0) && etaAim12 <= Param.MAX_ETA2) {
+                    if (sameAim12 > 0 && (sameAim12 <= sameAim21 || sameAim21 == 0) && etaAim12 <= Param.MAX_ETA2) {
                         // 以12为准
                         for (int i = 0; i < nDrivers; i++) {
                             if (inst.driverList.get(i).queue.size() == 0) {
@@ -350,7 +337,7 @@ public class BranchAndBound {
                                 }
                             }
                         }
-                    } else if ((sameAim21 > 0) && (sameAim21 <= sameAim12 || sameAim12 == 0) && etaAim21 <= Param.MAX_ETA2) {
+                    } else if ((sameAim21 > 0) && (sameAim21 < sameAim12 || sameAim12 == 0) && etaAim21 <= Param.MAX_ETA2) {
                         // 以21为准
                         for (int i = 0; i < nDrivers; i++) {
                             if (inst.driverList.get(i).queue.size() == 0) {
@@ -372,9 +359,5 @@ public class BranchAndBound {
             }
         }
         return pool;
-    }
-
-    public void branch() {
-
     }
 }

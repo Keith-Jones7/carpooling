@@ -30,9 +30,9 @@ import java.nio.file.Paths;
 public class Main {
     public static void main(String[] args) throws Exception {
         Param.COUNT = 0;
-        Param.MAX_TIME = 120;
-        Param.setMapChoose(1);
-        int timeInterval = 10;
+        Param.MAX_TIME = 300;
+        Param.setMapChoose(0);
+        int timeInterval = 300;
         runSample(timeInterval, 2);
         //System.out.println(Param.COUNT);
     }
@@ -103,6 +103,7 @@ public class Main {
             batch.matching = new Match(batch.driverList, batch.passengerList);
             batch.curTime += timeInterval;
             curSolution = batch.matching.match(batch.curTime, Param.MATCH_ALGO, Param.MATCH_MODEL);
+//            curSolution.writeToCsv();
             int result = 0;
             for (Pattern pattern : curSolution.patterns) {
                 if (pattern.passenger2Id != -1) {
@@ -119,7 +120,7 @@ public class Main {
                             "当前阶段剩余司机数为%d，剩余乘客数为%d，取消订单乘客数为%d，求解总消耗时长%d毫秒",
                     end / timeInterval, waitingDriverNum, waitingPassengerNum, result,
                     batch.driverList.size(), batch.passengerList.size(), curSolution.leaveCount, end_time - start_time);
-            System.out.println();
+            System.out.println(curSolution.profit);
 
         }
         for (Driver driver : batch.driverList) {

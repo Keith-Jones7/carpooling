@@ -33,7 +33,6 @@ public class ColumnGeneration {
     }
 
     LPSol solve(ArrayList<Pattern> totalPool) {
-        rmp.set();
         pp.set(totalPool);
         return cg();
     }

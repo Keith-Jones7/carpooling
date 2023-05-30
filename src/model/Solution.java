@@ -2,8 +2,7 @@ package model;
 
 import common.Param;
 
-import java.io.File;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 
 public class Solution {
@@ -42,6 +41,35 @@ public class Solution {
             }
         }
         return sum / cnt;
+    }
+
+    public void writeToCsv() {
+        File etaFile = new File("eta.csv");
+
+        try {
+            FileWriter fileWriter = new FileWriter(etaFile);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+
+            // Write data
+            for (Pattern pattern : patterns) {
+                Driver driver = pattern.driver;
+                Passenger passenger1 = driver.queue.getFirst();
+                Passenger passenger2 = driver.queue.size() == 2 ? driver.queue.getLast() : null;
+                double eta1 = Param.touringMap.calTimeDistance(driver.matchCoor, passenger1.originCoor);
+                bufferedWriter.append(String.valueOf(eta1));
+                if (passenger2 != null) {
+                    double eta2 = eta1 + Param.touringMap.calTimeDistance(passenger1.originCoor, passenger2.originCoor);
+                    bufferedWriter.append(String.valueOf(eta2));
+                }
+                bufferedWriter.newLine();
+            }
+            bufferedWriter.flush();
+            bufferedWriter.close();
+            fileWriter.close();
+
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
     }
 
     public double getAvgSame() {

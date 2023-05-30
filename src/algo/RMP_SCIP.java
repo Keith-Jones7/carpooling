@@ -86,10 +86,6 @@ public class RMP_SCIP {
         }
     }
 
-    public void set() {
-
-    }
-
     public void setDiving(BitSet fixedIdx, ArrayList<Pair<Pattern, Double>> vals) {
         for (int h = fixedIdx.nextSetBit(0); h >= 0; h = fixedIdx.nextSetBit(h + 1)) {
             Pair<Pattern, Double> val = vals.get(h);

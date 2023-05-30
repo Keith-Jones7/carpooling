@@ -196,11 +196,17 @@ public class Match {
         MPObjective obj = solver.objective();
         obj.setMaximization();
         for (int i = 0; i < nPassengers; i++) {
-            constraints[i] = solver.makeConstraint(0, 1);
             for (int j = 0; j < nPassengers; j++) {
                 if (ppMatchMatrix[i][j] > 0) {
                     variables[i][j] = solver.makeVar(0, 1, true, i + "," + j);
                     obj.setCoefficient(variables[i][j], ppMatchMatrix[i][j]);
+                }
+            }
+        }
+        for (int i = 0; i < nPassengers; i++) {
+            constraints[i] = solver.makeConstraint(0, 1);
+            for (int j = 0; j < nPassengers; j++) {
+                if (ppMatchMatrix[i][j] > 0) {
                     constraints[i].setCoefficient(variables[i][j], 1);
                 }
                 if (ppMatchMatrix[j][i] > 0) {
