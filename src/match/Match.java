@@ -36,6 +36,9 @@ public class Match {
     }
 
     public Solution match(long cur_time, int algo_flag, int match_flag) {
+        if (nPassengers == 0) {
+            return solution;
+        }
         if (algo_flag <= 1) {
             solution = match_zjr(cur_time, match_flag);
         }
@@ -43,7 +46,7 @@ public class Match {
             solution = match_zkj(match_flag);
         }
         remove(solution, cur_time);
-        solution.leaveCount = removeInvalid(cur_time);
+//        solution.leaveCount = removeInvalid(cur_time);
         return solution;
     }
     
@@ -228,7 +231,6 @@ public class Match {
     }
 
     void calPPValid() {
-        long s = System.currentTimeMillis();
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<Double>> futures = new ArrayList<>();
         for (int i = 0; i < nPassengers; i++) {
@@ -293,7 +295,6 @@ public class Match {
                 }
             }
         }
-        System.out.println(Param.getTimeCost(s));
     }
     
     void calDPValid() {
@@ -382,7 +383,6 @@ public class Match {
                 }
             }
         }
-        System.out.println(Param.getTimeCost(s));
     }
 
 
@@ -394,9 +394,6 @@ public class Match {
      */
     public Solution match_zkj(int match_flag) {
         Solution solution = new Solution();
-        if (nPassengers == 0) {
-            return solution;
-        }
         int[] size = new int[nDrivers];
         for (int i = 0; i < nDrivers; i++) {
             size[i] = driverList.get(i).queue.size();
@@ -439,11 +436,6 @@ public class Match {
                     Passenger passenger = passengerList.get(j);
                     driver.queue.add(passenger);
                     passenger.curDriver = driver;
-                    if (passenger.next != -1) {
-                        Passenger passenger2 = passengerList.get(passenger.next);
-                        driver.queue.add(passenger2);
-                        passenger2.curDriver = driver;
-                    }
                 }
             }
         }
