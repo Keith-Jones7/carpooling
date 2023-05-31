@@ -28,18 +28,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
-    public static void main(String[] args) throws Exception {
-        Param.COUNT = 0;
-        Param.setMapChoose(0);
-//        runSample(120, 2);
-        int[] arr = new int[]{1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 30, 50, 60, 80, 100, 120, 150, 200, 240, 300, 400, 600, 1200};
-        for(int i = 0; i < arr.length; i++) {
-            Param.MAX_TIME = arr[i];
-            testSpeed(2);
-        }
-        //System.out.println(Param.COUNT);
+    public static void main(String[] args) {
+        Param.setMapChoose(0);  // 选择地图，默认直线距离，1：GIS，2：深度学习地图
+        runSample(10, 2);
     }
-    public static void test() throws Exception {
+    public static void test() {
         Param.COUNT = 0;
         Param.MAX_TIME = 1200;
         Param.setMapChoose(0);
@@ -66,7 +59,12 @@ public class Main {
             System.out.println();
         }
     }
-    public static void runDefault(int timeInterval) throws Exception {
+
+    /**
+     * 默认算例
+     * @param timeInterval 订单收集间隔
+     */
+    public static void runDefault(int timeInterval) {
         Batch batch = new Batch();
         int passengerSum = 0, matchSum = 0;
         int start, end = 0;
@@ -108,7 +106,13 @@ public class Main {
 
     }
 
-    public static Solution runSample(int timeInterval, int sampleIndex) throws Exception {
+    /**
+     * 运行指定算例
+     * @param timeInterval 订单收集间隔
+     * @param sampleIndex   算例序号
+     * @return 求解结果
+     */
+    public static Solution runSample(int timeInterval, int sampleIndex) {
         Loader.loadNativeLibraries();
         Batch batch = new Batch();
         Solution solution = new Solution();
