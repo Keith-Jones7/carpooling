@@ -14,33 +14,48 @@ enum DivingStrategy {
 }
 
 public class DivingHeuristic {
-    Instance inst;
-    int nDrivers;
-    int nPassengers;
+    /**
+     * 问题信息
+     */
+    Instance inst; // 问题实例
+    int nDrivers;  // 司机数量
+    int nPassengers;  // 乘客数量
 
-    LPSol lpSol;
-    LPSol fixedSol;
+    LPSol lpSol;  // 松弛解
 
-    RMP_SCIP rmp;
-    RestrictMasterProblem rmpCplex;
-    PricingProblem pp;
+    /**
+     * 求解模块
+     */
+    RMP_SCIP rmp;  // 主问题求解模块
+    PricingProblem pp; // 子问题求解模块
 
-    // diving param
-    int nlpMax = 1000;
-    int iterMax = 100;
-    int iterMin = 10;
+    /**
+     * 潜水启发式控制参数
+     */
+    int iterMax = 1000;   // 最大迭代次数
+    int iterMin = 10;    // 最小迭代次数
+    int boundStep = 10;   // 潜水步长
 
-    int boundStep = 10;
-
-    public DivingHeuristic(Instance inst, RMP_SCIP rmp, RestrictMasterProblem rmpCplex, PricingProblem pp) {
+    /**
+     * 构造函数
+     * @param inst
+     * @param rmp
+     * @param pp
+     */
+    public DivingHeuristic(Instance inst, RMP_SCIP rmp, PricingProblem pp) {
         this.inst = inst;
         this.nDrivers = inst.nDrivers;
         this.nPassengers = inst.nPassengers;
         this.rmp = rmp;
-        this.rmpCplex = rmpCplex;
         this.pp = pp;
     }
 
+    /**
+     * 潜水启发式求解函数
+     * @param lpSol 松弛解
+     * @param ub 上界
+     * @return 整数可行解
+     */
     public Solution solve(LPSol lpSol, int ub) {
         this.lpSol = lpSol;
 
@@ -51,12 +66,11 @@ public class DivingHeuristic {
         BitSet fracIdx = fracPair.getValue()[1];
 
         double obj = getObj();
-        int nlp = 0;
         int iter = 0;
         int nFracBegin = nFrac;
-        ColumnGeneration columnGeneration = new ColumnGeneration(inst, rmp, rmpCplex, pp);
+        ColumnGeneration columnGeneration = new ColumnGeneration(inst, rmp, null, pp);
         // diving
-        while (nFrac != 0 && obj < ub && ((nlp < nlpMax && iter < iterMax) || iter < iterMin || nFrac < nFracBegin - iter * 0.5)) {
+        while (nFrac != 0 && obj < ub && (iter < iterMax || iter < iterMin || nFrac < nFracBegin - iter * 0.5)) {
             iter++;
             // select and bound var
             DivingStrategy divingStrategy = DivingStrategy.Aim;
@@ -75,8 +89,6 @@ public class DivingHeuristic {
             fracIdx = fracPair.getValue()[1];
             obj = getObj();
         }
-        // recover diving
-//        rmp.recoverDiving(fixedIdx, lpSol.vals);
         // return sol
         if (nFrac != 0) {
             return null;
@@ -86,11 +98,14 @@ public class DivingHeuristic {
     }
 
 
-    // 挑选潜水策略
+    /**
+     * 挑选分数潜水变量
+     * @param fracIdx 分数变量索引
+     * @param divingStrategy 潜水策略
+     * @return 返回待潜水变量的索引
+     */
     public ArrayList<Integer> selectDivingVar(BitSet fracIdx, DivingStrategy divingStrategy) {
         switch (divingStrategy) {
-            case Fractional:
-                return fractionalDiving(fracIdx);
             case Aim:
                 return aimDiving(fracIdx);
             default:
@@ -98,20 +113,11 @@ public class DivingHeuristic {
         }
     }
 
-    // 分数潜水启发式
-    public ArrayList<Integer> fractionalDiving(BitSet fracIdx) {
-        int minFracH = 0;
-        double minFrac = 1.0;
-        for (int h = fracIdx.nextSetBit(0); h >= 0; h = fracIdx.nextSetBit(h + 1)) {
-            double value = lpSol.vals.get(h).getValue();
-            if (Math.abs(value - 1.0) < minFrac) {
-                minFrac = Math.abs(value - 1.0);
-                minFracH = h;
-            }
-        }
-        return null;
-    }
-
+    /**
+     * 目标值导向潜水
+     * @param fracIdx 分数变量索引
+     * @return 返回待潜水变量的索引
+     */
     public ArrayList<Integer> aimDiving(BitSet fracIdx) {
         ArrayList<Integer> boundVarsIdx = new ArrayList<>();
         BitSet driverBit = new BitSet(nDrivers);
@@ -153,6 +159,10 @@ public class DivingHeuristic {
         return boundVarsIdx;
     }
 
+    /**
+     * 寻找整数和分数变量
+     * @return 返回一个二元组，第一个元素表示分数变量的数目，第二个元素是整数变量索引与分数变量索引数组
+     */
     public Pair<Integer, BitSet[]> setFixedAndFracIdx() {
         int nFrac = 0;
         ArrayList<Pair<Pattern, Double>> pairs = lpSol.vals;
@@ -170,11 +180,18 @@ public class DivingHeuristic {
         return new Pair<>(nFrac, new BitSet[]{fixedIdx, fracIdx});
     }
 
+    /**
+     * 获取松弛解的目标值
+     * @return 返回松弛解的目标值
+     */
     public double getObj() {
         return lpSol.objVal;
     }
 
-    // 获取可行解
+    /**
+     * 获取可行解
+     * @return 将松弛解LpSol转变为Solution
+     */
     public Solution getSol() {
         ArrayList<Pattern> patterns = new ArrayList<>();
         double cost = 0;

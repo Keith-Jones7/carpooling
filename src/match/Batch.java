@@ -30,7 +30,8 @@ public class Batch {
         try {
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file_name));
             String line;
-            while ((line = bufferedReader.readLine()) != null) {
+            int idx = 0;
+            while ((line = bufferedReader.readLine()) != null && idx <= Param.MAX_DRIVER_NUM) {
                 String[] strs = line.split(" ");
                 int ID = Integer.parseInt(strs[0]) - 1;
                 double lng = Double.parseDouble(strs[1]);
@@ -43,6 +44,7 @@ public class Batch {
                     driverMap.put(ID, driver);
                     driverList.add(driver);
                 }
+                idx++;
             }
         } catch (Exception e) {
             System.out.println("读取司机信息错误！");

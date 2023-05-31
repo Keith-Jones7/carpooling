@@ -11,17 +11,27 @@ import java.util.PriorityQueue;
 
 public class BranchAndBound {
 
-    public Instance inst;
-    public int nDrivers;
-    public int nPassengers;
-    public Solution bestSol;
+    /**
+     * 问题的基本信息
+     */
+    public Instance inst;                                    // 问题实例
+    public int nDrivers;                                     // 司机数量
+    public int nPassengers; // 乘客数量
+    public Solution bestSol;  // 保存最好的解
 
-    public RMP_SCIP rmp;
-    public RestrictMasterProblem rmpCplex;
-    public PricingProblem pp;
-    public DivingHeuristic divingHeur;
-    public ColumnGeneration cg;
+    /**
+     * 求解模块
+     */
+    public RMP_SCIP rmp;    // 主问题求解模块
+    public RestrictMasterProblem rmpCplex;    // cplex求解模块
+    public PricingProblem pp;   // 子问题求解模块
+    public DivingHeuristic divingHeur;  // 潜水启发式求解模块
+    public ColumnGeneration cg;   // 列生成求解模块
 
+    /**
+     * 列生成+潜水启发式算法的构造函数
+     * @param inst
+     */
     public BranchAndBound(Instance inst) {
         this.inst = inst;
         this.nDrivers = inst.nDrivers;
@@ -29,52 +39,49 @@ public class BranchAndBound {
         this.rmp = new RMP_SCIP(inst);
         this.rmpCplex = new RestrictMasterProblem(inst);
         this.pp = new PricingProblem(inst);
-        this.divingHeur = new DivingHeuristic(inst, rmp, rmpCplex, pp);
+        this.divingHeur = new DivingHeuristic(inst, rmp, pp);
         this.cg = new ColumnGeneration(inst, rmp, rmpCplex, pp);
         this.bestSol = new Solution();
     }
 
+    /**
+     * 运行函数
+     * MATCH_ALGO == 0 调用cplex求解函数solveCplex()
+     * MATCH_ALGO == 1 调用列生成+潜水启发式求解函数solve()
+     */
     public void run() {
         if (Param.MATCH_ALGO == 1) {
             bestSol = solve();
-//            bestSol = solveNew();
+            cg.end();
+
         } else {
             bestSol = solveCplex();
+            rmpCplex.end();
         }
 
     }
 
+    /**
+     * 列生成+潜水启发式求解函数
+     * @return 返回求解结果
+     */
     private Solution solve() {
         PriorityQueue<Pattern> poolPQ = new PriorityQueue<>(Comparator.comparing(o -> -o.aim));
-        ArrayList<Pattern> carPool = new ArrayList<>();
-        ArrayList<Pattern> totalPool = genAllPatterns(poolPQ, carPool);
+        ArrayList<Pattern> totalPool = genAllPatterns(poolPQ);
         // CG求解LP
         ArrayList<Pattern> pool = genInitPatternsGreedy(poolPQ);
-//        totalPool.removeAll(pool);
-        LPSol lpSol = cg.solve(totalPool, totalPool);
+        totalPool.removeAll(pool);
+        LPSol lpSol = cg.solve(pool, totalPool);
         return divingHeur.solve(lpSol, Integer.MAX_VALUE);
     }
 
-    private Solution solveNew() {
-        // 生成所有pattern
-        PriorityQueue<Pattern> carPoolPQ = new PriorityQueue<>(Comparator.comparing(o -> -o.aim));
-        ArrayList<Pattern> totalCarPool = new ArrayList<>();
-        ArrayList<Pattern> totalPool = genAllPatterns(carPoolPQ, totalCarPool);
-        // 生成初始pattern
-//        ArrayList<Pattern> pool = genInitCarPoolPatterns(carPoolPQ);
-//        totalCarPool.removeAll(pool);
-        // cg求解松弛解
-        LPSol lpSol = cg.solve(totalCarPool, totalCarPool);
-        // 潜水器启发式求解整数解
-        Solution carPoolSol = divingHeur.solve(lpSol, Integer.MAX_VALUE);
-        // km求解剩余整数解
-        return genFinalSol(carPoolSol, totalPool);
-    }
-
+    /**
+     * cplex求解函数
+     * @return 返回最优结果
+     */
     Solution solveCplex() {
         PriorityQueue<Pattern> poolPQ = new PriorityQueue<>(Comparator.comparing(o -> -o.aim));
-        ArrayList<Pattern> carPool = new ArrayList<>();
-        ArrayList<Pattern> pool = genAllPatterns(poolPQ, carPool);
+        ArrayList<Pattern> pool = genAllPatterns(poolPQ);
         try {
             rmpCplex.addColumns(pool);
             return rmpCplex.solveIP();
@@ -83,6 +90,11 @@ public class BranchAndBound {
         }
     }
 
+    /**
+     * 贪心算法构造初始解：每次从优先级队列中选择最好的方案加入初始解
+     * @param poolPQ 所有方案按照aim排序的优先级队列
+     * @return 返回生成的初始解
+     */
     public ArrayList<Pattern> genInitPatternsGreedy(PriorityQueue<Pattern> poolPQ) {
         ArrayList<Pattern> pool = new ArrayList<>();
 
@@ -112,174 +124,15 @@ public class BranchAndBound {
         return pool;
     }
 
-    public ArrayList<Pattern> genInitPatternsGreedyKM(PriorityQueue<Pattern> poolPQ) {
-        ArrayList<Pattern> pool = new ArrayList<>();
-
-        // greedy
-        BitSet passengerBit = new BitSet(nPassengers);
-        BitSet driverBit = new BitSet(nDrivers);
-        // 每次将拼车方案拿出来，直到遇到非拼车方案
-        while (poolPQ.size() > 0) {
-            Pattern pattern = poolPQ.peek();
-            if (pattern.passenger2Id == -1) {
-                break;
-            }
-            int driverIdx = pattern.driverIdx;
-            int passenger1Idx = pattern.passenger1Idx;
-            int passenger2Idx = pattern.passenger2Idx;
-            boolean driverAvailable = !driverBit.get(driverIdx);
-            boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
-            boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
-            if (driverAvailable && passenger1Available && passenger2Available) {
-                pool.add(pattern);
-                driverBit.set(pattern.driverIdx);
-                if (pattern.passenger1Idx >= 0) {
-                    passengerBit.set(pattern.passenger1Idx);
-                }
-                if (pattern.passenger2Idx >= 0) {
-                    passengerBit.set(pattern.passenger2Idx);
-                }
-            }
-            poolPQ.poll();
-        }
-        long s = System.currentTimeMillis();
-        // 将剩下的非拼车方案用KM求解
-        // 构建weight矩阵
-        double[][] weight = new double[nDrivers][nPassengers];
-        ArrayList<Pattern> singlePool = new ArrayList<>();
-        // Todo: 可优化
-        while (poolPQ.size() > 0) {
-            Pattern pattern = poolPQ.peek();
-            assert pattern.passenger2Id == -1;
-            int driverIdx = pattern.driverIdx;
-            int passenger1Idx = pattern.passenger1Idx;
-            boolean driverAvailable = !driverBit.get(driverIdx);
-            boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
-            if (driverAvailable && passenger1Available) {
-                weight[driverIdx][passenger1Idx] = pattern.aim;
-                singlePool.add(pattern);
-            }
-            poolPQ.poll();
-        }
-        long s1 = System.currentTimeMillis();
-        KMAlgorithm kmAlgo = new KMAlgorithm(weight);
-        int[][] matchMatrix = kmAlgo.getMatch();
-        double time1 = Param.getTimeCost(s1);
-        for (Pattern pattern : singlePool) {
-            int driverIdx = pattern.driverIdx;
-            int passenger1Idx = pattern.passenger1Idx;
-            if (matchMatrix[driverIdx][passenger1Idx] == 1) {
-                pool.add(pattern);
-            }
-        }
-        double time = Param.getTimeCost(s);
-        return pool;
-    }
-
-    public ArrayList<Pattern> genInitCarPoolPatterns(PriorityQueue<Pattern> poolPQ) {
-        ArrayList<Pattern> carPool = new ArrayList<>();
-
-        // greedy
-        BitSet passengerBit = new BitSet(nPassengers);
-        BitSet driverBit = new BitSet(nDrivers);
-        // 每次将拼车方案拿出来，直到遇到非拼车方案
-        while (poolPQ.size() > 0) {
-            Pattern pattern = poolPQ.peek();
-            if (pattern.passenger2Id == -1) {
-                break;
-            }
-            int driverIdx = pattern.driverIdx;
-            int passenger1Idx = pattern.passenger1Idx;
-            int passenger2Idx = pattern.passenger2Idx;
-            boolean driverAvailable = !driverBit.get(driverIdx);
-            boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
-            boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
-            if (driverAvailable && passenger1Available && passenger2Available) {
-                carPool.add(pattern);
-                driverBit.set(pattern.driverIdx);
-                if (pattern.passenger1Idx >= 0) {
-                    passengerBit.set(pattern.passenger1Idx);
-                }
-                if (pattern.passenger2Idx >= 0) {
-                    passengerBit.set(pattern.passenger2Idx);
-                }
-            }
-            poolPQ.poll();
-        }
-        return carPool;
-    }
-
-    public Solution genFinalSol(Solution carPoolSol, ArrayList<Pattern> totalPool) {
-        long s = System.currentTimeMillis();
-        ArrayList<Pattern> patterns = new ArrayList<>();
-        double profit = 0;
-        // greedy
-        BitSet passengerBit = new BitSet(nPassengers);
-        BitSet driverBit = new BitSet(nDrivers);
-        // 先将所有拼车方案导入最终解，并更新bit
-        for (Pattern pattern : carPoolSol.patterns) {
-            patterns.add(pattern);
-            profit += pattern.aim;
-            driverBit.set(pattern.driverIdx);
-            if (pattern.passenger1Idx >= 0) {
-                passengerBit.set(pattern.passenger1Idx);
-            }
-            if (pattern.passenger2Idx >= 0) {
-                passengerBit.set(pattern.passenger2Idx);
-            }
-        }
-        //
-        // 将剩下的非拼车方案用KM求解
-        // 构建weight矩阵
-        double[][] weight = new double[nDrivers][nPassengers];
-        ArrayList<Pattern> singlePool = new ArrayList<>();
-        for (Pattern pattern : totalPool) {
-            int driverIdx = pattern.driverIdx;
-            int passenger1Idx = pattern.passenger1Idx;
-            int passenger2Idx = pattern.passenger2Idx;
-            boolean driverAvailable = !driverBit.get(driverIdx);
-            boolean passenger1Available = passenger1Idx == -1 || !passengerBit.get(passenger1Idx);
-            boolean passenger2Available = passenger2Idx == -1 || !passengerBit.get(passenger2Idx);
-            if (driverAvailable && passenger1Available && passenger2Available) {
-                if (passenger1Idx >= 0) {
-                    weight[driverIdx][passenger1Idx] = pattern.aim;
-                } else {
-                    weight[driverIdx][passenger2Idx] = pattern.aim;
-                }
-
-                singlePool.add(pattern);
-            }
-        }
-
-
-        KMAlgorithm kmAlgo = new KMAlgorithm(weight);
-        int[][] matchMatrix = kmAlgo.getMatch();
-
-        for (Pattern pattern : singlePool) {
-            int driverIdx = pattern.driverIdx;
-            int passenger1Idx = pattern.passenger1Idx;
-            int passenger2Idx = pattern.passenger2Idx;
-            if (passenger1Idx >= 0) {
-                if (matchMatrix[driverIdx][passenger1Idx] == 1) {
-                    patterns.add(pattern);
-                    profit += pattern.aim;
-                }
-            } else {
-                if (matchMatrix[driverIdx][passenger2Idx] == 1) {
-                    patterns.add(pattern);
-                    profit += pattern.aim;
-                }
-            }
-
-        }
-        double timeCost = Param.getTimeCost(s);
-        return new Solution(patterns, profit);
-    }
-
-    public ArrayList<Pattern> genAllPatterns(PriorityQueue<Pattern> carPoolPQ, ArrayList<Pattern> carPool) {
+    /**
+     * 生成所有可行的方案，包括拼车和不拼车
+     * @param poolPQ 保存所有方案按照aim排序的优先级队列
+     * @return 返回所有的方案
+     */
+    public ArrayList<Pattern> genAllPatterns(PriorityQueue<Pattern> poolPQ) {
         long s = System.currentTimeMillis();
         ArrayList<Pattern> pool = new ArrayList<>();
-        // 一个乘客上车的方案
+        // 考虑一个乘客上车的方案，上空车或者载人车
         for (int j = 0; j < nPassengers; j++) {
             for (int i = 0; i < nDrivers; i++) {
                 Driver driver = inst.driverList.get(i);
@@ -294,6 +147,7 @@ public class BranchAndBound {
                         pattern1.setIdx(i, j, -1);
                         pattern1.setCur_time(inst.cur_time);
                         pool.add(pattern1);
+                        poolPQ.add(pattern1);
                     }
                 }
                 // 一个乘客上载人车
@@ -307,11 +161,12 @@ public class BranchAndBound {
                         pattern2.setIdx(i, -1, j);
                         pattern2.setCur_time(inst.cur_time);
                         pool.add(pattern2);
+                        poolPQ.add(pattern2);
                     }
                 }
             }
         }
-        // 两个乘客上车方案
+        // 考虑两个乘客上车方案
         if (inst.match_flag >= 2) {
             for (int j1 = 0; j1 < nPassengers; j1++) {
                 for (int j2 = j1 + 1; j2 < nPassengers; j2++) {
@@ -321,7 +176,7 @@ public class BranchAndBound {
                     double etaAim12 = inst.ppTimeMatrix[j1][j2];
                     double etaAim21 = inst.ppTimeMatrix[j2][j1];
                     if (sameAim12 > 0 && (sameAim12 <= sameAim21 || sameAim21 == 0) && etaAim12 <= Param.MAX_ETA2) {
-                        // 以12为准
+                        // 乘客按照12顺序上车的方案
                         for (int i = 0; i < nDrivers; i++) {
                             if (inst.driverList.get(i).queue.size() == 0) {
                                 double etaAim1 = inst.dpTimeMatrix[i][j1];
@@ -332,13 +187,12 @@ public class BranchAndBound {
                                     pattern2.setIdx(i, j1, j2);
                                     pattern2.setCur_time(inst.cur_time);
                                     pool.add(pattern2);
-//                                    carPoolPQ.add(pattern2);
-                                    carPool.add(pattern2);
+                                    poolPQ.add(pattern2);
                                 }
                             }
                         }
                     } else if ((sameAim21 > 0) && (sameAim21 < sameAim12 || sameAim12 == 0) && etaAim21 <= Param.MAX_ETA2) {
-                        // 以21为准
+                        // 乘客按照21顺序上车的方案
                         for (int i = 0; i < nDrivers; i++) {
                             if (inst.driverList.get(i).queue.size() == 0) {
                                 double etaAim1 = inst.dpTimeMatrix[i][j2];
@@ -349,8 +203,7 @@ public class BranchAndBound {
                                     pattern2.setIdx(i, j2, j1);
                                     pattern2.setCur_time(inst.cur_time);
                                     pool.add(pattern2);
-//                                    carPoolPQ.add(pattern2);
-                                    carPool.add(pattern2);
+                                    poolPQ.add(pattern2);
                                 }
                             }
                         }

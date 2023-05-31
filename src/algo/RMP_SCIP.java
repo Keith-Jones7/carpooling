@@ -15,25 +15,39 @@ import java.util.ArrayList;
 import java.util.BitSet;
 
 public class RMP_SCIP {
-    // final param
-    private final int intMax = Integer.MAX_VALUE;
-    private final double infinity = 1e8;
-    private final double bigM = 1e8;
-    // instance
-    Instance inst;
-    int nPassengers;
-    int nDrivers;
-    // ortools
-    MPSolver solver;
-    MPObjective obj;
-    MPConstraint[] ranges;
-    ArrayList<MPVariable> x;
-    MPVariable[] artificialVars;
-    ArrayList<Pattern> pool;
-    // diving heuristic
-    BitSet fixedDrivers;
-    BitSet fixedPassengers;
+    /**
+     * 问题信息
+     */
+    Instance inst;     // 问题实例
+    int nPassengers;    // 乘客数量
+    int nDrivers;   // 司机数量
 
+    /**
+     * ortools求解相关信息
+     */
+    MPSolver solver;   // ortools环境
+    MPObjective obj;    // 目标
+    MPConstraint[] ranges;    // 约束
+    ArrayList<MPVariable> x;    // 变量
+    MPVariable[] artificialVars;    // 虚拟变量
+    ArrayList<Pattern> pool;    // 所有方案集合
+
+    /**
+     * 潜水启发式相关信息
+     */
+    BitSet fixedDrivers;          // 潜水固定的司机索引
+    BitSet fixedPassengers;      // 潜水固定的乘客索引
+
+    /**
+     * 固定参数
+     */
+    private final double infinity = 1e8;     // ortools中Double最大值
+    private final double bigM = 1e8;     // 虚拟变量惩罚系数
+
+    /**
+     * 构造函数
+     * @param inst
+     */
     public RMP_SCIP(Instance inst) {
         this.inst = inst;
         this.nPassengers = inst.nPassengers;
@@ -43,6 +57,9 @@ public class RMP_SCIP {
         formulate();
     }
 
+    /**
+     * 建立集合划分模型
+     */
     void formulate() {
         // init
         Loader.loadNativeLibraries();
@@ -68,6 +85,9 @@ public class RMP_SCIP {
         addArtificialVariable();
     }
 
+    /**
+     * 添加虚拟变量
+     */
     void addArtificialVariable() {
         artificialVars = new MPVariable[nDrivers + nPassengers];
         // artificial var added in the constraints(1)
@@ -86,6 +106,11 @@ public class RMP_SCIP {
         }
     }
 
+    /**
+     * 应用潜水启发式得到的潜水变量
+     * @param fixedIdx 潜水变量索引
+     * @param vals 当前松弛解
+     */
     public void setDiving(BitSet fixedIdx, ArrayList<Pair<Pattern, Double>> vals) {
         for (int h = fixedIdx.nextSetBit(0); h >= 0; h = fixedIdx.nextSetBit(h + 1)) {
             Pair<Pattern, Double> val = vals.get(h);
@@ -102,16 +127,10 @@ public class RMP_SCIP {
         }
     }
 
-    public void recoverDiving(BitSet fixedIdx, ArrayList<Pair<Pattern, Double>> vals) {
-        fixedDrivers = new BitSet(nDrivers);
-        fixedPassengers = new BitSet(nPassengers);
-        for (int h = fixedIdx.nextSetBit(0); h >= 0; h = fixedIdx.nextSetBit(h + 1)) {
-            Pair<Pattern, Double> val = vals.get(h);
-            MPVariable var = val.getKey().var;
-            var.setBounds(0, infinity);
-        }
-    }
-
+    /**
+     * 添加列变量
+     * @param patterns 待添加的方案
+     */
     void addColumns(ArrayList<Pattern> patterns) {
         for (Pattern pattern : patterns) {
             // 测试：不能在pool中加入重复pattern
@@ -138,6 +157,10 @@ public class RMP_SCIP {
         }
     }
 
+    /**
+     * 求解线性规划模型
+     * @return 返回线性松弛解
+     */
     LPSol solveLP() {
 //        MPSolverParameters parameters = new MPSolverParameters();
 //        parameters.setIntegerParam(MPSolverParameters.IntegerParam.LP_ALGORITHM, 10);
@@ -145,7 +168,10 @@ public class RMP_SCIP {
         return getLPSol();
     }
 
-    // 求解整数规划
+    /**
+     * 求解整数规划
+     * @return 返回整数最优解
+     */
     Solution solveIP() {
 //        MPSolverParameters parameters = new MPSolverParameters();
 //        parameters.setIntegerParam(MPSolverParameters.IntegerParam.LP_ALGORITHM, 11);
@@ -155,21 +181,28 @@ public class RMP_SCIP {
         return getIPSol();
     }
 
-    // 转变为整数规划
+    /**
+     * 转变为整数规划
+     */
     private void convertToIP() {
         for (MPVariable var : x) {
             var.setInteger(true);
         }
     }
 
-    // 转变为线性规划
+    /**
+     * 转变为线性规划
+     */
     private void convertToLP() {
         for (MPVariable var : x) {
             var.setInteger(false);
         }
     }
 
-    // model feasible only when all artificial vars are 0
+    /**
+     * 判断模型是否可行：当且仅当所有虚拟变量取值均为0的时候模型可行
+     * @return 返回是否可行
+     */
     boolean isModelFeasible() {
         // check artificial on drivers
         for (int i = 0; i < nDrivers; i++) {
@@ -188,7 +221,10 @@ public class RMP_SCIP {
         return true;
     }
 
-    // 获取对偶变量
+    /**
+     * 获取对偶变量
+     * @return 返回对偶变量
+     */
     double[] getDualsOfRanges() {
         double[] dualsOfRanges = new double[nDrivers + nPassengers];
         for (int i = 0; i < nDrivers + nPassengers; i++) {
@@ -197,12 +233,18 @@ public class RMP_SCIP {
         return dualsOfRanges;
     }
 
-    // 获取最优目标值
+    /**
+     * 获取最优目标值
+     * @return 返回目标值
+     */
     double getObjVal() {
         return obj.value();
     }
 
-    // 获取线性规划解
+    /**
+     * 获取线性规划解
+     * @return 返回线性松弛解
+     */
     LPSol getLPSol() {
         double objVal = obj.value();
         ArrayList<Pair<Pattern, Double>> vals = new ArrayList<>();
@@ -216,7 +258,10 @@ public class RMP_SCIP {
         return new LPSol(vals, objVal);
     }
 
-    // 获取整数规划解
+    /**
+     * 获取整数规划解
+     * @return 返回整数最优解
+     */
     Solution getIPSol() {
         double objVal = obj.value();
         Solution sol = new Solution();
@@ -231,7 +276,9 @@ public class RMP_SCIP {
         return sol;
     }
 
-    // 求解结束
+    /**
+     * 求解结束
+     */
     void end() {
         solver.clear();
     }

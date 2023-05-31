@@ -3,34 +3,41 @@ package algo;
 import common.Param;
 import ilog.concert.*;
 import ilog.cplex.IloCplex;
-import javafx.util.Pair;
 import model.Instance;
 import model.Pattern;
 import model.Solution;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 
 public class RestrictMasterProblem {
-    // final param
-    private final int IloIntMax = Integer.MAX_VALUE;
-    private final double IloInfinity = Double.MAX_VALUE;
-    private final double bigM = 1e8;
-    // instance
-    Instance inst;
-    int nPassengers;
-    int nDrivers;
-    // cplex
-    IloCplex cplex;
-    IloObjective obj;
-    IloRange[] ranges;
-    ArrayList<IloNumVar> x;
-    ArrayList<IloConversion> xConv;
-    IloNumVar[] artificialVars;
-    ArrayList<Pattern> pool;
-    // diving heuristic
-    BitSet fixedItems;
+    /**
+     * 问题信息
+     */
+    Instance inst;     // 问题实例
+    int nPassengers;    // 乘客数量
+    int nDrivers;   // 司机数量
 
+    /**
+     * cplex求解相关信息
+     */
+    IloCplex cplex;     // cplex环境
+    IloObjective obj;   // 目标
+    IloRange[] ranges;   // 约束
+    ArrayList<IloNumVar> x;   // 变量
+    ArrayList<IloConversion> xConv;   // 转换变量
+    IloNumVar[] artificialVars;   // 虚拟变量
+    ArrayList<Pattern> pool;   // 所有方案集合
+
+    /**
+     * 固定参数
+     */
+    private final double IloInfinity = Double.MAX_VALUE;     // cplex中Double最大值
+    private final double bigM = 1e8;   // 虚拟变量惩罚系数
+
+    /**
+     * 构造函数
+     * @param inst
+     */
     public RestrictMasterProblem(Instance inst) {
         this.inst = inst;
         this.nPassengers = inst.nPassengers;
@@ -42,7 +49,9 @@ public class RestrictMasterProblem {
         }
     }
 
-    // 建立模型
+    /**
+     * 建立集合划分模型
+     */
     void formulate() throws IloException {
         cplex = new IloCplex();
         x = new ArrayList<>();
@@ -69,7 +78,9 @@ public class RestrictMasterProblem {
         cplex.setParam(IloCplex.IntParam.RootAlgorithm, IloCplex.Algorithm.Primal);
     }
 
-    // 添加虚拟变量
+    /**
+     * 添加虚拟变量
+     */
     void addArtificialVariables() throws IloException {
         artificialVars = new IloNumVar[nDrivers + nPassengers];
         // artificial var added in the constraints(1)
@@ -86,25 +97,12 @@ public class RestrictMasterProblem {
         }
     }
 
-    // 设置属性
-    void set() {
-
-    }
-
-    // 设置潜水启发式
-    void setDiving() {
-
-    }
-
-    // 移除潜水启发式
-    void recoverDiving() {
-
-    }
-
-    // 添加列变量
+    /**
+     * 添加列变量
+     * @param patterns 待添加的方案
+     */
     void addColumns(ArrayList<Pattern> patterns) throws IloException {
         for (Pattern pattern : patterns) {
-            int size = pool.size();
             pool.add(pattern);
             // add columns and vars
             IloColumn col = cplex.column(obj, pattern.aim);
@@ -125,34 +123,10 @@ public class RestrictMasterProblem {
         }
     }
 
-    void removeInvalidRanges(ArrayList<Pattern> allPatterns) throws IloException {
-        int[] validRangesIdx = new int[nDrivers + nPassengers];
-        IloRange[] removeRanges = new IloRange[nDrivers + nPassengers];
-        for (Pattern pattern : allPatterns) {
-            if (pattern.driverIdx >= 0) {
-                validRangesIdx[pattern.driverIdx] = 1;
-            }
-            if (pattern.passenger1Idx >= 0) {
-                validRangesIdx[nDrivers + pattern.passenger1Idx] = 1;
-            }
-            if (pattern.passenger2Idx >= 0) {
-                validRangesIdx[nDrivers + pattern.passenger2Idx] = 1;
-            }
-        }
-        for (int i = 0; i < nDrivers + nPassengers; i++) {
-            if (validRangesIdx[i] == 0) {
-                removeRanges[i] = ranges[i];
-            }
-        }
-        cplex.remove(removeRanges);
-    }
-
-    // 求解线性规划
-    void solveLP() throws IloException {
-        boolean feasible = cplex.solve();
-    }
-
-    // 求解整数规划
+    /**
+     * 求解整数规划
+     * @return 返回整数最优解
+     */
     Solution solveIP() throws IloException {
         Solution sol = null;
         convertToIP();
@@ -165,7 +139,9 @@ public class RestrictMasterProblem {
         return sol;
     }
 
-    // 转变为线性规划
+    /**
+     * 转变为线性规划
+     */
     private void convertToIP() {
         try {
             for (IloNumVar iloNumVar : x) {
@@ -178,7 +154,9 @@ public class RestrictMasterProblem {
         }
     }
 
-    // 转变为整数规划
+    /**
+     * 转变为整数规划
+     */
     private void convertToLP() {
         try {
             for (IloConversion iloConversion : xConv) {
@@ -190,12 +168,10 @@ public class RestrictMasterProblem {
         }
     }
 
-    // 获取对偶变量
-    double[] getDualsOfRanges() throws IloException {
-        return cplex.getDuals(ranges);
-    }
-
-    // model feasible only when all artificial vars are 0
+    /**
+     * 判断模型是否可行：当且仅当所有虚拟变量取值均为0的时候模型可行
+     * @return 返回是否可行
+     */
     boolean isModelFeasible() throws IloException {
         // check artificial on drivers
         for (int i = 0; i < nDrivers; i++) {
@@ -214,26 +190,10 @@ public class RestrictMasterProblem {
         return true;
     }
 
-    // 获取最优目标值
-    double getObjVal() throws IloException {
-        return cplex.getObjValue();
-    }
-
-    // 获取线性规划解
-    LPSol getLPSol() throws IloException {
-        double objVal = cplex.getObjValue();
-        ArrayList<Pair<Pattern, Double>> vals = new ArrayList<>();
-        for (int p = 0; p < pool.size(); p++) {
-            Pattern pattern = pool.get(p);
-            double val = cplex.getValue(x.get(p));
-            if (val > Param.EPS) {
-                vals.add(new Pair<>(pattern, val));
-            }
-        }
-        return new LPSol(vals, objVal);
-    }
-
-    // 获取整数规划解
+    /**
+     * 获取整数规划解
+     * @return 返回整数最优解
+     */
     Solution getIPSol() throws IloException {
         double objVal = cplex.getObjValue();
         Solution sol = new Solution();
@@ -248,7 +208,9 @@ public class RestrictMasterProblem {
         return sol;
     }
 
-    // 求解结束
+    /**
+     * 求解结束
+     */
     void end() {
         cplex.end();
     }
