@@ -186,9 +186,9 @@ public class Match {
                         same2 = Param.touringMap.calSimilarity(passenger2, passenger1);
                     }
                     if (same1 > 0 && (same2 >= same1 || same2 == 0)) {
-                        ppMatchMatrix[j][jj] = (1 - eta2 / Param.MAX_ETA2 + same1 + Param.samePlus);
+                        ppMatchMatrix[j][jj] = (same1 + Param.samePlus);
                     } else if (same2 > 0 && (same1 > same2 || same1 == 0)) {
-                        ppMatchMatrix[jj][j] = (1 - eta2 / Param.MAX_ETA2 + same2 + Param.samePlus);
+                        ppMatchMatrix[jj][j] = (same2 + Param.samePlus);
                     }
                 }
             }

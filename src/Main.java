@@ -31,12 +31,12 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Param.COUNT = 0;
         Param.setMapChoose(0);
-        runSample(50, 2);
-//        int[] arr = new int[]{1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 30, 50, 60, 80, 100, 120, 150, 200, 240, 300, 400, 600, 1200};
-//        for(int i = 0; i < arr.length; i++) {
-//            Param.MAX_TIME = arr[i];
-//            testSpeed(2);
-//        }
+//        runSample(120, 2);
+        int[] arr = new int[]{1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 30, 50, 60, 80, 100, 120, 150, 200, 240, 300, 400, 600, 1200};
+        for(int i = 0; i < arr.length; i++) {
+            Param.MAX_TIME = arr[i];
+            testSpeed(2);
+        }
         //System.out.println(Param.COUNT);
     }
     public static void test() throws Exception {
